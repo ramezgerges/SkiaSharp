@@ -60,6 +60,8 @@ namespace SkiaSharp
 		Srgba8888 = 22,
 		R8Unorm = 23,
 		Rgba10x6 = 24,
+		Bgra10101010Xr = 25,
+		RgbF16F16F16x = 26,
 	}
 
 	public static partial class SkiaExtensions
@@ -548,6 +550,8 @@ namespace SkiaSharp
 			fICCProfile = default;
 			fICCProfileDescription = default;
 			xmpMetadata = default;
+			fOrigin = default;
+			fHasOrigin = default;
 
 			fQuality = quality;
 			fDownsample = SKJpegEncoderDownsample.Downsample420;
@@ -559,6 +563,8 @@ namespace SkiaSharp
 			fICCProfile = default;
 			fICCProfileDescription = default;
 			xmpMetadata = default;
+			fOrigin = default;
+			fHasOrigin = default;
 
 			fQuality = quality;
 			fDownsample = downsample;

@@ -19190,6 +19190,12 @@ namespace SkiaSharp {
 		// public const char* fICCProfileDescription
 		private readonly /* char */ void* fICCProfileDescription;
 
+		// public int32_t fOrigin (SkEncodedOrigin value, 0 = not set)
+		private readonly Int32 fOrigin;
+
+		// public bool fHasOrigin
+		private readonly Byte fHasOrigin;
+
 		public readonly bool Equals (SKJpegEncoderOptions obj) =>
 #pragma warning disable CS8909
 			fQuality == obj.fQuality && fDownsample == obj.fDownsample && fAlphaOption == obj.fAlphaOption && xmpMetadata == obj.xmpMetadata && fICCProfile == obj.fICCProfile && fICCProfileDescription == obj.fICCProfileDescription;
@@ -20565,32 +20571,36 @@ namespace SkiaSharp {
 		Bgr101010x = 10,
 		// BGR_101010X_XR_SK_COLORTYPE = 11
 		Bgr101010xXr = 11,
-		// RGBA_10X6_SK_COLORTYPE = 12
-		Rgba10x6 = 12,
-		// GRAY_8_SK_COLORTYPE = 13
-		Gray8 = 13,
-		// RGBA_F16_NORM_SK_COLORTYPE = 14
-		RgbaF16Norm = 14,
-		// RGBA_F16_SK_COLORTYPE = 15
-		RgbaF16 = 15,
-		// RGBA_F32_SK_COLORTYPE = 16
-		RgbaF32 = 16,
-		// R8G8_UNORM_SK_COLORTYPE = 17
-		R8g8Unorm = 17,
-		// A16_FLOAT_SK_COLORTYPE = 18
-		A16Float = 18,
-		// R16G16_FLOAT_SK_COLORTYPE = 19
-		R16g16Float = 19,
-		// A16_UNORM_SK_COLORTYPE = 20
-		A16Unorm = 20,
-		// R16G16_UNORM_SK_COLORTYPE = 21
-		R16g16Unorm = 21,
-		// R16G16B16A16_UNORM_SK_COLORTYPE = 22
-		R16g16b16a16Unorm = 22,
-		// SRGBA_8888_SK_COLORTYPE = 23
-		Srgba8888 = 23,
-		// R8_UNORM_SK_COLORTYPE = 24
-		R8Unorm = 24,
+		// BGRA_10101010_XR_SK_COLORTYPE = 12 (NEW in m132)
+		Bgra10101010Xr = 12,
+		// RGBA_10X6_SK_COLORTYPE = 13
+		Rgba10x6 = 13,
+		// GRAY_8_SK_COLORTYPE = 14
+		Gray8 = 14,
+		// RGBA_F16_NORM_SK_COLORTYPE = 15
+		RgbaF16Norm = 15,
+		// RGBA_F16_SK_COLORTYPE = 16
+		RgbaF16 = 16,
+		// RGB_F16F16F16X_SK_COLORTYPE = 17 (NEW in m132)
+		RgbF16F16F16x = 17,
+		// RGBA_F32_SK_COLORTYPE = 18
+		RgbaF32 = 18,
+		// R8G8_UNORM_SK_COLORTYPE = 19
+		R8g8Unorm = 19,
+		// A16_FLOAT_SK_COLORTYPE = 20
+		A16Float = 20,
+		// R16G16_FLOAT_SK_COLORTYPE = 21
+		R16g16Float = 21,
+		// A16_UNORM_SK_COLORTYPE = 22
+		A16Unorm = 22,
+		// R16G16_UNORM_SK_COLORTYPE = 23
+		R16g16Unorm = 23,
+		// R16G16B16A16_UNORM_SK_COLORTYPE = 24
+		R16g16b16a16Unorm = 24,
+		// SRGBA_8888_SK_COLORTYPE = 25
+		Srgba8888 = 25,
+		// R8_UNORM_SK_COLORTYPE = 26
+		R8Unorm = 26,
 	}
 
 	// sk_encoded_image_format_t
