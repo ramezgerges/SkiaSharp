@@ -17929,23 +17929,11 @@ namespace SkiaSharp {
 		// public uint32_t fGraphicsQueueIndex
 		public UInt32 fGraphicsQueueIndex;
 
-		// public uint32_t fMinAPIVersion
-		public UInt32 fMinAPIVersion;
-
-		// public uint32_t fInstanceVersion
-		public UInt32 fInstanceVersion;
-
 		// public uint32_t fMaxAPIVersion
 		public UInt32 fMaxAPIVersion;
 
-		// public uint32_t fExtensions
-		public UInt32 fExtensions;
-
 		// public const gr_vk_extensions_t* fVkExtensions
 		public gr_vk_extensions_t fVkExtensions;
-
-		// public uint32_t fFeatures
-		public UInt32 fFeatures;
 
 		// public const vk_physical_device_features_t* fDeviceFeatures
 		public vk_physical_device_features_t fDeviceFeatures;
@@ -17966,15 +17954,12 @@ namespace SkiaSharp {
 		// public void* fGetProcUserData
 		public void* fGetProcUserData;
 
-		// public bool fOwnsInstanceAndDevice
-		public Byte fOwnsInstanceAndDevice;
-
 		// public bool fProtectedContext
 		public Byte fProtectedContext;
 
 		public readonly bool Equals (GRVkBackendContextNative obj) =>
 #pragma warning disable CS8909
-			fInstance == obj.fInstance && fPhysicalDevice == obj.fPhysicalDevice && fDevice == obj.fDevice && fQueue == obj.fQueue && fGraphicsQueueIndex == obj.fGraphicsQueueIndex && fMinAPIVersion == obj.fMinAPIVersion && fInstanceVersion == obj.fInstanceVersion && fMaxAPIVersion == obj.fMaxAPIVersion && fExtensions == obj.fExtensions && fVkExtensions == obj.fVkExtensions && fFeatures == obj.fFeatures && fDeviceFeatures == obj.fDeviceFeatures && fDeviceFeatures2 == obj.fDeviceFeatures2 && fMemoryAllocator == obj.fMemoryAllocator && fGetProc == obj.fGetProc && fGetProcUserData == obj.fGetProcUserData && fOwnsInstanceAndDevice == obj.fOwnsInstanceAndDevice && fProtectedContext == obj.fProtectedContext;
+			fInstance == obj.fInstance && fPhysicalDevice == obj.fPhysicalDevice && fDevice == obj.fDevice && fQueue == obj.fQueue && fGraphicsQueueIndex == obj.fGraphicsQueueIndex && fMaxAPIVersion == obj.fMaxAPIVersion && fVkExtensions == obj.fVkExtensions && fDeviceFeatures == obj.fDeviceFeatures && fDeviceFeatures2 == obj.fDeviceFeatures2 && fMemoryAllocator == obj.fMemoryAllocator && fGetProc == obj.fGetProc && fGetProcUserData == obj.fGetProcUserData && fProtectedContext == obj.fProtectedContext;
 #pragma warning restore CS8909
 
 		public readonly override bool Equals (object obj) =>
@@ -17994,18 +17979,13 @@ namespace SkiaSharp {
 			hash.Add (fDevice);
 			hash.Add (fQueue);
 			hash.Add (fGraphicsQueueIndex);
-			hash.Add (fMinAPIVersion);
-			hash.Add (fInstanceVersion);
 			hash.Add (fMaxAPIVersion);
-			hash.Add (fExtensions);
 			hash.Add (fVkExtensions);
-			hash.Add (fFeatures);
 			hash.Add (fDeviceFeatures);
 			hash.Add (fDeviceFeatures2);
 			hash.Add (fMemoryAllocator);
 			hash.Add (fGetProc);
 			hash.Add (fGetProcUserData);
-			hash.Add (fOwnsInstanceAndDevice);
 			hash.Add (fProtectedContext);
 			return hash.ToHashCode ();
 		}
@@ -18199,9 +18179,34 @@ namespace SkiaSharp {
 			set => fFormatFeatures = value;
 		}
 
+		// public struct { uint32_t r, g, b, a } fComponents (VkComponentMapping)
+		private UInt32 fComponentsR;
+		public UInt32 ComponentsR {
+			readonly get => fComponentsR;
+			set => fComponentsR = value;
+		}
+
+		private UInt32 fComponentsG;
+		public UInt32 ComponentsG {
+			readonly get => fComponentsG;
+			set => fComponentsG = value;
+		}
+
+		private UInt32 fComponentsB;
+		public UInt32 ComponentsB {
+			readonly get => fComponentsB;
+			set => fComponentsB = value;
+		}
+
+		private UInt32 fComponentsA;
+		public UInt32 ComponentsA {
+			readonly get => fComponentsA;
+			set => fComponentsA = value;
+		}
+
 		public readonly bool Equals (GrVkYcbcrConversionInfo obj) =>
 #pragma warning disable CS8909
-			fFormat == obj.fFormat && fExternalFormat == obj.fExternalFormat && fYcbcrModel == obj.fYcbcrModel && fYcbcrRange == obj.fYcbcrRange && fXChromaOffset == obj.fXChromaOffset && fYChromaOffset == obj.fYChromaOffset && fChromaFilter == obj.fChromaFilter && fForceExplicitReconstruction == obj.fForceExplicitReconstruction && fFormatFeatures == obj.fFormatFeatures;
+			fFormat == obj.fFormat && fExternalFormat == obj.fExternalFormat && fYcbcrModel == obj.fYcbcrModel && fYcbcrRange == obj.fYcbcrRange && fXChromaOffset == obj.fXChromaOffset && fYChromaOffset == obj.fYChromaOffset && fChromaFilter == obj.fChromaFilter && fForceExplicitReconstruction == obj.fForceExplicitReconstruction && fFormatFeatures == obj.fFormatFeatures && fComponentsR == obj.fComponentsR && fComponentsG == obj.fComponentsG && fComponentsB == obj.fComponentsB && fComponentsA == obj.fComponentsA;
 #pragma warning restore CS8909
 
 		public readonly override bool Equals (object obj) =>
@@ -18225,6 +18230,10 @@ namespace SkiaSharp {
 			hash.Add (fChromaFilter);
 			hash.Add (fForceExplicitReconstruction);
 			hash.Add (fFormatFeatures);
+			hash.Add (fComponentsR);
+			hash.Add (fComponentsG);
+			hash.Add (fComponentsB);
+			hash.Add (fComponentsA);
 			return hash.ToHashCode ();
 		}
 
