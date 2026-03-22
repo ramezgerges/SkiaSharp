@@ -22,6 +22,9 @@ using gr_glinterface_t = System.IntPtr;
 using gr_recording_context_t = System.IntPtr;
 using gr_vk_extensions_t = System.IntPtr;
 using gr_vk_memory_allocator_t = System.IntPtr;
+using graphite_context_t = System.IntPtr;
+using graphite_recorder_t = System.IntPtr;
+using graphite_recording_t = System.IntPtr;
 using gr_vkinterface_t = System.IntPtr;
 using sk_bbh_factory_t = System.IntPtr;
 using sk_bitmap_t = System.IntPtr;
@@ -17391,6 +17394,109 @@ namespace SkiaSharp
 		private static Delegates.sk_managedtracememorydump_set_procs sk_managedtracememorydump_set_procs_delegate;
 		internal static void sk_managedtracememorydump_set_procs (SKManagedTraceMemoryDumpDelegates procs) =>
 			(sk_managedtracememorydump_set_procs_delegate ??= GetSymbol<Delegates.sk_managedtracememorydump_set_procs> ("sk_managedtracememorydump_set_procs")).Invoke (procs);
+		#endif
+
+		#endregion
+
+		#region Graphite
+
+		// graphite_context_t* graphite_context_make_vulkan(const gr_vk_backendcontext_t* vkBackendContext)
+		#if !USE_DELEGATES
+		[DllImport (SKIA, CallingConvention = CallingConvention.Cdecl)]
+		internal static extern graphite_context_t graphite_context_make_vulkan (GRVkBackendContextNative* vkBackendContext);
+		#endif
+
+		// graphite_context_t* graphite_context_make_vulkan_with_options(...)
+		#if !USE_DELEGATES
+		[DllImport (SKIA, CallingConvention = CallingConvention.Cdecl)]
+		internal static extern graphite_context_t graphite_context_make_vulkan_with_options (GRVkBackendContextNative* vkBackendContext, GraphiteContextOptionsNative* options);
+		#endif
+
+		// void graphite_context_unref(graphite_context_t* context)
+		#if !USE_DELEGATES
+		[DllImport (SKIA, CallingConvention = CallingConvention.Cdecl)]
+		internal static extern void graphite_context_unref (graphite_context_t context);
+		#endif
+
+		// bool graphite_context_is_device_lost(graphite_context_t* context)
+		#if !USE_DELEGATES
+		[DllImport (SKIA, CallingConvention = CallingConvention.Cdecl)]
+		[return: MarshalAs (UnmanagedType.I1)]
+		internal static extern bool graphite_context_is_device_lost (graphite_context_t context);
+		#endif
+
+		// int graphite_context_max_texture_size(graphite_context_t* context)
+		#if !USE_DELEGATES
+		[DllImport (SKIA, CallingConvention = CallingConvention.Cdecl)]
+		internal static extern int graphite_context_max_texture_size (graphite_context_t context);
+		#endif
+
+		// bool graphite_context_insert_recording(graphite_context_t* context, graphite_recording_t* recording)
+		#if !USE_DELEGATES
+		[DllImport (SKIA, CallingConvention = CallingConvention.Cdecl)]
+		[return: MarshalAs (UnmanagedType.I1)]
+		internal static extern bool graphite_context_insert_recording (graphite_context_t context, graphite_recording_t recording);
+		#endif
+
+		// bool graphite_context_submit(graphite_context_t* context, bool syncToCpu)
+		#if !USE_DELEGATES
+		[DllImport (SKIA, CallingConvention = CallingConvention.Cdecl)]
+		[return: MarshalAs (UnmanagedType.I1)]
+		internal static extern bool graphite_context_submit (graphite_context_t context, [MarshalAs (UnmanagedType.I1)] bool syncToCpu);
+		#endif
+
+		// void graphite_context_free_gpu_resources(graphite_context_t* context)
+		#if !USE_DELEGATES
+		[DllImport (SKIA, CallingConvention = CallingConvention.Cdecl)]
+		internal static extern void graphite_context_free_gpu_resources (graphite_context_t context);
+		#endif
+
+		// size_t graphite_context_current_budgeted_bytes(graphite_context_t* context)
+		#if !USE_DELEGATES
+		[DllImport (SKIA, CallingConvention = CallingConvention.Cdecl)]
+		internal static extern /* size_t */ IntPtr graphite_context_current_budgeted_bytes (graphite_context_t context);
+		#endif
+
+		// size_t graphite_context_max_budgeted_bytes(graphite_context_t* context)
+		#if !USE_DELEGATES
+		[DllImport (SKIA, CallingConvention = CallingConvention.Cdecl)]
+		internal static extern /* size_t */ IntPtr graphite_context_max_budgeted_bytes (graphite_context_t context);
+		#endif
+
+		// graphite_recorder_t* graphite_context_make_recorder(graphite_context_t* context)
+		#if !USE_DELEGATES
+		[DllImport (SKIA, CallingConvention = CallingConvention.Cdecl)]
+		internal static extern graphite_recorder_t graphite_context_make_recorder (graphite_context_t context);
+		#endif
+
+		// sk_surface_t* graphite_recorder_make_render_target(...)
+		#if !USE_DELEGATES
+		[DllImport (SKIA, CallingConvention = CallingConvention.Cdecl)]
+		internal static extern sk_surface_t graphite_recorder_make_render_target (graphite_recorder_t recorder, SKImageInfoNative* imageInfo, [MarshalAs (UnmanagedType.I1)] bool mipmapped);
+		#endif
+
+		// graphite_recording_t* graphite_recorder_snap(graphite_recorder_t* recorder)
+		#if !USE_DELEGATES
+		[DllImport (SKIA, CallingConvention = CallingConvention.Cdecl)]
+		internal static extern graphite_recording_t graphite_recorder_snap (graphite_recorder_t recorder);
+		#endif
+
+		// void graphite_recorder_unref(graphite_recorder_t* recorder)
+		#if !USE_DELEGATES
+		[DllImport (SKIA, CallingConvention = CallingConvention.Cdecl)]
+		internal static extern void graphite_recorder_unref (graphite_recorder_t recorder);
+		#endif
+
+		// void graphite_recorder_free_gpu_resources(graphite_recorder_t* recorder)
+		#if !USE_DELEGATES
+		[DllImport (SKIA, CallingConvention = CallingConvention.Cdecl)]
+		internal static extern void graphite_recorder_free_gpu_resources (graphite_recorder_t recorder);
+		#endif
+
+		// void graphite_recording_unref(graphite_recording_t* recording)
+		#if !USE_DELEGATES
+		[DllImport (SKIA, CallingConvention = CallingConvention.Cdecl)]
+		internal static extern void graphite_recording_unref (graphite_recording_t recording);
 		#endif
 
 		#endregion

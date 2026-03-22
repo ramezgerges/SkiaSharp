@@ -9,6 +9,9 @@ bool SUPPORT_GPU = SUPPORT_GPU_VAR == "1" || SUPPORT_GPU_VAR == "true";
 string SUPPORT_VULKAN_VAR = Argument("supportVulkan", EnvironmentVariable("SUPPORT_VULKAN") ?? "true");
 bool SUPPORT_VULKAN = SUPPORT_VULKAN_VAR == "1" || SUPPORT_VULKAN_VAR.ToLower() == "true";
 
+string SUPPORT_GRAPHITE_VAR = Argument("supportGraphite", EnvironmentVariable("SUPPORT_GRAPHITE") ?? "true");
+bool SUPPORT_GRAPHITE = SUPPORT_GRAPHITE_VAR == "1" || SUPPORT_GRAPHITE_VAR.ToLower() == "true";
+
 var VERIFY_EXCLUDED = Argument("verifyExcluded", Argument("verifyexcluded", ""))
     .ToLower().Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
@@ -95,6 +98,7 @@ Task("libSkiaSharp")
             $"skia_use_system_zlib=false " +
             $"skia_enable_skottie=true " +
             $"skia_use_vulkan={SUPPORT_VULKAN} ".ToLower() +
+            $"skia_enable_graphite={(SUPPORT_GRAPHITE && SUPPORT_VULKAN ? "true" : "false")} " +
             $"extra_asmflags=[] " +
             $"extra_cflags=[ '-DSKIA_C_DLL', '-DHAVE_SYSCALL_GETRANDOM', '-DXML_DEV_URANDOM'{spectreFlags}{wordSizeDefine} ] " +
             $"extra_ldflags=[ '-static-libstdc++', '-static-libgcc', '-Wl,--version-script={map}' ] " +

@@ -2,6 +2,7 @@ libSkiaSharp {
     global:
         sk_*;
         gr_*;
+        graphite_*;
         skottie_*;
         sksg_*;
         skresources_*;
