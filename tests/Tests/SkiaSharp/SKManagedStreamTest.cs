@@ -73,12 +73,11 @@ namespace SkiaSharp.Tests
 			Assert.False(SKObject.GetInstance<SKManagedStream>(handle, out _));
 		}
 
-		[Trait(Traits.SkipOn.Key, Traits.SkipOn.Values.Android)] // Mono does not guarantee finalizers are invoked immediately
-		[Trait(Traits.SkipOn.Key, Traits.SkipOn.Values.iOS)] // Mono does not guarantee finalizers are invoked immediately
-		[Trait(Traits.SkipOn.Key, Traits.SkipOn.Values.MacCatalyst)] // Mono does not guarantee finalizers are invoked immediately
 		[SkippableFact]
 		public void StreamIsCollectedEvenWhenNotProperlyDisposed()
 		{
+			SkipOnMono();
+
 			var handle = DoWork();
 
 			CollectGarbage();
@@ -366,12 +365,11 @@ namespace SkiaSharp.Tests
 			Assert.False(SKObject.GetInstance<SKStream>(handle, out _));
 		}
 
-		[Trait(Traits.SkipOn.Key, Traits.SkipOn.Values.Android)] // Mono does not guarantee finalizers are invoked immediately
-		[Trait(Traits.SkipOn.Key, Traits.SkipOn.Values.iOS)] // Mono does not guarantee finalizers are invoked immediately
-		[Trait(Traits.SkipOn.Key, Traits.SkipOn.Values.MacCatalyst)] // Mono does not guarantee finalizers are invoked immediately
 		[SkippableFact]
 		public unsafe void StreamLosesOwnershipAndCanBeGarbageCollected()
 		{
+			SkipOnMono();
+
 			var bytes = File.ReadAllBytes(Path.Combine(PathToImages, "color-wheel.png"));
 
 			DoWork(out var codecH, out var streamH);
@@ -412,6 +410,8 @@ namespace SkiaSharp.Tests
 		[SkippableFact]
 		public void StreamCanBeDuplicatedAndBothRemainReadable()
 		{
+			SkipOnNonWindows();
+
 			var dotnet = new MemoryStream(new byte[] { 1, 2, 3, 4, 5 });
 			var stream = new SKManagedStream(dotnet, true);
 			Assert.Equal(1, stream.ReadByte());
@@ -436,6 +436,8 @@ namespace SkiaSharp.Tests
 		[SkippableFact]
 		public void StreamCanBeForkedAndBothRemainReadable()
 		{
+			SkipOnNonWindows();
+
 			var dotnet = new MemoryStream(new byte[] { 1, 2, 3, 4, 5 });
 			var stream = new SKManagedStream(dotnet, true);
 			Assert.Equal(1, stream.ReadByte());
@@ -458,6 +460,8 @@ namespace SkiaSharp.Tests
 		[SkippableFact]
 		public void StreamCanBeDuplicatedMultipleTimes()
 		{
+			SkipOnNonWindows();
+
 			var dotnet = new MemoryStream(new byte[] { 1, 2, 3, 4, 5 });
 			var stream = new SKManagedStream(dotnet, true);
 			Assert.Equal(1, stream.ReadByte());
@@ -479,6 +483,8 @@ namespace SkiaSharp.Tests
 		[SkippableFact]
 		public void StreamCanBeDuplicatedMultipleTimesWithChildDisposed()
 		{
+			SkipOnNonWindows();
+
 			var dotnet = new MemoryStream(new byte[] { 1, 2, 3, 4, 5 });
 			var stream = new SKManagedStream(dotnet, true);
 			Assert.Equal(1, stream.ReadByte());
@@ -507,6 +513,8 @@ namespace SkiaSharp.Tests
 		[SkippableFact]
 		public void DuplicatesAreIndependentAfterParentDisposed()
 		{
+			SkipOnNonWindows();
+
 			var dotnet = new MemoryStream(new byte[] { 1, 2, 3, 4, 5 });
 			var stream = new SKManagedStream(dotnet, true);
 			Assert.Equal(1, stream.ReadByte());
@@ -562,6 +570,8 @@ namespace SkiaSharp.Tests
 		[SkippableFact]
 		public void MultipleDuplicatesAreIndependent()
 		{
+			SkipOnNonWindows();
+
 			var dotnet = new MemoryStream(new byte[] { 1, 2, 3, 4, 5 });
 			var stream = new SKManagedStream(dotnet, true);
 			Assert.Equal(1, stream.ReadByte());
