@@ -15142,6 +15142,25 @@ namespace SkiaSharp
 			(sk_surface_draw_delegate ??= GetSymbol<Delegates.sk_surface_draw> ("sk_surface_draw")).Invoke (surface, canvas, x, y, paint);
 		#endif
 
+		// void sk_surface_draw_with_sampling(sk_surface_t* surface, sk_canvas_t* canvas, float x, float y, const sk_sampling_options_t* sampling, const sk_paint_t* paint)
+		#if !USE_DELEGATES
+		#if USE_LIBRARY_IMPORT
+		[LibraryImport (SKIA)]
+		internal static partial void sk_surface_draw_with_sampling (sk_surface_t surface, sk_canvas_t canvas, Single x, Single y, SKSamplingOptions* sampling, sk_paint_t paint);
+		#else // !USE_LIBRARY_IMPORT
+		[DllImport (SKIA, CallingConvention = CallingConvention.Cdecl)]
+		internal static extern void sk_surface_draw_with_sampling (sk_surface_t surface, sk_canvas_t canvas, Single x, Single y, SKSamplingOptions* sampling, sk_paint_t paint);
+		#endif
+		#else
+		private partial class Delegates {
+			[UnmanagedFunctionPointer (CallingConvention.Cdecl)]
+			internal delegate void sk_surface_draw_with_sampling (sk_surface_t surface, sk_canvas_t canvas, Single x, Single y, SKSamplingOptions* sampling, sk_paint_t paint);
+		}
+		private static Delegates.sk_surface_draw_with_sampling sk_surface_draw_with_sampling_delegate;
+		internal static void sk_surface_draw_with_sampling (sk_surface_t surface, sk_canvas_t canvas, Single x, Single y, SKSamplingOptions* sampling, sk_paint_t paint) =>
+			(sk_surface_draw_with_sampling_delegate ??= GetSymbol<Delegates.sk_surface_draw_with_sampling> ("sk_surface_draw_with_sampling")).Invoke (surface, canvas, x, y, sampling, paint);
+		#endif
+
 		// sk_canvas_t* sk_surface_get_canvas(sk_surface_t*)
 		#if !USE_DELEGATES
 		#if USE_LIBRARY_IMPORT
@@ -18113,6 +18132,63 @@ namespace SkiaSharp {
 
 	}
 
+	// gr_vk_ycbcr_components_t
+	[StructLayout (LayoutKind.Sequential)]
+	public unsafe partial struct GRVkYcbcrComponents : IEquatable<GRVkYcbcrComponents> {
+		// public uint32_t r
+		private UInt32 r;
+		public UInt32 R {
+			readonly get => r;
+			set => r = value;
+		}
+
+		// public uint32_t g
+		private UInt32 g;
+		public UInt32 G {
+			readonly get => g;
+			set => g = value;
+		}
+
+		// public uint32_t b
+		private UInt32 b;
+		public UInt32 B {
+			readonly get => b;
+			set => b = value;
+		}
+
+		// public uint32_t a
+		private UInt32 a;
+		public UInt32 A {
+			readonly get => a;
+			set => a = value;
+		}
+
+		public readonly bool Equals (GRVkYcbcrComponents obj) =>
+#pragma warning disable CS8909
+			r == obj.r && g == obj.g && b == obj.b && a == obj.a;
+#pragma warning restore CS8909
+
+		public readonly override bool Equals (object obj) =>
+			obj is GRVkYcbcrComponents f && Equals (f);
+
+		public static bool operator == (GRVkYcbcrComponents left, GRVkYcbcrComponents right) =>
+			left.Equals (right);
+
+		public static bool operator != (GRVkYcbcrComponents left, GRVkYcbcrComponents right) =>
+			!left.Equals (right);
+
+		public readonly override int GetHashCode ()
+		{
+			var hash = new HashCode ();
+			hash.Add (r);
+			hash.Add (g);
+			hash.Add (b);
+			hash.Add (a);
+			return hash.ToHashCode ();
+		}
+
+	}
+
 	// gr_vk_ycbcrconversioninfo_t
 	[StructLayout (LayoutKind.Sequential)]
 	public unsafe partial struct GrVkYcbcrConversionInfo : IEquatable<GrVkYcbcrConversionInfo> {
@@ -18179,34 +18255,16 @@ namespace SkiaSharp {
 			set => fFormatFeatures = value;
 		}
 
-		// public struct { uint32_t r, g, b, a } fComponents (VkComponentMapping)
-		private UInt32 fComponentsR;
-		public UInt32 ComponentsR {
-			readonly get => fComponentsR;
-			set => fComponentsR = value;
-		}
-
-		private UInt32 fComponentsG;
-		public UInt32 ComponentsG {
-			readonly get => fComponentsG;
-			set => fComponentsG = value;
-		}
-
-		private UInt32 fComponentsB;
-		public UInt32 ComponentsB {
-			readonly get => fComponentsB;
-			set => fComponentsB = value;
-		}
-
-		private UInt32 fComponentsA;
-		public UInt32 ComponentsA {
-			readonly get => fComponentsA;
-			set => fComponentsA = value;
+		// public gr_vk_ycbcr_components_t fComponents
+		private GRVkYcbcrComponents fComponents;
+		public GRVkYcbcrComponents Components {
+			readonly get => fComponents;
+			set => fComponents = value;
 		}
 
 		public readonly bool Equals (GrVkYcbcrConversionInfo obj) =>
 #pragma warning disable CS8909
-			fFormat == obj.fFormat && fExternalFormat == obj.fExternalFormat && fYcbcrModel == obj.fYcbcrModel && fYcbcrRange == obj.fYcbcrRange && fXChromaOffset == obj.fXChromaOffset && fYChromaOffset == obj.fYChromaOffset && fChromaFilter == obj.fChromaFilter && fForceExplicitReconstruction == obj.fForceExplicitReconstruction && fFormatFeatures == obj.fFormatFeatures && fComponentsR == obj.fComponentsR && fComponentsG == obj.fComponentsG && fComponentsB == obj.fComponentsB && fComponentsA == obj.fComponentsA;
+			fFormat == obj.fFormat && fExternalFormat == obj.fExternalFormat && fYcbcrModel == obj.fYcbcrModel && fYcbcrRange == obj.fYcbcrRange && fXChromaOffset == obj.fXChromaOffset && fYChromaOffset == obj.fYChromaOffset && fChromaFilter == obj.fChromaFilter && fForceExplicitReconstruction == obj.fForceExplicitReconstruction && fFormatFeatures == obj.fFormatFeatures && fComponents == obj.fComponents;
 #pragma warning restore CS8909
 
 		public readonly override bool Equals (object obj) =>
@@ -18230,10 +18288,7 @@ namespace SkiaSharp {
 			hash.Add (fChromaFilter);
 			hash.Add (fForceExplicitReconstruction);
 			hash.Add (fFormatFeatures);
-			hash.Add (fComponentsR);
-			hash.Add (fComponentsG);
-			hash.Add (fComponentsB);
-			hash.Add (fComponentsA);
+			hash.Add (fComponents);
 			return hash.ToHashCode ();
 		}
 
@@ -19190,7 +19245,7 @@ namespace SkiaSharp {
 		// public const char* fICCProfileDescription
 		private readonly /* char */ void* fICCProfileDescription;
 
-		// public int32_t fOrigin (SkEncodedOrigin value, 0 = not set)
+		// public int32_t fOrigin
 		private readonly Int32 fOrigin;
 
 		// public bool fHasOrigin
@@ -19198,7 +19253,7 @@ namespace SkiaSharp {
 
 		public readonly bool Equals (SKJpegEncoderOptions obj) =>
 #pragma warning disable CS8909
-			fQuality == obj.fQuality && fDownsample == obj.fDownsample && fAlphaOption == obj.fAlphaOption && xmpMetadata == obj.xmpMetadata && fICCProfile == obj.fICCProfile && fICCProfileDescription == obj.fICCProfileDescription;
+			fQuality == obj.fQuality && fDownsample == obj.fDownsample && fAlphaOption == obj.fAlphaOption && xmpMetadata == obj.xmpMetadata && fICCProfile == obj.fICCProfile && fICCProfileDescription == obj.fICCProfileDescription && fOrigin == obj.fOrigin && fHasOrigin == obj.fHasOrigin;
 #pragma warning restore CS8909
 
 		public readonly override bool Equals (object obj) =>
@@ -19219,6 +19274,8 @@ namespace SkiaSharp {
 			hash.Add (xmpMetadata);
 			hash.Add (fICCProfile);
 			hash.Add (fICCProfileDescription);
+			hash.Add (fOrigin);
+			hash.Add (fHasOrigin);
 			return hash.ToHashCode ();
 		}
 
@@ -20571,7 +20628,7 @@ namespace SkiaSharp {
 		Bgr101010x = 10,
 		// BGR_101010X_XR_SK_COLORTYPE = 11
 		Bgr101010xXr = 11,
-		// BGRA_10101010_XR_SK_COLORTYPE = 12 (NEW in m132)
+		// BGRA_10101010_XR_SK_COLORTYPE = 12
 		Bgra10101010Xr = 12,
 		// RGBA_10X6_SK_COLORTYPE = 13
 		Rgba10x6 = 13,
@@ -20581,8 +20638,8 @@ namespace SkiaSharp {
 		RgbaF16Norm = 15,
 		// RGBA_F16_SK_COLORTYPE = 16
 		RgbaF16 = 16,
-		// RGB_F16F16F16X_SK_COLORTYPE = 17 (NEW in m132)
-		RgbF16F16F16x = 17,
+		// RGB_F16F16F16X_SK_COLORTYPE = 17
+		RgbF16f16f16x = 17,
 		// RGBA_F32_SK_COLORTYPE = 18
 		RgbaF32 = 18,
 		// R8G8_UNORM_SK_COLORTYPE = 19
