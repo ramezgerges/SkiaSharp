@@ -12,6 +12,11 @@ namespace SkiaSharp
 		private bool isAsEnd;
 		private bool disposeStream;
 
+		// Lazily-created snapshot for duplicate/fork. Stored in native memory
+		// via SKData (ref-counted), so multiple duplicates share one copy with
+		// zero additional managed allocations per duplicate.
+		private SKData snapshotData;
+
 		public SKManagedStream (Stream managedStream)
 			: this (managedStream, false)
 		{
@@ -59,6 +64,11 @@ namespace SkiaSharp
 
 		protected override void DisposeManaged ()
 		{
+			if (snapshotData != null) {
+				snapshotData.Dispose ();
+				snapshotData = null;
+			}
+
 			if (disposeStream && stream != null) {
 				stream.Dispose ();
 				stream = null;
@@ -174,49 +184,37 @@ namespace SkiaSharp
 			return IntPtr.Zero;
 		}
 
-		private byte[] ReadStreamFully ()
+		private SKData GetOrCreateSnapshot ()
 		{
+			if (snapshotData != null)
+				return snapshotData;
+
+			if (!stream.CanSeek)
+				return null;
+
 			var pos = stream.Position;
 			stream.Position = 0;
-
-			byte[] data;
-			if (stream is MemoryStream ms) {
-				data = ms.ToArray ();
-			} else {
-				using var copy = new MemoryStream ();
-				stream.CopyTo (copy);
-				data = copy.ToArray ();
-			}
-
+			snapshotData = SKData.Create (stream, stream.Length);
 			stream.Position = pos;
-			return data;
+
+			return snapshotData;
 		}
 
 		protected internal override IntPtr OnDuplicate ()
 		{
-			if (!stream.CanSeek)
+			var data = GetOrCreateSnapshot ();
+			if (data == null)
 				return IntPtr.Zero;
 
-			var data = ReadStreamFully ();
-			var newManaged = new MemoryStream (data, 0, data.Length, false, true);
-			newManaged.Position = 0;
-
-			var newStream = new SKManagedStream (newManaged, true, weak: false);
-			return newStream.Handle;
+			return SkiaApi.sk_memorystream_new_with_skdata (data.Handle);
 		}
 
 		protected internal override IntPtr OnFork ()
 		{
-			if (!stream.CanSeek)
-				return IntPtr.Zero;
-
-			var pos = stream.Position;
-			var data = ReadStreamFully ();
-			var newManaged = new MemoryStream (data, 0, data.Length, false, true);
-			newManaged.Position = pos;
-
-			var newStream = new SKManagedStream (newManaged, true, weak: false);
-			return newStream.Handle;
+			var duplicate = OnDuplicate ();
+			if (duplicate != IntPtr.Zero)
+				SkiaApi.sk_stream_seek (duplicate, (IntPtr)stream.Position);
+			return duplicate;
 		}
 	}
 }
