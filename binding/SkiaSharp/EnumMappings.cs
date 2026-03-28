@@ -68,8 +68,8 @@ namespace SkiaSharp
 				SKColorType.Bgr101010xXR => SKColorTypeNative.Bgr101010xXr,
 				SKColorType.Srgba8888 => SKColorTypeNative.Srgba8888,
 				SKColorType.R8Unorm => SKColorTypeNative.R8Unorm,
-				SKColorType.Bgra10101010Xr => SKColorTypeNative.Bgra10101010Xr,
-				SKColorType.RgbF16F16F16x => SKColorTypeNative.RgbF16F16F16x,
+				SKColorType.Bgra10101010XR => SKColorTypeNative.Bgra10101010Xr,
+				SKColorType.RgbF16F16F16x => SKColorTypeNative.RgbF16f16f16x,
 				_ => throw new ArgumentOutOfRangeException (nameof (colorType), $"Unknown color type: '{colorType}'"),
 			};
 
@@ -101,8 +101,8 @@ namespace SkiaSharp
 				SKColorTypeNative.Bgr101010xXr => SKColorType.Bgr101010xXR,
 				SKColorTypeNative.Srgba8888 => SKColorType.Srgba8888,
 				SKColorTypeNative.R8Unorm => SKColorType.R8Unorm,
-				SKColorTypeNative.Bgra10101010Xr => SKColorType.Bgra10101010Xr,
-				SKColorTypeNative.RgbF16F16F16x => SKColorType.RgbF16F16F16x,
+				SKColorTypeNative.Bgra10101010Xr => SKColorType.Bgra10101010XR,
+				SKColorTypeNative.RgbF16f16f16x => SKColorType.RgbF16F16F16x,
 				_ => throw new ArgumentOutOfRangeException (nameof (colorType), $"Unknown color type: '{colorType}'"),
 			};
 	}

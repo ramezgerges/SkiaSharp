@@ -9,11 +9,11 @@
 Added values:
 
 ```csharp
-Bgra10101010Xr = 25,
+Bgra10101010XR = 25,
 RgbF16F16F16x = 26,
 ```
 
-Both are 8 bytes/pixel. `Bgra10101010Xr` accepts any alpha type; `RgbF16F16F16x` is opaque-only.
+Both are 8 bytes/pixel. `Bgra10101010XR` accepts any alpha type; `RgbF16F16F16x` is opaque-only.
 Neither supports GL backend or pixel color readback.
 
 ### Type Changed: SkiaSharp.GrVkYcbcrConversionInfo

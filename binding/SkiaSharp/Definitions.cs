@@ -60,7 +60,7 @@ namespace SkiaSharp
 		Srgba8888 = 22,
 		R8Unorm = 23,
 		Rgba10x6 = 24,
-		Bgra10101010Xr = 25,
+		Bgra10101010XR = 25,
 		RgbF16F16F16x = 26,
 	}
 
@@ -110,7 +110,7 @@ namespace SkiaSharp
 				SKColorType.RgbaF16 => 8,
 				SKColorType.Rgba16161616 => 8,
 				SKColorType.Rgba10x6 => 8,
-				SKColorType.Bgra10101010Xr => 8,
+				SKColorType.Bgra10101010XR => 8,
 				SKColorType.RgbF16F16F16x => 8,
 				// 16
 				SKColorType.RgbaF32 => 16,
@@ -150,7 +150,7 @@ namespace SkiaSharp
 				SKColorType.RgbaF16 => 3,
 				SKColorType.Rgba16161616 => 3,
 				SKColorType.Rgba10x6 => 3,
-				SKColorType.Bgra10101010Xr => 3,
+				SKColorType.Bgra10101010XR => 3,
 				SKColorType.RgbF16F16F16x => 3,
 				// 4
 				SKColorType.RgbaF32 => 4,
@@ -187,7 +187,7 @@ namespace SkiaSharp
 				case SKColorType.RgbaF32:
 				case SKColorType.Rgba16161616:
 				case SKColorType.Rgba10x6:
-				case SKColorType.Bgra10101010Xr:
+				case SKColorType.Bgra10101010XR:
 					break;
 
 				// opaque
