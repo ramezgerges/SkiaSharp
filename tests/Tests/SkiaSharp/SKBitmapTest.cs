@@ -57,7 +57,7 @@ namespace SkiaSharp.Tests
 				var color = copy.GetPixel(10, 10);
 				Assert.NotEqual(SKColors.Empty, color);
 				if (colorType == SKColorType.Gray8)
-					Assert.Equal(0xFF363636, color);
+					Assert.Equal(0xFF353535, color);
 				else if (colorType == SKColorType.Alpha8 || colorType == SKColorType.AlphaF16 || colorType == SKColorType.Alpha16)
 					Assert.Equal(0xFF000000, color);
 				else
@@ -93,7 +93,7 @@ namespace SkiaSharp.Tests
 
 				if (colorType == SKColorType.Gray8)
 				{
-					Assert.Equal((SKColor)0xFF242424, color);
+					Assert.Equal((SKColor)0xFF232323, color);
 				}
 				else if (alphaType == SKAlphaType.Opaque)
 				{
