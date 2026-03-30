@@ -410,8 +410,6 @@ namespace SkiaSharp.Tests
 		[SkippableFact]
 		public void StreamCanBeDuplicatedAndBothRemainReadable()
 		{
-			SkipOnNonWindows();
-
 			var dotnet = new MemoryStream(new byte[] { 1, 2, 3, 4, 5 });
 			var stream = new SKManagedStream(dotnet, true);
 			Assert.Equal(1, stream.ReadByte());
@@ -420,7 +418,6 @@ namespace SkiaSharp.Tests
 
 			var dupe = stream.Duplicate();
 			Assert.NotSame(stream, dupe);
-			Assert.IsType<SKManagedStream>(dupe);
 			// duplicate starts at position 0
 			Assert.Equal(1, dupe.ReadByte());
 			Assert.Equal(2, dupe.ReadByte());
@@ -436,8 +433,6 @@ namespace SkiaSharp.Tests
 		[SkippableFact]
 		public void StreamCanBeForkedAndBothRemainReadable()
 		{
-			SkipOnNonWindows();
-
 			var dotnet = new MemoryStream(new byte[] { 1, 2, 3, 4, 5 });
 			var stream = new SKManagedStream(dotnet, true);
 			Assert.Equal(1, stream.ReadByte());
@@ -445,7 +440,6 @@ namespace SkiaSharp.Tests
 
 			var dupe = stream.Fork();
 			Assert.NotSame(stream, dupe);
-			Assert.IsType<SKManagedStream>(dupe);
 			// fork starts at the same position as the original
 			Assert.Equal(3, dupe.ReadByte());
 			Assert.Equal(4, dupe.ReadByte());
@@ -460,8 +454,6 @@ namespace SkiaSharp.Tests
 		[SkippableFact]
 		public void StreamCanBeDuplicatedMultipleTimes()
 		{
-			SkipOnNonWindows();
-
 			var dotnet = new MemoryStream(new byte[] { 1, 2, 3, 4, 5 });
 			var stream = new SKManagedStream(dotnet, true);
 			Assert.Equal(1, stream.ReadByte());
@@ -483,8 +475,6 @@ namespace SkiaSharp.Tests
 		[SkippableFact]
 		public void StreamCanBeDuplicatedMultipleTimesWithChildDisposed()
 		{
-			SkipOnNonWindows();
-
 			var dotnet = new MemoryStream(new byte[] { 1, 2, 3, 4, 5 });
 			var stream = new SKManagedStream(dotnet, true);
 			Assert.Equal(1, stream.ReadByte());
@@ -513,8 +503,6 @@ namespace SkiaSharp.Tests
 		[SkippableFact]
 		public void DuplicatesAreIndependentAfterParentDisposed()
 		{
-			SkipOnNonWindows();
-
 			var dotnet = new MemoryStream(new byte[] { 1, 2, 3, 4, 5 });
 			var stream = new SKManagedStream(dotnet, true);
 			Assert.Equal(1, stream.ReadByte());
@@ -559,19 +547,49 @@ namespace SkiaSharp.Tests
 			Assert.Equal(1, dupe2.ReadByte());
 			Assert.Equal(2, dupe2.ReadByte());
 
-			Assert.True(SKObject.GetInstance<SKManagedStream>(handle, out _));
+			Assert.True(SKObject.GetInstance<SKStream>(handle, out _));
 
 			dupe2.Dispose();
-			Assert.False(SKObject.GetInstance<SKManagedStream>(handle, out _));
+			Assert.False(SKObject.GetInstance<SKStream>(handle, out _));
 
 			dupe1.Dispose();
 		}
 
 		[SkippableFact]
+		public void DuplicateStreamIsCollected()
+		{
+			SkipOnMono();
+
+			var handle = DoWork();
+
+			CollectGarbage();
+
+			Assert.False(SKObject.GetInstance<SKStream>(handle, out _));
+
+			IntPtr DoWork()
+			{
+				var dotnet = new MemoryStream(new byte[] { 1, 2, 3, 4, 5 });
+				var stream = new SKManagedStream(dotnet, true);
+				Assert.Equal(1, stream.ReadByte());
+				Assert.Equal(2, stream.ReadByte());
+
+				var dupe1 = stream.Duplicate();
+				Assert.Equal(1, dupe1.ReadByte());
+				Assert.Equal(2, dupe1.ReadByte());
+
+				stream.Dispose();
+
+				var dupe2 = dupe1.Duplicate();
+				Assert.Equal(1, dupe2.ReadByte());
+				Assert.Equal(2, dupe2.ReadByte());
+
+				return dupe2.Handle;
+			}
+		}
+
+		[SkippableFact]
 		public void MultipleDuplicatesAreIndependent()
 		{
-			SkipOnNonWindows();
-
 			var dotnet = new MemoryStream(new byte[] { 1, 2, 3, 4, 5 });
 			var stream = new SKManagedStream(dotnet, true);
 			Assert.Equal(1, stream.ReadByte());
@@ -603,7 +621,20 @@ namespace SkiaSharp.Tests
 		}
 
 		[SkippableFact]
-		public void DotNetStreamIsNotClosedPrematurely()
+		public void NonSeekableStreamDuplicateAndForkReturnNull()
+		{
+			var dotnet = new MemoryStream(new byte[] { 1, 2, 3, 4, 5 });
+			var nonSeekable = new NonSeekableReadOnlyStream(dotnet);
+			var stream = new SKManagedStream(nonSeekable);
+
+			Assert.Null(stream.Duplicate());
+			Assert.Null(stream.Fork());
+
+			stream.Dispose();
+		}
+
+		[SkippableFact]
+		public void DotNetStreamIsClosedWhenSKManagedStreamIsDisposed()
 		{
 			var dotnet = CreateTestStream();
 			var stream = new SKManagedStream(dotnet, true);
@@ -612,11 +643,15 @@ namespace SkiaSharp.Tests
 			var dupe = stream.Duplicate();
 			Assert.Equal(0, dupe.Position);
 
+			// the snapshot has been taken, so the .NET stream is closed when
+			// the SKManagedStream is disposed (the duplicate is independent)
 			stream.Dispose();
+			Assert.Throws<ObjectDisposedException>(() => dotnet.Position);
+
+			// the duplicate is still usable after the parent is disposed
 			Assert.Equal(0, dupe.Position);
 
 			dupe.Dispose();
-			Assert.Throws<ObjectDisposedException>(() => dotnet.Position);
 		}
 	}
 }

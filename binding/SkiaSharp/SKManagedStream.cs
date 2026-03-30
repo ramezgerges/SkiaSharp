@@ -1,4 +1,4 @@
-#nullable disable
+﻿#nullable disable
 
 using System;
 using System.IO;
@@ -13,8 +13,8 @@ namespace SkiaSharp
 		private bool disposeStream;
 
 		// Lazily-created snapshot for duplicate/fork. Stored in native memory
-		// via SKData (ref-counted), so multiple duplicates share one copy with
-		// zero additional managed allocations per duplicate.
+		// via SKData (ref-counted), so multiple duplicates share one native
+		// byte buffer with no additional managed byte-buffer allocations per duplicate.
 		private SKData snapshotData;
 
 		public SKManagedStream (Stream managedStream)
@@ -24,13 +24,6 @@ namespace SkiaSharp
 
 		public SKManagedStream (Stream managedStream, bool disposeManagedStream)
 			: base (true)
-		{
-			stream = managedStream ?? throw new ArgumentNullException (nameof (managedStream));
-			disposeStream = disposeManagedStream;
-		}
-
-		private SKManagedStream (Stream managedStream, bool disposeManagedStream, bool weak)
-			: base (true, weak)
 		{
 			stream = managedStream ?? throw new ArgumentNullException (nameof (managedStream));
 			disposeStream = disposeManagedStream;
@@ -193,9 +186,12 @@ namespace SkiaSharp
 				return null;
 
 			var pos = stream.Position;
-			stream.Position = 0;
-			snapshotData = SKData.Create (stream, stream.Length);
-			stream.Position = pos;
+			try {
+				stream.Position = 0;
+				snapshotData = SKData.Create (stream, stream.Length);
+			} finally {
+				stream.Position = pos;
+			}
 
 			return snapshotData;
 		}
