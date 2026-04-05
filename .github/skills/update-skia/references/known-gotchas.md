@@ -65,6 +65,55 @@ HarfBuzz updates are **always separate** from Skia milestone updates. When the h
 
 HarfBuzz version bumps should be done separately via the `native-dependency-update` skill, which includes writing the required delegate proxies.
 
+## 11. Git History: Genuine Merge vs Tree-Override (CRITICAL)
+
+**Never** use a tree-override merge (e.g., `git merge -s ours`, or `git read-tree --reset` after `--no-commit`) when merging upstream into the mono/skia fork. This creates a merge commit that records parentage without actually combining content, which:
+- Destroys `git blame` attribution — all lines attributed to the single merge commit
+- Makes `git log --follow` useless for C API files
+- Forces subsequent cherry-picks that further obscure history
+
+**Always** use a genuine conflict-resolved merge where each conflicting file is resolved individually. See [upstream-merge-guide.md](upstream-merge-guide.md).
+
+## 12. Prefer Native Memory Patterns
+
+When bridging managed and native code (e.g., stream duplication, data snapshots), prefer handing data to native Skia types (like `SKData`, `SkMemoryStream`) over managed workarounds with weak references or shared state. Native ref-counted types integrate with Skia's internal ownership model and expose fast paths (e.g., `getMemoryBase()` zero-copy) that managed wrappers cannot.
+
+## 13. Isolate Behavioral Changes Into Separate PRs
+
+If a version bump requires a significant behavioral refactor (e.g., changing stream duplication semantics), extract it into its own PR. This keeps the main bump PR focused on the mechanical version update and lets the behavioral change be reviewed, tested, and validated in isolation. It also makes bisection easier if issues arise later.
+
+## 14. GPU Test Coverage Is Incomplete
+
+GPU tests may not run in CI for all backends and platforms. WebAssembly in particular has no runtime tests beyond crash detection. When making changes that affect GPU paths, call out which platforms were actually tested and provide evidence. Don't assume CI covers it.
+
+## 15. GN Build Flag Churn Between Milestones
+
+Build flags get renamed, removed, and added frequently between milestones. Obsolete flags cause build errors. Always diff the target milestone's `BUILD.gn` against the current one to identify flag changes before building. Pay special attention to `skia_enable_fontmgr_*` flags which are particularly volatile.
+
+## 16. `.gitmodules` Branch Name Must Be Updated
+
+When the mono/skia target branch name changes for a new milestone, the `.gitmodules` file in SkiaSharp must be updated to track the new branch. This is easy to forget and causes submodule operations to fail silently or track the wrong branch.
+
+## 17. Fontconfig `#ifdef` Guards
+
+Platform font manager calls (e.g., `SkFontMgr_New_FontConfig`) must be guarded by feature-availability macros (e.g., `SK_FONTMGR_FONTCONFIG_AVAILABLE`), not platform macros (e.g., `SK_BUILD_FOR_UNIX`). When `skia_use_fontconfig=false`, platform macros leave the symbol unresolved. The `-Wl,--no-undefined` linker flag catches this at link time.
+
+## 18. Enum Value Renumbering
+
+When upstream inserts new enum values mid-sequence (e.g., new `SKColorType` entries), ALL subsequent values shift. This affects `sk_enums.cpp`, `Definitions.cs`, `EnumMappings.cs`, utility switch tables, and any test that hardcodes enum integer values. Always regenerate bindings — don't hand-edit enum values.
+
+## 19. Changelog Convention
+
+SkiaSharp uses structured changelogs at `changelogs/SkiaSharp/{version}/SkiaSharp.md`. Each version bump must add a changelog file documenting: assembly version change, new types/enums, behavioral changes, breaking changes, and known quirks.
+
+## 20. Reference Count Assertions May Need Relaxing
+
+Skia may change internal reference counting behavior between milestones. When tests fail on refcount assertions, consider using range checks (`Assert.InRange(refcount, expected, expected + 1)`) instead of exact equality. A refcount change is more likely a deliberate upstream shift than a bug in your port.
+
+## 21. Pixel Value Precision Changes
+
+Upstream Skia periodically improves color conversion precision (e.g., switching from integer to floating-point luma). This can shift expected pixel values by ±1. When pixel-exact test assertions break, check whether upstream changed the conversion — update expected values rather than treating it as a regression.
+
 ---
 
 ## Troubleshooting
@@ -74,5 +123,13 @@ HarfBuzz version bumps should be done separately via the `native-dependency-upda
 | `EntryPointNotFoundException` | Native lib not rebuilt after C API change | `dotnet cake --target=externals-{platform}` |
 | `error CS0246` missing type | Binding not regenerated | `pwsh ./utils/generate.ps1` |
 | Merge conflict in DEPS | Both forks updated deps independently | Keep our DEPS pins, accept upstream structure |
-| `LNK2001 unresolved external` | C function name mismatch | Verify C API function names match exactly |
-| Build fails after merge | Missing `#include` for moved headers | Check upstream header relocation notes |
+| `LNK2001 unresolved external` | C function name mismatch or missing system lib | Verify C API function names match; check system library linkage (fontconfig, etc.) |
+| Build fails after merge | Missing `#include` for moved headers | Check upstream header relocation patterns |
+| `git blame` shows all lines from merge commit | Tree-override merge was used | Redo merge as genuine conflict-resolved merge (see #11) |
+| `Unknown GN flag` error | Obsolete flag in build config | Remove flag; diff target BUILD.gn for current flags (see #15) |
+| Disk space CI failure | Skia DEPS pulls too many dependencies | Remove unused DEPS entries |
+| Submodule fetch fails / tracks wrong branch | `.gitmodules` still references old branch name | Update `.gitmodules` branch field (see #16) |
+| Undefined symbol `SkFontMgr_New_FontConfig` | Wrong `#ifdef` guard | Fix guard to check `SK_FONTMGR_FONTCONFIG_AVAILABLE` (see #17) |
+| Color type enum values don't match | New values inserted mid-enum | Regenerate bindings; never hand-edit (see #18) |
+| Refcount test assertions fail | Skia changed internal ownership | Use `Assert.InRange` instead of `Assert.Equal` (see #20) |
+| Pixel value mismatch by ±1 | Upstream precision improvement | Update expected test values (see #21) |

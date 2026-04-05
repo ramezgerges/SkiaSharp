@@ -26,7 +26,8 @@ Update Google Skia to a new Chrome milestone in SkiaSharp's mono/skia fork.
 ## Key References
 
 - **[references/breaking-changes-checklist.md](references/breaking-changes-checklist.md)** — How to analyze breaking changes between milestones
-- **[references/known-gotchas.md](references/known-gotchas.md)** — 10 hard-won lessons and troubleshooting table
+- **[references/upstream-merge-guide.md](references/upstream-merge-guide.md)** — Detailed merge strategy and conflict resolution for mono/skia
+- **[references/known-gotchas.md](references/known-gotchas.md)** — Hard-won lessons and troubleshooting table
 - **[references/typical-changes.md](references/typical-changes.md)** — Files typically changed during an update
 - **[documentation/dev/dependencies.md](../../../documentation/dev/dependencies.md)** — Dependency tracking and cgmanifest.json format
 - **[RELEASE_NOTES.md in upstream Skia](https://raw.githubusercontent.com/google/skia/main/RELEASE_NOTES.md)** — Official Skia release notes
@@ -175,16 +176,34 @@ milestone numbers and paste your breaking change analysis table. The default exp
    git checkout -b dev/update-skia-{TARGET}
    ```
 
-2. **Merge upstream**:
+2. **Merge upstream** — Use `--no-commit` for manual conflict resolution:
    ```bash
-   git merge upstream/chrome/m{TARGET}
+   git merge --no-commit upstream/chrome/m{TARGET}
    ```
 
-3. **Resolve conflicts** — Common conflicts:
-   - `DEPS` — Keep our dependency pins, accept upstream structure changes
-   - `RELEASE_NOTES.md` — Accept upstream
-   - `infra/bots/jobs.json` — Accept upstream
-   - Source files in `src/` — Carefully resolve (don't lose our C API)
+3. **⚠️ CRITICAL: Genuine conflict-resolved merge required**
+
+   Each conflict MUST be resolved individually. See [references/upstream-merge-guide.md](references/upstream-merge-guide.md) for the full guide.
+
+   **❌ FORBIDDEN: Tree-Override Merge** — Never use `git merge -s ours`, `git read-tree --reset`, or blanket resolution that takes one side for all files. This destroys `git blame` attribution for all C API files.
+
+   **Conflict resolution by file category:**
+
+   | File Category | Strategy | Details |
+   |--------------|----------|---------|
+   | `BUILD.gn` | **Combine both** | Keep new milestone's structure AND SkiaSharp's platform flags and `skiasharp_build` target. Usually the most complex file. |
+   | `DEPS` | **Combine both** | Keep our dependency pins, accept upstream structure changes |
+   | `RELEASE_NOTES.md` | **Take upstream** | Accept upstream |
+   | `infra/bots/jobs.json` | **Take upstream** | Accept upstream |
+   | C API headers (`include/c/`) | **Keep SkiaSharp** | These don't exist upstream, conflicts are rare |
+   | C API source (`src/c/`) | **Keep SkiaSharp + adapt** | Take implementations, update includes and API calls in post-merge commits |
+   | GL/Vulkan interfaces | **Combine** | Adapt SkiaSharp's dynamic GL loading to new API structure |
+   | Infrastructure (`.gitignore`, CI) | **Take upstream** for CI/jobs, **keep SkiaSharp** for `.disabled.*` configs |
+
+4. **Commit the merge**:
+   ```bash
+   git commit  # Creates proper two-parent merge
+   ```
 
 4. **Verify our C API files survived the merge**:
    ```bash
@@ -205,8 +224,9 @@ milestone numbers and paste your breaking change analysis table. The default exp
 > git diff upstream/chrome/m{CURRENT}..upstream/chrome/m{TARGET} --diff-filter=AD --name-only -- src/ include/
 >                                                   # Review added/deleted files
 > git diff --check                                  # Zero conflict markers remain
+> git blame src/c/sk_canvas.cpp | head -20         # Attribution shows original commits, not just merge
 > ```
-> All three must produce expected output before proceeding.
+> All four must produce expected output before proceeding.
 
 ### Phase 5: Fix C API Shim Layer
 
@@ -317,6 +337,12 @@ New functions from upstream changes are usually additive and can be deferred.
 - Use `[Obsolete]` for deprecated APIs with migration guidance
 - Return `null` from factory methods on failure (don't throw)
 
+**API evolution policy** — when deciding whether to break SkiaSharp's managed API:
+1. Prefer minimal changes — absorb internally when existing API is still sensible
+2. Allow logical changes — when keeping old API would be misleading or semantically wrong
+3. Follow Skia's direction — if Skia renamed/restructured for good reason, follow suit
+4. Document all breaking changes — every managed API change needs upstream Skia motivation. Do NOT add backward-compatibility shims for APIs that Skia intentionally removed.
+
 ### Phase 9: Build & Test
 
 ```bash
@@ -387,9 +413,12 @@ Before proceeding to merge, verify ALL of these:
 - [ ] mono/skia PR targets `skiasharp` branch
 - [ ] mono/SkiaSharp PR targets `main` branch
 - [ ] **SkiaSharp's `externals/skia` submodule points to the mono/skia PR branch** (`git submodule status`)
+- [ ] `.gitmodules` branch updated to match new mono/skia branch name
 - [ ] `cgmanifest.json` updated with new commit hash, version, and chrome_milestone
 - [ ] `scripts/VERSIONS.txt` updated (ALL version lines, not just milestone)
+- [ ] `scripts/azure-pipelines-variables.yml` updated
 - [ ] `SkiaApi.generated.cs` regenerated and committed
+- [ ] `changelogs/SkiaSharp/3.{TARGET}.0/SkiaSharp.md` created with breaking changes documented
 - [ ] Both PRs cross-reference each other
 - [ ] Native build passes on at least one platform
 - [ ] C# build passes with 0 errors
@@ -424,6 +453,15 @@ Before proceeding past each step, verify:
 These files contain lookup information — consult them when you hit a problem or need context,
 not necessarily upfront:
 
-- **[references/known-gotchas.md](references/known-gotchas.md)** — 10 hard-won lessons from past updates (DEF_STRUCT_MAP, emsdk, BUILD.gn flags, HarfBuzz, DEPS forks, etc.) and a troubleshooting table
+- **[references/known-gotchas.md](references/known-gotchas.md)** — Hard-won lessons from past updates and troubleshooting table
+- **[references/upstream-merge-guide.md](references/upstream-merge-guide.md)** — Detailed merge strategy, conflict resolution by file category, and verification steps
 - **[references/typical-changes.md](references/typical-changes.md)** — Files typically changed in each repository during an update
 - **[references/breaking-changes-checklist.md](references/breaking-changes-checklist.md)** — How to analyze breaking changes between milestones
+
+## PR Review Strategy for Large Diffs
+
+mono/skia PRs can have thousands of upstream commits. Guide reviewers with:
+
+1. **Compare PR branch against `chrome/m{TARGET}`** for non-C-API content — changes should be minimal
+2. **Compare PR branch against `skiasharp`** for C API modifications (`include/c/`, `src/c/`) — this is where the real review happens
+3. **Highlight the focused post-merge commits** — these contain all the actual SkiaSharp-specific adaptation work

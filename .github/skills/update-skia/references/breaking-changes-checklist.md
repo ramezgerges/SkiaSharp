@@ -105,6 +105,48 @@ After applying fixes:
 3. Build C#: `dotnet build binding/SkiaSharp/SkiaSharp.csproj`
 4. Test: `dotnet test tests/SkiaSharp.Tests.Console/SkiaSharp.Tests.Console.csproj`
 
+## Recurring Breaking Change Categories
+
+These categories recur across milestone bumps. Use them as a checklist when analyzing a new bump:
+
+### Category: Removed Static Factory Methods (HIGH Risk)
+
+Skia periodically removes static factory methods from classes like `SkTypeface`, `SkFontMgr`, etc. and replaces them with instance methods or free functions that require an explicit context object (e.g., a font manager).
+
+**C API fix pattern:** Add optional context parameter to C API wrapper (NULL = use platform default internally).  
+**C# fix pattern:** Add new overloads with context parameter. Follow Skia's explicit-context direction rather than hiding the change.
+
+### Category: Header Path Reorganization (MEDIUM Risk)
+
+Skia reorganizes headers into subdirectories (e.g., GPU headers into backend-specific paths under `ganesh/`, `graphite/`, etc.).
+
+**C API fix pattern:** Update `#include` paths in C API source files. No API surface change.
+
+### Category: Factory Methods Moved to Namespace Functions (HIGH Risk)
+
+Static methods on classes get moved to free functions in a namespace (e.g., `ClassName::Make*()` → `ClassNames::Make*()`, with new dedicated headers).
+
+**C API fix pattern:** Update function calls and add new `#include` directives.
+
+### Category: Type Renames + Struct Changes (HIGH Risk)
+
+Types get renamed (often into namespaces like `skgpu::`) and structs gain/lose fields.
+
+**C API fix pattern:** Update type references, update struct definitions (remove dead fields, add new ones).  
+**C# fix pattern:** Update managed struct definitions to match. Breaking but necessary — dead fields are misleading.
+
+### Category: Removed Files / APIs (LOW-MEDIUM Risk)
+
+Entire headers or individual APIs removed from upstream.
+
+**C API fix pattern:** Remove includes and any wrappers for removed APIs.
+
+### Category: New Types / Enum Values (LOW Risk, Additive)
+
+New color types, enum values, struct fields added.
+
+**C API fix pattern:** Add to enum mappings. Note: mid-enum insertions renumber all subsequent values — always regenerate bindings, never hand-edit.
+
 ## Historical Examples
 
 ### m118 → m119 Changes Required
