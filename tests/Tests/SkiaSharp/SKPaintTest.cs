@@ -39,10 +39,9 @@ namespace SkiaSharp.Tests
 			builder.AddRect(rect);
 			var path = builder.Detach();
 
-			var fillPath = new SKPath();
-			var isFilled = paint.GetFillPath(path, fillPath);
+			var fillPath = paint.GetFillPath(path);
 
-			Assert.True(isFilled);
+			Assert.NotNull(fillPath);
 			Assert.Equal(rect, fillPath.Bounds);
 			Assert.Equal(4, fillPath.PointCount);
 		}
@@ -60,21 +59,20 @@ namespace SkiaSharp.Tests
 			builder.LineTo(20, 30);
 			var path = builder.Detach();
 
-			var fillPath = new SKPath();
-			var isFilled = paint.GetFillPath(path, fillPath);
+			var fillPath = paint.GetFillPath(path);
 
-			Assert.True(isFilled);
+			Assert.NotNull(fillPath);
 			Assert.Equal(thinRect, fillPath.Bounds);
 			Assert.Equal(2, fillPath.PointCount);
 
 			paint.StrokeWidth = 20;
 			paint.IsStroke = true;
-			isFilled = paint.GetFillPath(path, fillPath);
+			var fillPath2 = paint.GetFillPath(path);
 
-			Assert.True(isFilled);
-			Assert.Equal(rect, fillPath.Bounds);
-			Assert.Equal(4 + 1, fillPath.PointCount); // +1 because the last point is the same as the first
-			Assert.Equal(4, fillPath.Points.Distinct().Count());
+			Assert.NotNull(fillPath2);
+			Assert.Equal(rect, fillPath2.Bounds);
+			Assert.Equal(4 + 1, fillPath2.PointCount); // +1 because the last point is the same as the first
+			Assert.Equal(4, fillPath2.Points.Distinct().Count());
 		}
 
 		// Test for issue #276

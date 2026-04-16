@@ -497,34 +497,33 @@ namespace SkiaSharp
 
 		private SKPath GetFillPath (SKPath src, SKRect* cullRect, SKMatrix matrix)
 		{
-			var dst = new SKPath ();
+			using var dst = new SKPathBuilder ();
 			if (GetFillPath (src, dst, cullRect, matrix)) {
-				return dst;
+				return dst.Detach ();
 			} else {
-				dst.Dispose ();
 				return null;
 			}
 		}
 
-		public bool GetFillPath (SKPath src, SKPath dst)
+		public bool GetFillPath (SKPath src, SKPathBuilder dst)
 			=> GetFillPath (src, dst, (SKRect*)null, SKMatrix.Identity);
 
-		public bool GetFillPath (SKPath src, SKPath dst, float resScale)
+		public bool GetFillPath (SKPath src, SKPathBuilder dst, float resScale)
 			=> GetFillPath (src, dst, (SKRect*)null, SKMatrix.CreateScale (resScale, resScale));
 
-		public bool GetFillPath (SKPath src, SKPath dst, SKMatrix matrix)
+		public bool GetFillPath (SKPath src, SKPathBuilder dst, SKMatrix matrix)
 			=> GetFillPath (src, dst, (SKRect*)null, matrix);
 
-		public bool GetFillPath (SKPath src, SKPath dst, SKRect cullRect)
+		public bool GetFillPath (SKPath src, SKPathBuilder dst, SKRect cullRect)
 			=> GetFillPath (src, dst, &cullRect, SKMatrix.Identity);
 
-		public bool GetFillPath (SKPath src, SKPath dst, SKRect cullRect, float resScale)
+		public bool GetFillPath (SKPath src, SKPathBuilder dst, SKRect cullRect, float resScale)
 			=> GetFillPath (src, dst, &cullRect, SKMatrix.CreateScale (resScale, resScale));
 
-		public bool GetFillPath (SKPath src, SKPath dst, SKRect cullRect, SKMatrix matrix)
+		public bool GetFillPath (SKPath src, SKPathBuilder dst, SKRect cullRect, SKMatrix matrix)
 			=> GetFillPath (src, dst, &cullRect, matrix);
 
-		private bool GetFillPath (SKPath src, SKPath dst, SKRect* cullRect, SKMatrix matrix)
+		private bool GetFillPath (SKPath src, SKPathBuilder dst, SKRect* cullRect, SKMatrix matrix)
 		{
 			_ = src ?? throw new ArgumentNullException (nameof (src));
 			_ = dst ?? throw new ArgumentNullException (nameof (dst));

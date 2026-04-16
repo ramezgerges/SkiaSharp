@@ -122,7 +122,7 @@ namespace SkiaSharp
 
 		// GetSegment
 
-		public bool GetSegment (float start, float stop, SKPath dst, bool startWithMoveTo)
+		public bool GetSegment (float start, float stop, SKPathBuilder dst, bool startWithMoveTo)
 		{
 			if (dst == null)
 				throw new ArgumentNullException (nameof (dst));
@@ -131,12 +131,11 @@ namespace SkiaSharp
 
 		public SKPath GetSegment (float start, float stop, bool startWithMoveTo)
 		{
-			var dst = new SKPath ();
+			using var dst = new SKPathBuilder ();
 			if (!GetSegment (start, stop, dst, startWithMoveTo)) {
-				dst.Dispose ();
-				dst = null;
+				return null;
 			}
-			return dst;
+			return dst.Detach ();
 		}
 
 		// NextContour
