@@ -35,8 +35,9 @@ namespace SkiaSharp.Tests
 
 			var rect = new SKRect(10, 10, 30, 30);
 
-			var path = new SKPath();
-			path.AddRect(rect);
+			using var builder = new SKPathBuilder();
+			builder.AddRect(rect);
+			var path = builder.Detach();
 
 			var fillPath = new SKPath();
 			var isFilled = paint.GetFillPath(path, fillPath);
@@ -54,9 +55,10 @@ namespace SkiaSharp.Tests
 			var thinRect = SKRect.Create(20, 10, 0, 20);
 			var rect = SKRect.Create(10, 10, 20, 20);
 
-			var path = new SKPath();
-			path.MoveTo(20, 10);
-			path.LineTo(20, 30);
+			using var builder = new SKPathBuilder();
+			builder.MoveTo(20, 10);
+			builder.LineTo(20, 30);
+			var path = builder.Detach();
 
 			var fillPath = new SKPath();
 			var isFilled = paint.GetFillPath(path, fillPath);
