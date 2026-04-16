@@ -280,9 +280,9 @@ namespace SkiaSharp.Tests
 			Assert.Equal((double)14.185303f, (double)bounds.Bottom, Precision);
 
 			var tightBounds = path.TightBounds;
-			Assert.Equal((double)-15.396009f, (double)tightBounds.Left, Precision);
+			Assert.Equal((double)-15.39601f, (double)tightBounds.Left, Precision);
 			Assert.Equal((double)-25.814698f, (double)tightBounds.Top, Precision);
-			Assert.Equal((double)0f, (double)tightBounds.Right, Precision);
+			Assert.Equal((double)-6.2157825e-7f, (double)tightBounds.Right, Precision);
 			Assert.Equal((double)14.185303f, (double)tightBounds.Bottom, Precision);
 		}
 
@@ -300,9 +300,10 @@ namespace SkiaSharp.Tests
 
 			Assert.Equal(100f, measure.Length);
 
-			var segment = new SKPath();
-			var result = measure.GetSegment(20, 50, segment, true);
+			using var segBuilder = new SKPathBuilder();
+			var result = measure.GetSegment(20, 50, segBuilder, true);
 			Assert.True(result);
+			using var segment = segBuilder.Detach();
 			Assert.Equal(2, segment.PointCount);
 			Assert.Equal(new SKPoint(30, 10), segment.Points[0]);
 			Assert.Equal(new SKPoint(60, 10), segment.Points[1]);
