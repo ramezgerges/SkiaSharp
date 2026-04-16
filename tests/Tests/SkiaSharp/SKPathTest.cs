@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Xunit;
 
@@ -40,73 +40,69 @@ namespace SkiaSharp.Tests
 		[SkippableFact]
 		public void PathPointsAreCorrect()
 		{
-			using (var path = new SKPath())
-			{
-				// set up the xamagon
-				path.MoveTo(71.4311121f, 56f);
-				path.CubicTo(68.6763107f, 56.0058575f, 65.9796704f, 57.5737917f, 64.5928855f, 59.965729f);
-				path.LineTo(43.0238921f, 97.5342563f);
-				path.CubicTo(41.6587026f, 99.9325978f, 41.6587026f, 103.067402f, 43.0238921f, 105.465744f);
-				path.LineTo(64.5928855f, 143.034271f);
-				path.CubicTo(65.9798162f, 145.426228f, 68.6763107f, 146.994582f, 71.4311121f, 147f);
-				path.LineTo(114.568946f, 147f);
-				path.CubicTo(117.323748f, 146.994143f, 120.020241f, 145.426228f, 121.407172f, 143.034271f);
-				path.LineTo(142.976161f, 105.465744f);
-				path.CubicTo(144.34135f, 103.067402f, 144.341209f, 99.9325978f, 142.976161f, 97.5342563f);
-				path.LineTo(121.407172f, 59.965729f);
-				path.CubicTo(120.020241f, 57.5737917f, 117.323748f, 56.0054182f, 114.568946f, 56f);
-				path.LineTo(71.4311121f, 56f);
-				path.Close();
+			using var builder = new SKPathBuilder();
+			// set up the xamagon
+			builder.MoveTo(71.4311121f, 56f);
+			builder.CubicTo(68.6763107f, 56.0058575f, 65.9796704f, 57.5737917f, 64.5928855f, 59.965729f);
+			builder.LineTo(43.0238921f, 97.5342563f);
+			builder.CubicTo(41.6587026f, 99.9325978f, 41.6587026f, 103.067402f, 43.0238921f, 105.465744f);
+			builder.LineTo(64.5928855f, 143.034271f);
+			builder.CubicTo(65.9798162f, 145.426228f, 68.6763107f, 146.994582f, 71.4311121f, 147f);
+			builder.LineTo(114.568946f, 147f);
+			builder.CubicTo(117.323748f, 146.994143f, 120.020241f, 145.426228f, 121.407172f, 143.034271f);
+			builder.LineTo(142.976161f, 105.465744f);
+			builder.CubicTo(144.34135f, 103.067402f, 144.341209f, 99.9325978f, 142.976161f, 97.5342563f);
+			builder.LineTo(121.407172f, 59.965729f);
+			builder.CubicTo(120.020241f, 57.5737917f, 117.323748f, 56.0054182f, 114.568946f, 56f);
+			builder.LineTo(71.4311121f, 56f);
+			builder.Close();
+			using var path = builder.Detach();
 
-				// the right number/count
-				Assert.Equal(25, path.PointCount);
-				Assert.Equal(25, path.Points.Length);
+			// the right number/count
+			Assert.Equal(25, path.PointCount);
+			Assert.Equal(25, path.Points.Length);
 
-				// the right value
-				Assert.Equal(new SKPoint(68.6763107f, 56.0058575f), path.GetPoint(1));
-				Assert.Equal(new SKPoint(68.6763107f, 56.0058575f), path.Points[1]);
+			// the right value
+			Assert.Equal(new SKPoint(68.6763107f, 56.0058575f), path.GetPoint(1));
+			Assert.Equal(new SKPoint(68.6763107f, 56.0058575f), path.Points[1]);
 
-				// the right segment masks
-				Assert.Equal(SKPathSegmentMask.Cubic | SKPathSegmentMask.Line, path.SegmentMasks);
-			}
+			// the right segment masks
+			Assert.Equal(SKPathSegmentMask.Cubic | SKPathSegmentMask.Line, path.SegmentMasks);
 		}
 
 		[SkippableFact]
 		public void PathContainsPoint()
 		{
-			using (var path = new SKPath())
-			{
-				path.AddRect(SKRect.Create(10, 10, 100, 100), SKPathDirection.Clockwise);
+			using var builder = new SKPathBuilder();
+			builder.AddRect(SKRect.Create(10, 10, 100, 100), SKPathDirection.Clockwise);
+			using var path = builder.Detach();
 
-				Assert.True(path.Contains(30, 30));
-				Assert.False(path.Contains(5, 30));
-			}
+			Assert.True(path.Contains(30, 30));
+			Assert.False(path.Contains(5, 30));
 		}
 
 		[SkippableFact]
 		public void PathContainsPointInRoundRect()
 		{
-			using (var path = new SKPath())
-			{
-				var rrect = new SKRoundRect(SKRect.Create(10, 10, 100, 100), 5, 5);
-				path.AddRoundRect(rrect);
+			using var builder = new SKPathBuilder();
+			var rrect = new SKRoundRect(SKRect.Create(10, 10, 100, 100), 5, 5);
+			builder.AddRoundRect(rrect);
+			using var path = builder.Detach();
 
-				Assert.True(path.Contains(30, 30));
-				Assert.False(path.Contains(5, 30));
-			}
+			Assert.True(path.Contains(30, 30));
+			Assert.False(path.Contains(5, 30));
 		}
 
 		[SkippableFact]
 		[Trait(Traits.Category.Key, Traits.Category.Values.Smoke)]
 		public void GetLastPoint()
 		{
-			using (var path = new SKPath())
-			{
-				path.MoveTo(0, 0);
-				path.LineTo(10, 20);
+			using var builder = new SKPathBuilder();
+			builder.MoveTo(0, 0);
+			builder.LineTo(10, 20);
+			using var path = builder.Detach();
 
-				Assert.Equal(new SKPoint(10, 20), path.LastPoint);
-			}
+			Assert.Equal(new SKPoint(10, 20), path.LastPoint);
 		}
 
 		[SkippableFact]
@@ -114,46 +110,44 @@ namespace SkiaSharp.Tests
 		{
 			// based on test_skbug_3469
 
-			using (var path = new SKPath())
-			{
-				path.MoveTo(20, 20);
-				path.QuadTo(20, 50, 80, 50);
-				path.QuadTo(20, 50, 20, 80);
+			using var builder = new SKPathBuilder();
+			builder.MoveTo(20, 20);
+			builder.QuadTo(20, 50, 80, 50);
+			builder.QuadTo(20, 50, 20, 80);
+			using var path = builder.Detach();
 
-				Assert.Equal(SKPathConvexity.Concave, path.Convexity);
-			}
+			Assert.Equal(SKPathConvexity.Concave, path.Convexity);
 		}
 
 		[SkippableFact]
 		public void RawIteratorReturnsCorrectPointsAndVerb()
 		{
-			using (var path = new SKPath())
+			using var builder = new SKPathBuilder();
+			builder.MoveTo(20, 20);
+			builder.QuadTo(20, 50, 80, 50);
+			builder.QuadTo(20, 50, 20, 80);
+			using var path = builder.Detach();
+
+			using (var iter = path.CreateRawIterator())
 			{
-				path.MoveTo(20, 20);
-				path.QuadTo(20, 50, 80, 50);
-				path.QuadTo(20, 50, 20, 80);
+				var points = new SKPoint[4];
 
-				using (var iter = path.CreateRawIterator())
-				{
-					var points = new SKPoint[4];
+				var verb = iter.Next(points);
+				Assert.Equal(SKPathVerb.Move, verb);
+				Assert.Equal(new[] { new SKPoint(20, 20), SKPoint.Empty, SKPoint.Empty, SKPoint.Empty }, points);
 
-					var verb = iter.Next(points);
-					Assert.Equal(SKPathVerb.Move, verb);
-					Assert.Equal(new[] { new SKPoint(20, 20), SKPoint.Empty, SKPoint.Empty, SKPoint.Empty }, points);
+				verb = iter.Next(points);
+				Assert.Equal(SKPathVerb.Quad, verb);
+				Assert.Equal(new[] { new SKPoint(20, 20), new SKPoint(20, 50), new SKPoint(80, 50), SKPoint.Empty }, points);
 
-					verb = iter.Next(points);
-					Assert.Equal(SKPathVerb.Quad, verb);
-					Assert.Equal(new[] { new SKPoint(20, 20), new SKPoint(20, 50), new SKPoint(80, 50), SKPoint.Empty }, points);
+				verb = iter.Next(points);
+				Assert.Equal(SKPathVerb.Quad, verb);
+				Assert.Equal(new[] { new SKPoint(80, 50), new SKPoint(20, 50), new SKPoint(20, 80), SKPoint.Empty }, points);
 
-					verb = iter.Next(points);
-					Assert.Equal(SKPathVerb.Quad, verb);
-					Assert.Equal(new[] { new SKPoint(80, 50), new SKPoint(20, 50), new SKPoint(20, 80), SKPoint.Empty }, points);
-
-					verb = iter.Next(points);
-					Assert.Equal(SKPathVerb.Done, verb);
-					// note: when the iteration is Done, it doesn't touch the points
-					Assert.Equal(new[] { new SKPoint(80, 50), new SKPoint(20, 50), new SKPoint(20, 80), SKPoint.Empty }, points);
-				}
+				verb = iter.Next(points);
+				Assert.Equal(SKPathVerb.Done, verb);
+				// note: when the iteration is Done, it doesn't touch the points
+				Assert.Equal(new[] { new SKPoint(80, 50), new SKPoint(20, 50), new SKPoint(20, 80), SKPoint.Empty }, points);
 			}
 		}
 
@@ -162,55 +156,57 @@ namespace SkiaSharp.Tests
 		{
 			// based on test_path_close_issue1474
 
-			using (var path = new SKPath())
-			{
-				// This test checks that r{Line,Quad,Conic,Cubic}To following a close()
-				// are relative to the point we close to, not relative to the point we close from.
-				SKPoint last;
+			// This test checks that r{Line,Quad,Conic,Cubic}To following a close()
+			// are relative to the point we close to, not relative to the point we close from.
+			SKPoint last;
 
-				// Test rLineTo().
-				path.RLineTo(0, 100);
-				path.RLineTo(100, 0);
-				path.Close();          // Returns us back to 0,0.
-				path.RLineTo(50, 50);  // This should go to 50,50.
+			// Test rLineTo().
+			using var builder1 = new SKPathBuilder();
+			builder1.RLineTo(0, 100);
+			builder1.RLineTo(100, 0);
+			builder1.Close();          // Returns us back to 0,0.
+			builder1.RLineTo(50, 50);  // This should go to 50,50.
+			using var path1 = builder1.Detach();
 
-				last = path.LastPoint;
-				Assert.Equal(50, last.X);
-				Assert.Equal(50, last.Y);
+			last = path1.LastPoint;
+			Assert.Equal(50, last.X);
+			Assert.Equal(50, last.Y);
 
-				// Test rQuadTo().
-				path.Rewind();
-				path.RLineTo(0, 100);
-				path.RLineTo(100, 0);
-				path.Close();
-				path.RQuadTo(50, 50, 75, 75);
+			// Test rQuadTo().
+			using var builder2 = new SKPathBuilder();
+			builder2.RLineTo(0, 100);
+			builder2.RLineTo(100, 0);
+			builder2.Close();
+			builder2.RQuadTo(50, 50, 75, 75);
+			using var path2 = builder2.Detach();
 
-				last = path.LastPoint;
-				Assert.Equal(75, last.X);
-				Assert.Equal(75, last.Y);
+			last = path2.LastPoint;
+			Assert.Equal(75, last.X);
+			Assert.Equal(75, last.Y);
 
-				// Test rConicTo().
-				path.Rewind();
-				path.RLineTo(0, 100);
-				path.RLineTo(100, 0);
-				path.Close();
-				path.RConicTo(50, 50, 85, 85, 2);
+			// Test rConicTo().
+			using var builder3 = new SKPathBuilder();
+			builder3.RLineTo(0, 100);
+			builder3.RLineTo(100, 0);
+			builder3.Close();
+			builder3.RConicTo(50, 50, 85, 85, 2);
+			using var path3 = builder3.Detach();
 
-				last = path.LastPoint;
-				Assert.Equal(85, last.X);
-				Assert.Equal(85, last.Y);
+			last = path3.LastPoint;
+			Assert.Equal(85, last.X);
+			Assert.Equal(85, last.Y);
 
-				// Test rCubicTo().
-				path.Rewind();
-				path.RLineTo(0, 100);
-				path.RLineTo(100, 0);
-				path.Close();
-				path.RCubicTo(50, 50, 85, 85, 95, 95);
+			// Test rCubicTo().
+			using var builder4 = new SKPathBuilder();
+			builder4.RLineTo(0, 100);
+			builder4.RLineTo(100, 0);
+			builder4.Close();
+			builder4.RCubicTo(50, 50, 85, 85, 95, 95);
+			using var path4 = builder4.Detach();
 
-				last = path.LastPoint;
-				Assert.Equal(95, last.X);
-				Assert.Equal(95, last.Y);
-			}
+			last = path4.LastPoint;
+			Assert.Equal(95, last.X);
+			Assert.Equal(95, last.Y);
 		}
 
 		[SkippableFact]
@@ -229,25 +225,27 @@ namespace SkiaSharp.Tests
 			}
 
 			var r = SKRect.Create(0, 0, 10, 10.5f);
-			using (var p = new SKPath())
-			{
-				p.AddRect(r);
-				TestToFromSvgPath(p);
+			using var builder = new SKPathBuilder();
+			builder.AddRect(r);
+			using var p1 = builder.Detach();
+			TestToFromSvgPath(p1);
 
-				p.AddOval(r);
-				TestToFromSvgPath(p);
+			builder.AddOval(r);
+			using var p2 = builder.Detach();
+			TestToFromSvgPath(p2);
 
-				p.AddRoundRect(r, 4, 4.5f);
-				TestToFromSvgPath(p);
-			}
+			builder.AddRoundRect(r, 4, 4.5f);
+			using var p3 = builder.Detach();
+			TestToFromSvgPath(p3);
 		}
 
 		[SkippableFact]
 		public void PathBoundsAndRegionBoundsMatch()
 		{
-			var path = new SKPath();
-			path.MoveTo(10, 10);
-			path.LineTo(90, 90);
+			using var builder = new SKPathBuilder();
+			builder.MoveTo(10, 10);
+			builder.LineTo(90, 90);
+			var path = builder.Detach();
 
 			var bounds = path.Bounds;
 			Assert.Equal(10f, bounds.Left);
@@ -270,46 +268,44 @@ namespace SkiaSharp.Tests
 		{
 			const int Precision = 6;
 
-			using (SKPath path = new SKPath())
-			{
-				path.MoveTo(-6.2157825e-7f, -25.814698f);
-				path.RCubicTo(-34.64102137842175f, 19.9999998f, 0f, 40f, 0f, 40f);
+			using var builder = new SKPathBuilder();
+			builder.MoveTo(-6.2157825e-7f, -25.814698f);
+			builder.RCubicTo(-34.64102137842175f, 19.9999998f, 0f, 40f, 0f, 40f);
+			using SKPath path = builder.Detach();
 
-				var bounds = path.Bounds;
-				Assert.Equal((double)-34.641022f, (double)bounds.Left, Precision);
-				Assert.Equal((double)-25.814698f, (double)bounds.Top, Precision);
-				Assert.Equal((double)-6.215782e-07f, (double)bounds.Right, Precision);
-				Assert.Equal((double)14.185303f, (double)bounds.Bottom, Precision);
+			var bounds = path.Bounds;
+			Assert.Equal((double)-34.641022f, (double)bounds.Left, Precision);
+			Assert.Equal((double)-25.814698f, (double)bounds.Top, Precision);
+			Assert.Equal((double)-6.215782e-07f, (double)bounds.Right, Precision);
+			Assert.Equal((double)14.185303f, (double)bounds.Bottom, Precision);
 
-				var tightBounds = path.TightBounds;
-				Assert.Equal((double)-15.396009f, (double)tightBounds.Left, Precision);
-				Assert.Equal((double)-25.814698f, (double)tightBounds.Top, Precision);
-				Assert.Equal((double)0f, (double)tightBounds.Right, Precision);
-				Assert.Equal((double)14.185303f, (double)tightBounds.Bottom, Precision);
-			}
+			var tightBounds = path.TightBounds;
+			Assert.Equal((double)-15.396009f, (double)tightBounds.Left, Precision);
+			Assert.Equal((double)-25.814698f, (double)tightBounds.Top, Precision);
+			Assert.Equal((double)0f, (double)tightBounds.Right, Precision);
+			Assert.Equal((double)14.185303f, (double)tightBounds.Bottom, Precision);
 		}
 
 		[SkippableFact]
 		public void MeasuringSegementsWorks()
 		{
-			using (SKPath path = new SKPath())
-			{
-				path.MoveTo(10f, 10f);
-				path.LineTo(110f, 10f);
+			using var builder = new SKPathBuilder();
+			builder.MoveTo(10f, 10f);
+			builder.LineTo(110f, 10f);
+			using SKPath path = builder.Detach();
 
-				Assert.Equal(SKPathSegmentMask.Line, path.SegmentMasks);
+			Assert.Equal(SKPathSegmentMask.Line, path.SegmentMasks);
 
-				var measure = new SKPathMeasure(path);
+			var measure = new SKPathMeasure(path);
 
-				Assert.Equal(100f, measure.Length);
+			Assert.Equal(100f, measure.Length);
 
-				var segment = new SKPath();
-				var result = measure.GetSegment(20, 50, segment, true);
-				Assert.True(result);
-				Assert.Equal(2, segment.PointCount);
-				Assert.Equal(new SKPoint(30, 10), segment.Points[0]);
-				Assert.Equal(new SKPoint(60, 10), segment.Points[1]);
-			}
+			var segment = new SKPath();
+			var result = measure.GetSegment(20, 50, segment, true);
+			Assert.True(result);
+			Assert.Equal(2, segment.PointCount);
+			Assert.Equal(new SKPoint(30, 10), segment.Points[0]);
+			Assert.Equal(new SKPoint(60, 10), segment.Points[1]);
 		}
 
 		[SkippableFact]
@@ -319,10 +315,11 @@ namespace SkiaSharp.Tests
 
 			var rect = SKRect.Create(10, 20, 28.889f, 28.889f);
 
-			var path = new SKPath();
-			path.MoveTo(10, 20);
-			path.CubicTo(10, 20, 30, 40, 30, 40);
-			path.CubicTo(50, 60, 30, 40, 30, 40);
+			using var builder = new SKPathBuilder();
+			builder.MoveTo(10, 20);
+			builder.CubicTo(10, 20, 30, 40, 30, 40);
+			builder.CubicTo(50, 60, 30, 40, 30, 40);
+			var path = builder.Detach();
 
 			var bounds = path.ComputeTightBounds();
 
@@ -335,78 +332,76 @@ namespace SkiaSharp.Tests
 		[SkippableFact]
 		public void RectPathIsRect()
 		{
-			using (var path = new SKPath())
-			{
-				var rect = SKRect.Create(10, 10, 100, 100);
-				path.AddRect(rect, SKPathDirection.CounterClockwise);
+			using var builder = new SKPathBuilder();
+			var rect = SKRect.Create(10, 10, 100, 100);
+			builder.AddRect(rect, SKPathDirection.CounterClockwise);
+			using var path = builder.Detach();
 
-				Assert.False(path.IsOval);
-				Assert.False(path.IsLine);
-				Assert.True(path.IsRect);
-				Assert.False(path.IsRoundRect);
-				Assert.Equal(rect, path.GetRect(out var isClosed, out var dir));
-				Assert.True(isClosed);
-				Assert.Equal(SKPathDirection.CounterClockwise, dir);
-			}
+			Assert.False(path.IsOval);
+			Assert.False(path.IsLine);
+			Assert.True(path.IsRect);
+			Assert.False(path.IsRoundRect);
+			Assert.Equal(rect, path.GetRect(out var isClosed, out var dir));
+			Assert.True(isClosed);
+			Assert.Equal(SKPathDirection.CounterClockwise, dir);
 		}
 
 		[SkippableFact]
 		public void RoundRectPathIsRoundRect()
 		{
-			using (var path = new SKPath())
-			{
-				var rrect = new SKRoundRect(SKRect.Create(10, 10, 100, 100), 5, 5);
-				path.AddRoundRect(rrect);
+			using var builder = new SKPathBuilder();
+			var rrect = new SKRoundRect(SKRect.Create(10, 10, 100, 100), 5, 5);
+			builder.AddRoundRect(rrect);
+			using var path = builder.Detach();
 
-				Assert.False(path.IsOval);
-				Assert.False(path.IsLine);
-				Assert.False(path.IsRect);
-				Assert.True(path.IsRoundRect);
-				Assert.Equal(rrect.Rect, path.GetRoundRect().Rect);
-				Assert.Equal(rrect.Radii, path.GetRoundRect().Radii);
-			}
+			Assert.False(path.IsOval);
+			Assert.False(path.IsLine);
+			Assert.False(path.IsRect);
+			Assert.True(path.IsRoundRect);
+			Assert.Equal(rrect.Rect, path.GetRoundRect().Rect);
+			Assert.Equal(rrect.Radii, path.GetRoundRect().Radii);
 		}
 
 		[SkippableFact]
 		public void LinePathIsLine()
 		{
-			using (var path = new SKPath())
-			{
-				path.LineTo(new SKPoint(100, 100));
+			using var builder = new SKPathBuilder();
+			builder.LineTo(new SKPoint(100, 100));
+			using var path = builder.Detach();
 
-				Assert.False(path.IsOval);
-				Assert.True(path.IsLine);
-				Assert.False(path.IsRect);
-				Assert.False(path.IsRoundRect);
-				Assert.Equal(new[] { SKPoint.Empty, new SKPoint(100, 100) }, path.GetLine());
-			}
+			Assert.False(path.IsOval);
+			Assert.True(path.IsLine);
+			Assert.False(path.IsRect);
+			Assert.False(path.IsRoundRect);
+			Assert.Equal(new[] { SKPoint.Empty, new SKPoint(100, 100) }, path.GetLine());
 		}
 
 		[SkippableFact]
 		public void OvalPathIsOval()
 		{
-			using (var path = new SKPath())
-			{
-				var rect = SKRect.Create(10, 10, 100, 100);
-				path.AddOval(rect);
+			using var builder = new SKPathBuilder();
+			var rect = SKRect.Create(10, 10, 100, 100);
+			builder.AddOval(rect);
+			using var path = builder.Detach();
 
-				Assert.True(path.IsOval);
-				Assert.False(path.IsLine);
-				Assert.False(path.IsRect);
-				Assert.False(path.IsRoundRect);
-				Assert.Equal(rect, path.GetOvalBounds());
-			}
+			Assert.True(path.IsOval);
+			Assert.False(path.IsLine);
+			Assert.False(path.IsRect);
+			Assert.False(path.IsRoundRect);
+			Assert.Equal(rect, path.GetOvalBounds());
 		}
 
 		[SkippableFact]
 		public void TrimPathEffectWorksInverted()
 		{
+			using var builder = new SKPathBuilder();
+			builder.MoveTo(0, 50);
+			builder.LineTo(new SKPoint(100, 50));
+			using var path = builder.Detach();
+
 			using (var bitmap = new SKBitmap(new SKImageInfo(100, 100)))
 			using (var canvas = new SKCanvas(bitmap))
-			using (var path = new SKPath())
 			{
-				path.MoveTo(0, 50);
-				path.LineTo(new SKPoint(100, 50));
 				canvas.Clear(SKColors.White);
 
 				// draw the base path
@@ -447,12 +442,14 @@ namespace SkiaSharp.Tests
 		[SkippableFact]
 		public void TrimPathEffectWorks()
 		{
+			using var builder = new SKPathBuilder();
+			builder.MoveTo(0, 50);
+			builder.LineTo(new SKPoint(100, 50));
+			using var path = builder.Detach();
+
 			using (var bitmap = new SKBitmap(new SKImageInfo(100, 100)))
 			using (var canvas = new SKCanvas(bitmap))
-			using (var path = new SKPath())
 			{
-				path.MoveTo(0, 50);
-				path.LineTo(new SKPoint(100, 50));
 				canvas.Clear(SKColors.White);
 
 				// draw the base path
@@ -493,8 +490,9 @@ namespace SkiaSharp.Tests
 		[SkippableFact]
 		public void ToWinding()
 		{
-			using var path = new SKPath();
-			path.AddRect(new SKRect(1, 2, 3, 4));
+			using var builder = new SKPathBuilder();
+			builder.AddRect(new SKRect(1, 2, 3, 4));
+			using var path = builder.Detach();
 
 			using var result = new SKPath();
 
