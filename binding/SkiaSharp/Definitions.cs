@@ -529,9 +529,6 @@ namespace SkiaSharp
 
 		public SKPngEncoderOptions (SKPngEncoderFilterFlags filterFlags, int zLibLevel)
 		{
-			fICCProfile = default;
-			fICCProfileDescription = default;
-
 			fFilterFlags = filterFlags;
 			fZLibLevel = zLibLevel;
 			fComments = null;
@@ -553,8 +550,6 @@ namespace SkiaSharp
 
 		public SKJpegEncoderOptions (int quality)
 		{
-			fICCProfile = default;
-			fICCProfileDescription = default;
 			xmpMetadata = default;
 			fOrigin = default;
 			fHasOrigin = default;
@@ -566,8 +561,6 @@ namespace SkiaSharp
 
 		public SKJpegEncoderOptions (int quality, SKJpegEncoderDownsample downsample, SKJpegEncoderAlphaOption alphaOption)
 		{
-			fICCProfile = default;
-			fICCProfileDescription = default;
 			xmpMetadata = default;
 			fOrigin = default;
 			fHasOrigin = default;
@@ -595,9 +588,6 @@ namespace SkiaSharp
 
 		public SKWebpEncoderOptions (SKWebpEncoderCompression compression, float quality)
 		{
-			fICCProfile = default;
-			fICCProfileDescription = default;
-
 			fCompression = compression;
 			fQuality = quality;
 		}
