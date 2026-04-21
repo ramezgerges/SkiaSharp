@@ -228,5 +228,13 @@ namespace SkiaSharp
 
 			SkiaApi.sk_pathbuilder_add_path (Handle, other.Handle, mode);
 		}
+
+		public void ReverseAddPath (SKPath other)
+		{
+			if (other == null)
+				throw new ArgumentNullException (nameof (other));
+
+			SkiaApi.sk_pathbuilder_reverse_add_path (Handle, other.Handle);
+		}
 	}
 }

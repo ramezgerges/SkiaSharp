@@ -744,10 +744,14 @@ namespace SkiaSharp
 			_builder.AddPath (other, mode);
 		}
 
-		[Obsolete ("Use SKPathBuilder instead. AddPathReverse is not available in Skia m147+.")]
+		[Obsolete ("Use SKPathBuilder instead.")]
 		public void AddPathReverse (SKPath other)
 		{
-			throw new NotSupportedException ("AddPathReverse is not available in Skia m147+. Use SKPathBuilder instead.");
+			if (other == null)
+				throw new ArgumentNullException (nameof (other));
+
+			EnsureBuilder ();
+			_builder.ReverseAddPath (other);
 		}
 
 		#endregion
