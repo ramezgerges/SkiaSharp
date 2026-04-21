@@ -14,6 +14,8 @@ namespace SkiaSharp
 
 	public unsafe class SKPath : SKObject, ISKSkipObjectRegistration
 	{
+		private SKPathBuilder _builder;
+
 		internal SKPath (IntPtr handle, bool owns)
 			: base (handle, owns)
 		{
@@ -38,42 +40,52 @@ namespace SkiaSharp
 		protected override void Dispose (bool disposing) =>
 			base.Dispose (disposing);
 
-		protected override void DisposeNative () =>
+		protected override void DisposeNative ()
+		{
+			_builder?.Dispose ();
+			_builder = null;
 			SkiaApi.sk_path_delete (Handle);
-
-		public SKPathFillType FillType {
-			get => SkiaApi.sk_path_get_filltype (Handle);
-			set => SkiaApi.sk_path_set_filltype (Handle, value);
 		}
 
-		public SKPathConvexity Convexity => IsConvex ? SKPathConvexity.Convex : SKPathConvexity.Concave;
+		public SKPathFillType FillType {
+			get => _builder != null ? _builder.FillType : SkiaApi.sk_path_get_filltype (Handle);
+			set {
+				if (_builder != null)
+					_builder.FillType = value;
+				else
+					SkiaApi.sk_path_set_filltype (Handle, value);
+			}
+		}
 
-		public bool IsConvex => SkiaApi.sk_path_is_convex (Handle);
+		public SKPathConvexity Convexity { get { FlushBuilder (); return IsConvex ? SKPathConvexity.Convex : SKPathConvexity.Concave; } }
+
+		public bool IsConvex { get { FlushBuilder (); return SkiaApi.sk_path_is_convex (Handle); } }
 
 		public bool IsConcave => !IsConvex;
 
 		public bool IsEmpty => VerbCount == 0;
 
-		public bool IsOval => SkiaApi.sk_path_is_oval (Handle, null);
+		public bool IsOval { get { FlushBuilder (); return SkiaApi.sk_path_is_oval (Handle, null); } }
 
-		public bool IsRoundRect => SkiaApi.sk_path_is_rrect (Handle, IntPtr.Zero);
+		public bool IsRoundRect { get { FlushBuilder (); return SkiaApi.sk_path_is_rrect (Handle, IntPtr.Zero); } }
 
-		public bool IsLine => SkiaApi.sk_path_is_line (Handle, null);
+		public bool IsLine { get { FlushBuilder (); return SkiaApi.sk_path_is_line (Handle, null); } }
 
-		public bool IsRect => SkiaApi.sk_path_is_rect (Handle, null, null, null);
+		public bool IsRect { get { FlushBuilder (); return SkiaApi.sk_path_is_rect (Handle, null, null, null); } }
 
-		public SKPathSegmentMask SegmentMasks => (SKPathSegmentMask)SkiaApi.sk_path_get_segment_masks (Handle);
+		public SKPathSegmentMask SegmentMasks { get { FlushBuilder (); return (SKPathSegmentMask)SkiaApi.sk_path_get_segment_masks (Handle); } }
 
-		public int VerbCount => SkiaApi.sk_path_count_verbs (Handle);
+		public int VerbCount { get { FlushBuilder (); return SkiaApi.sk_path_count_verbs (Handle); } }
 
-		public int PointCount => SkiaApi.sk_path_count_points (Handle);
+		public int PointCount { get { FlushBuilder (); return SkiaApi.sk_path_count_points (Handle); } }
 
 		public SKPoint this[int index] => GetPoint (index);
 
-		public SKPoint[] Points => GetPoints (PointCount);
+		public SKPoint[] Points { get { FlushBuilder (); return GetPoints (PointCount); } }
 
 		public SKPoint LastPoint {
 			get {
+				FlushBuilder ();
 				SKPoint point;
 				SkiaApi.sk_path_get_last_point (Handle, &point);
 				return point;
@@ -82,6 +94,7 @@ namespace SkiaSharp
 
 		public SKRect Bounds {
 			get {
+				FlushBuilder ();
 				SKRect rect;
 				SkiaApi.sk_path_get_bounds (Handle, &rect);
 				return rect;
@@ -90,6 +103,7 @@ namespace SkiaSharp
 
 		public SKRect TightBounds {
 			get {
+				FlushBuilder ();
 				if (GetTightBounds (out var rect)) {
 					return rect;
 				} else {
@@ -100,6 +114,7 @@ namespace SkiaSharp
 
 		public SKRect GetOvalBounds ()
 		{
+			FlushBuilder ();
 			SKRect bounds;
 			if (SkiaApi.sk_path_is_oval (Handle, &bounds)) {
 				return bounds;
@@ -110,6 +125,7 @@ namespace SkiaSharp
 
 		public SKRoundRect GetRoundRect ()
 		{
+			FlushBuilder ();
 			var rrect = new SKRoundRect ();
 			var result = SkiaApi.sk_path_is_rrect (Handle, rrect.Handle);
 			if (result) {
@@ -122,6 +138,7 @@ namespace SkiaSharp
 
 		public SKPoint[] GetLine ()
 		{
+			FlushBuilder ();
 			var temp = new SKPoint[2];
 			fixed (SKPoint* t = temp) {
 				var result = SkiaApi.sk_path_is_line (Handle, t);
@@ -138,6 +155,7 @@ namespace SkiaSharp
 
 		public SKRect GetRect (out bool isClosed, out SKPathDirection direction)
 		{
+			FlushBuilder ();
 			byte c;
 			fixed (SKPathDirection* d = &direction) {
 				SKRect rect;
@@ -153,6 +171,7 @@ namespace SkiaSharp
 
 		public SKPoint GetPoint (int index)
 		{
+			FlushBuilder ();
 			if (index < 0 || index >= PointCount)
 				throw new ArgumentOutOfRangeException (nameof (index));
 
@@ -170,13 +189,17 @@ namespace SkiaSharp
 
 		public int GetPoints (SKPoint[] points, int max)
 		{
+			FlushBuilder ();
 			fixed (SKPoint* p = points) {
 				return SkiaApi.sk_path_get_points (Handle, p, max);
 			}
 		}
 
-		public bool Contains (float x, float y) =>
-			SkiaApi.sk_path_contains (Handle, x, y);
+		public bool Contains (float x, float y)
+		{
+			FlushBuilder ();
+			return SkiaApi.sk_path_contains (Handle, x, y);
+		}
 
 		public void Offset (SKPoint offset) =>
 			Offset (offset.X, offset.Y);
@@ -187,11 +210,18 @@ namespace SkiaSharp
 			Transform (in matrix);
 		}
 
-		public void Reset () =>
+		public void Reset ()
+		{
+			if (_builder != null) {
+				_builder.Dispose ();
+				_builder = null;
+			}
 			SkiaApi.sk_path_reset (Handle);
+		}
 
 		public bool GetBounds (out SKRect rect)
 		{
+			FlushBuilder ();
 			var isEmpty = IsEmpty;
 			if (isEmpty) {
 				rect = SKRect.Empty;
@@ -205,6 +235,7 @@ namespace SkiaSharp
 
 		public SKRect ComputeTightBounds ()
 		{
+			FlushBuilder ();
 			SKRect rect;
 			SkiaApi.sk_path_compute_tight_bounds (Handle, &rect);
 			return rect;
@@ -212,6 +243,7 @@ namespace SkiaSharp
 
 		public void Transform (in SKMatrix matrix)
 		{
+			FlushBuilder ();
 			fixed (SKMatrix* m = &matrix)
 				SkiaApi.sk_path_transform (Handle, m);
 		}
@@ -221,6 +253,7 @@ namespace SkiaSharp
 			if (destination == null)
 				throw new ArgumentNullException (nameof (destination));
 
+			FlushBuilder ();
 			fixed (SKMatrix* m = &matrix)
 				SkiaApi.sk_path_transform_to_dest (Handle, m, destination.Handle);
 		}
@@ -233,11 +266,17 @@ namespace SkiaSharp
 		public void Transform (SKMatrix matrix, SKPath destination) =>
 			Transform (in matrix, destination);
 
-		public Iterator CreateIterator (bool forceClose) =>
-			new Iterator (this, forceClose);
+		public Iterator CreateIterator (bool forceClose)
+		{
+			FlushBuilder ();
+			return new Iterator (this, forceClose);
+		}
 
-		public RawIterator CreateRawIterator () =>
-			new RawIterator (this);
+		public RawIterator CreateRawIterator ()
+		{
+			FlushBuilder ();
+			return new RawIterator (this);
+		}
 
 		public bool Op (SKPath other, SKPathOp op, SKPath result)
 		{
@@ -246,6 +285,7 @@ namespace SkiaSharp
 			if (result == null)
 				throw new ArgumentNullException (nameof (result));
 
+			FlushBuilder ();
 			return SkiaApi.sk_pathop_op (Handle, other.Handle, op, result.Handle);
 		}
 
@@ -265,6 +305,7 @@ namespace SkiaSharp
 			if (result == null)
 				throw new ArgumentNullException (nameof (result));
 
+			FlushBuilder ();
 			return SkiaApi.sk_pathop_simplify (Handle, result.Handle);
 		}
 
@@ -281,6 +322,7 @@ namespace SkiaSharp
 
 		public bool GetTightBounds (out SKRect result)
 		{
+			FlushBuilder ();
 			fixed (SKRect* r = &result) {
 				return SkiaApi.sk_pathop_tight_bounds (Handle, r);
 			}
@@ -291,6 +333,7 @@ namespace SkiaSharp
 			if (result == null)
 				throw new ArgumentNullException (nameof (result));
 
+			FlushBuilder ();
 			return SkiaApi.sk_pathop_as_winding (Handle, result.Handle);
 		}
 
@@ -307,6 +350,7 @@ namespace SkiaSharp
 
 		public string ToSvgPathData ()
 		{
+			FlushBuilder ();
 			using var str = new SKString ();
 			SkiaApi.sk_path_to_svg_string (Handle, str.Handle);
 			return (string)str;
@@ -350,6 +394,353 @@ namespace SkiaSharp
 
 		internal static SKPath GetObject (IntPtr handle, bool owns = true) =>
 			handle == IntPtr.Zero ? null : new SKPath (handle, owns);
+
+		// Lazy builder support
+
+		private void EnsureBuilder ()
+		{
+			if (_builder == null)
+				_builder = new SKPathBuilder (this);
+		}
+
+		private void FlushBuilder ()
+		{
+			if (_builder == null)
+				return;
+
+			var newHandle = SkiaApi.sk_pathbuilder_detach_path (_builder.Handle);
+			_builder.Dispose ();
+			_builder = null;
+			SkiaApi.sk_path_delete (Handle);
+			Handle = newHandle;
+		}
+
+		#region Deprecated Mutation Methods
+
+		// Move
+
+		[Obsolete ("Use SKPathBuilder instead.")]
+		public void MoveTo (SKPoint point)
+		{
+			EnsureBuilder ();
+			_builder.MoveTo (point);
+		}
+
+		[Obsolete ("Use SKPathBuilder instead.")]
+		public void MoveTo (float x, float y)
+		{
+			EnsureBuilder ();
+			_builder.MoveTo (x, y);
+		}
+
+		[Obsolete ("Use SKPathBuilder instead.")]
+		public void RMoveTo (SKPoint point)
+		{
+			EnsureBuilder ();
+			_builder.RMoveTo (point);
+		}
+
+		[Obsolete ("Use SKPathBuilder instead.")]
+		public void RMoveTo (float dx, float dy)
+		{
+			EnsureBuilder ();
+			_builder.RMoveTo (dx, dy);
+		}
+
+		// Line
+
+		[Obsolete ("Use SKPathBuilder instead.")]
+		public void LineTo (SKPoint point)
+		{
+			EnsureBuilder ();
+			_builder.LineTo (point);
+		}
+
+		[Obsolete ("Use SKPathBuilder instead.")]
+		public void LineTo (float x, float y)
+		{
+			EnsureBuilder ();
+			_builder.LineTo (x, y);
+		}
+
+		[Obsolete ("Use SKPathBuilder instead.")]
+		public void RLineTo (SKPoint point)
+		{
+			EnsureBuilder ();
+			_builder.RLineTo (point);
+		}
+
+		[Obsolete ("Use SKPathBuilder instead.")]
+		public void RLineTo (float dx, float dy)
+		{
+			EnsureBuilder ();
+			_builder.RLineTo (dx, dy);
+		}
+
+		// Quad
+
+		[Obsolete ("Use SKPathBuilder instead.")]
+		public void QuadTo (SKPoint point0, SKPoint point1)
+		{
+			EnsureBuilder ();
+			_builder.QuadTo (point0, point1);
+		}
+
+		[Obsolete ("Use SKPathBuilder instead.")]
+		public void QuadTo (float x0, float y0, float x1, float y1)
+		{
+			EnsureBuilder ();
+			_builder.QuadTo (x0, y0, x1, y1);
+		}
+
+		[Obsolete ("Use SKPathBuilder instead.")]
+		public void RQuadTo (SKPoint point0, SKPoint point1)
+		{
+			EnsureBuilder ();
+			_builder.RQuadTo (point0, point1);
+		}
+
+		[Obsolete ("Use SKPathBuilder instead.")]
+		public void RQuadTo (float dx0, float dy0, float dx1, float dy1)
+		{
+			EnsureBuilder ();
+			_builder.RQuadTo (dx0, dy0, dx1, dy1);
+		}
+
+		// Conic
+
+		[Obsolete ("Use SKPathBuilder instead.")]
+		public void ConicTo (SKPoint point0, SKPoint point1, float w)
+		{
+			EnsureBuilder ();
+			_builder.ConicTo (point0, point1, w);
+		}
+
+		[Obsolete ("Use SKPathBuilder instead.")]
+		public void ConicTo (float x0, float y0, float x1, float y1, float w)
+		{
+			EnsureBuilder ();
+			_builder.ConicTo (x0, y0, x1, y1, w);
+		}
+
+		[Obsolete ("Use SKPathBuilder instead.")]
+		public void RConicTo (SKPoint point0, SKPoint point1, float w)
+		{
+			EnsureBuilder ();
+			_builder.RConicTo (point0, point1, w);
+		}
+
+		[Obsolete ("Use SKPathBuilder instead.")]
+		public void RConicTo (float dx0, float dy0, float dx1, float dy1, float w)
+		{
+			EnsureBuilder ();
+			_builder.RConicTo (dx0, dy0, dx1, dy1, w);
+		}
+
+		// Cubic
+
+		[Obsolete ("Use SKPathBuilder instead.")]
+		public void CubicTo (SKPoint point0, SKPoint point1, SKPoint point2)
+		{
+			EnsureBuilder ();
+			_builder.CubicTo (point0, point1, point2);
+		}
+
+		[Obsolete ("Use SKPathBuilder instead.")]
+		public void CubicTo (float x0, float y0, float x1, float y1, float x2, float y2)
+		{
+			EnsureBuilder ();
+			_builder.CubicTo (x0, y0, x1, y1, x2, y2);
+		}
+
+		[Obsolete ("Use SKPathBuilder instead.")]
+		public void RCubicTo (SKPoint point0, SKPoint point1, SKPoint point2)
+		{
+			EnsureBuilder ();
+			_builder.RCubicTo (point0, point1, point2);
+		}
+
+		[Obsolete ("Use SKPathBuilder instead.")]
+		public void RCubicTo (float dx0, float dy0, float dx1, float dy1, float dx2, float dy2)
+		{
+			EnsureBuilder ();
+			_builder.RCubicTo (dx0, dy0, dx1, dy1, dx2, dy2);
+		}
+
+		// Arc
+
+		[Obsolete ("Use SKPathBuilder instead.")]
+		public void ArcTo (SKPoint r, float xAxisRotate, SKPathArcSize largeArc, SKPathDirection sweep, SKPoint xy)
+		{
+			EnsureBuilder ();
+			_builder.ArcTo (r, xAxisRotate, largeArc, sweep, xy);
+		}
+
+		[Obsolete ("Use SKPathBuilder instead.")]
+		public void ArcTo (float rx, float ry, float xAxisRotate, SKPathArcSize largeArc, SKPathDirection sweep, float x, float y)
+		{
+			EnsureBuilder ();
+			_builder.ArcTo (rx, ry, xAxisRotate, largeArc, sweep, x, y);
+		}
+
+		[Obsolete ("Use SKPathBuilder instead.")]
+		public void ArcTo (SKRect oval, float startAngle, float sweepAngle, bool forceMoveTo)
+		{
+			EnsureBuilder ();
+			_builder.ArcTo (oval, startAngle, sweepAngle, forceMoveTo);
+		}
+
+		[Obsolete ("Use SKPathBuilder instead.")]
+		public void ArcTo (SKPoint point1, SKPoint point2, float radius)
+		{
+			EnsureBuilder ();
+			_builder.ArcTo (point1, point2, radius);
+		}
+
+		[Obsolete ("Use SKPathBuilder instead.")]
+		public void ArcTo (float x1, float y1, float x2, float y2, float radius)
+		{
+			EnsureBuilder ();
+			_builder.ArcTo (x1, y1, x2, y2, radius);
+		}
+
+		[Obsolete ("Use SKPathBuilder instead.")]
+		public void RArcTo (SKPoint r, float xAxisRotate, SKPathArcSize largeArc, SKPathDirection sweep, SKPoint xy)
+		{
+			EnsureBuilder ();
+			_builder.RArcTo (r, xAxisRotate, largeArc, sweep, xy);
+		}
+
+		[Obsolete ("Use SKPathBuilder instead.")]
+		public void RArcTo (float rx, float ry, float xAxisRotate, SKPathArcSize largeArc, SKPathDirection sweep, float x, float y)
+		{
+			EnsureBuilder ();
+			_builder.RArcTo (rx, ry, xAxisRotate, largeArc, sweep, x, y);
+		}
+
+		// Close
+
+		[Obsolete ("Use SKPathBuilder instead.")]
+		public void Close ()
+		{
+			EnsureBuilder ();
+			_builder.Close ();
+		}
+
+		// Rewind
+
+		[Obsolete ("Use SKPathBuilder instead.")]
+		public void Rewind ()
+		{
+			if (_builder != null) {
+				_builder.Reset ();
+			} else {
+				_builder = new SKPathBuilder ();
+			}
+		}
+
+		// Add shapes
+
+		[Obsolete ("Use SKPathBuilder instead.")]
+		public void AddRect (SKRect rect, SKPathDirection direction = SKPathDirection.Clockwise)
+		{
+			EnsureBuilder ();
+			_builder.AddRect (rect, direction);
+		}
+
+		[Obsolete ("Use SKPathBuilder instead.")]
+		public void AddRect (SKRect rect, SKPathDirection direction, uint startIndex)
+		{
+			EnsureBuilder ();
+			_builder.AddRect (rect, direction, startIndex);
+		}
+
+		[Obsolete ("Use SKPathBuilder instead.")]
+		public void AddRoundRect (SKRoundRect rect, SKPathDirection direction = SKPathDirection.Clockwise)
+		{
+			EnsureBuilder ();
+			_builder.AddRoundRect (rect, direction);
+		}
+
+		[Obsolete ("Use SKPathBuilder instead.")]
+		public void AddRoundRect (SKRoundRect rect, SKPathDirection direction, uint startIndex)
+		{
+			EnsureBuilder ();
+			_builder.AddRoundRect (rect, direction, startIndex);
+		}
+
+		[Obsolete ("Use SKPathBuilder instead.")]
+		public void AddRoundRect (SKRect rect, float rx, float ry, SKPathDirection dir = SKPathDirection.Clockwise)
+		{
+			EnsureBuilder ();
+			_builder.AddRoundRect (rect, rx, ry, dir);
+		}
+
+		[Obsolete ("Use SKPathBuilder instead.")]
+		public void AddOval (SKRect rect, SKPathDirection direction = SKPathDirection.Clockwise)
+		{
+			EnsureBuilder ();
+			_builder.AddOval (rect, direction);
+		}
+
+		[Obsolete ("Use SKPathBuilder instead.")]
+		public void AddArc (SKRect oval, float startAngle, float sweepAngle)
+		{
+			EnsureBuilder ();
+			_builder.AddArc (oval, startAngle, sweepAngle);
+		}
+
+		[Obsolete ("Use SKPathBuilder instead.")]
+		public void AddCircle (float x, float y, float radius, SKPathDirection dir = SKPathDirection.Clockwise)
+		{
+			EnsureBuilder ();
+			_builder.AddCircle (x, y, radius, dir);
+		}
+
+		[Obsolete ("Use SKPathBuilder instead.")]
+		public void AddPoly (SKPoint[] points, bool close = true)
+		{
+			EnsureBuilder ();
+			_builder.AddPoly (points, close);
+		}
+
+		[Obsolete ("Use SKPathBuilder instead.")]
+		public void AddPoly (ReadOnlySpan<SKPoint> points, bool close = true)
+		{
+			EnsureBuilder ();
+			_builder.AddPoly (points, close);
+		}
+
+		// Add path
+
+		[Obsolete ("Use SKPathBuilder instead.")]
+		public void AddPath (SKPath other, float dx, float dy, SKPathAddMode mode = SKPathAddMode.Append)
+		{
+			EnsureBuilder ();
+			_builder.AddPath (other, dx, dy, mode);
+		}
+
+		[Obsolete ("Use SKPathBuilder instead.")]
+		public void AddPath (SKPath other, in SKMatrix matrix, SKPathAddMode mode = SKPathAddMode.Append)
+		{
+			EnsureBuilder ();
+			_builder.AddPath (other, in matrix, mode);
+		}
+
+		[Obsolete ("Use SKPathBuilder instead.")]
+		public void AddPath (SKPath other, SKPathAddMode mode = SKPathAddMode.Append)
+		{
+			EnsureBuilder ();
+			_builder.AddPath (other, mode);
+		}
+
+		[Obsolete ("Use SKPathBuilder instead. AddPathReverse is not available in Skia m147+.")]
+		public void AddPathReverse (SKPath other)
+		{
+			throw new NotSupportedException ("AddPathReverse is not available in Skia m147+. Use SKPathBuilder instead.");
+		}
+
+		#endregion
 
 		//
 
