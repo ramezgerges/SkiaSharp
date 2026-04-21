@@ -48,12 +48,11 @@ namespace SkiaSharp
 		}
 
 		public SKPathFillType FillType {
-			get => _builder != null ? _builder.FillType : SkiaApi.sk_path_get_filltype (Handle);
+			get => SkiaApi.sk_path_get_filltype (Handle);
 			set {
+				SkiaApi.sk_path_set_filltype (Handle, value);
 				if (_builder != null)
 					_builder.FillType = value;
-				else
-					SkiaApi.sk_path_set_filltype (Handle, value);
 			}
 		}
 
