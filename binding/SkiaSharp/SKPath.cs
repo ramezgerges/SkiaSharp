@@ -414,6 +414,17 @@ namespace SkiaSharp
 			Handle = newHandle;
 		}
 
+		internal void ReplaceFromBuilder (SKPathBuilder builder)
+		{
+			if (_builder != null) {
+				_builder.Dispose ();
+				_builder = null;
+			}
+			var newHandle = SkiaApi.sk_pathbuilder_detach_path (builder.Handle);
+			SkiaApi.sk_path_delete (Handle);
+			Handle = newHandle;
+		}
+
 		#region Deprecated Mutation Methods
 
 		// Move
