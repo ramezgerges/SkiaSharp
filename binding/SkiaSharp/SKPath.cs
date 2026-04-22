@@ -21,6 +21,18 @@ namespace SkiaSharp
 		{
 		}
 
+		// External code (SKCanvas.DrawPath, SKRegion.SetPath, SKPathBuilder.AddPath, etc.)
+		// reads path.Handle directly and P/Invokes with it. If mutations have been batched
+		// into _builder but not yet flushed, base.Handle points at a stale native SkPath.
+		// Flushing in the getter keeps every reader — internal or external — honest.
+		public override IntPtr Handle {
+			get {
+				FlushBuilder ();
+				return base.Handle;
+			}
+			protected set => base.Handle = value;
+		}
+
 		public SKPath ()
 			: this (SkiaApi.sk_path_new (), true)
 		{
@@ -56,35 +68,34 @@ namespace SkiaSharp
 			}
 		}
 
-		public SKPathConvexity Convexity { get { FlushBuilder (); return IsConvex ? SKPathConvexity.Convex : SKPathConvexity.Concave; } }
+		public SKPathConvexity Convexity { get { return IsConvex ? SKPathConvexity.Convex : SKPathConvexity.Concave; } }
 
-		public bool IsConvex { get { FlushBuilder (); return SkiaApi.sk_path_is_convex (Handle); } }
+		public bool IsConvex { get { return SkiaApi.sk_path_is_convex (Handle); } }
 
 		public bool IsConcave => !IsConvex;
 
 		public bool IsEmpty => VerbCount == 0;
 
-		public bool IsOval { get { FlushBuilder (); return SkiaApi.sk_path_is_oval (Handle, null); } }
+		public bool IsOval { get { return SkiaApi.sk_path_is_oval (Handle, null); } }
 
-		public bool IsRoundRect { get { FlushBuilder (); return SkiaApi.sk_path_is_rrect (Handle, IntPtr.Zero); } }
+		public bool IsRoundRect { get { return SkiaApi.sk_path_is_rrect (Handle, IntPtr.Zero); } }
 
-		public bool IsLine { get { FlushBuilder (); return SkiaApi.sk_path_is_line (Handle, null); } }
+		public bool IsLine { get { return SkiaApi.sk_path_is_line (Handle, null); } }
 
-		public bool IsRect { get { FlushBuilder (); return SkiaApi.sk_path_is_rect (Handle, null, null, null); } }
+		public bool IsRect { get { return SkiaApi.sk_path_is_rect (Handle, null, null, null); } }
 
-		public SKPathSegmentMask SegmentMasks { get { FlushBuilder (); return (SKPathSegmentMask)SkiaApi.sk_path_get_segment_masks (Handle); } }
+		public SKPathSegmentMask SegmentMasks { get { return (SKPathSegmentMask)SkiaApi.sk_path_get_segment_masks (Handle); } }
 
-		public int VerbCount { get { FlushBuilder (); return SkiaApi.sk_path_count_verbs (Handle); } }
+		public int VerbCount { get { return SkiaApi.sk_path_count_verbs (Handle); } }
 
-		public int PointCount { get { FlushBuilder (); return SkiaApi.sk_path_count_points (Handle); } }
+		public int PointCount { get { return SkiaApi.sk_path_count_points (Handle); } }
 
 		public SKPoint this[int index] => GetPoint (index);
 
-		public SKPoint[] Points { get { FlushBuilder (); return GetPoints (PointCount); } }
+		public SKPoint[] Points { get { return GetPoints (PointCount); } }
 
 		public SKPoint LastPoint {
 			get {
-				FlushBuilder ();
 				SKPoint point;
 				SkiaApi.sk_path_get_last_point (Handle, &point);
 				return point;
@@ -93,7 +104,6 @@ namespace SkiaSharp
 
 		public SKRect Bounds {
 			get {
-				FlushBuilder ();
 				SKRect rect;
 				SkiaApi.sk_path_get_bounds (Handle, &rect);
 				return rect;
@@ -102,7 +112,6 @@ namespace SkiaSharp
 
 		public SKRect TightBounds {
 			get {
-				FlushBuilder ();
 				if (GetTightBounds (out var rect)) {
 					return rect;
 				} else {
@@ -113,7 +122,6 @@ namespace SkiaSharp
 
 		public SKRect GetOvalBounds ()
 		{
-			FlushBuilder ();
 			SKRect bounds;
 			if (SkiaApi.sk_path_is_oval (Handle, &bounds)) {
 				return bounds;
@@ -124,7 +132,6 @@ namespace SkiaSharp
 
 		public SKRoundRect GetRoundRect ()
 		{
-			FlushBuilder ();
 			var rrect = new SKRoundRect ();
 			var result = SkiaApi.sk_path_is_rrect (Handle, rrect.Handle);
 			if (result) {
@@ -137,7 +144,6 @@ namespace SkiaSharp
 
 		public SKPoint[] GetLine ()
 		{
-			FlushBuilder ();
 			var temp = new SKPoint[2];
 			fixed (SKPoint* t = temp) {
 				var result = SkiaApi.sk_path_is_line (Handle, t);
@@ -154,7 +160,6 @@ namespace SkiaSharp
 
 		public SKRect GetRect (out bool isClosed, out SKPathDirection direction)
 		{
-			FlushBuilder ();
 			byte c;
 			fixed (SKPathDirection* d = &direction) {
 				SKRect rect;
@@ -170,7 +175,6 @@ namespace SkiaSharp
 
 		public SKPoint GetPoint (int index)
 		{
-			FlushBuilder ();
 			if (index < 0 || index >= PointCount)
 				throw new ArgumentOutOfRangeException (nameof (index));
 
@@ -188,7 +192,6 @@ namespace SkiaSharp
 
 		public int GetPoints (SKPoint[] points, int max)
 		{
-			FlushBuilder ();
 			fixed (SKPoint* p = points) {
 				return SkiaApi.sk_path_get_points (Handle, p, max);
 			}
@@ -196,7 +199,6 @@ namespace SkiaSharp
 
 		public bool Contains (float x, float y)
 		{
-			FlushBuilder ();
 			return SkiaApi.sk_path_contains (Handle, x, y);
 		}
 
@@ -220,7 +222,6 @@ namespace SkiaSharp
 
 		public bool GetBounds (out SKRect rect)
 		{
-			FlushBuilder ();
 			var isEmpty = IsEmpty;
 			if (isEmpty) {
 				rect = SKRect.Empty;
@@ -234,7 +235,6 @@ namespace SkiaSharp
 
 		public SKRect ComputeTightBounds ()
 		{
-			FlushBuilder ();
 			SKRect rect;
 			SkiaApi.sk_path_compute_tight_bounds (Handle, &rect);
 			return rect;
@@ -242,7 +242,6 @@ namespace SkiaSharp
 
 		public void Transform (in SKMatrix matrix)
 		{
-			FlushBuilder ();
 			fixed (SKMatrix* m = &matrix)
 				SkiaApi.sk_path_transform (Handle, m);
 		}
@@ -252,7 +251,6 @@ namespace SkiaSharp
 			if (destination == null)
 				throw new ArgumentNullException (nameof (destination));
 
-			FlushBuilder ();
 			fixed (SKMatrix* m = &matrix)
 				SkiaApi.sk_path_transform_to_dest (Handle, m, destination.Handle);
 		}
@@ -267,13 +265,11 @@ namespace SkiaSharp
 
 		public Iterator CreateIterator (bool forceClose)
 		{
-			FlushBuilder ();
 			return new Iterator (this, forceClose);
 		}
 
 		public RawIterator CreateRawIterator ()
 		{
-			FlushBuilder ();
 			return new RawIterator (this);
 		}
 
@@ -284,7 +280,6 @@ namespace SkiaSharp
 			if (result == null)
 				throw new ArgumentNullException (nameof (result));
 
-			FlushBuilder ();
 			return SkiaApi.sk_pathop_op (Handle, other.Handle, op, result.Handle);
 		}
 
@@ -304,7 +299,6 @@ namespace SkiaSharp
 			if (result == null)
 				throw new ArgumentNullException (nameof (result));
 
-			FlushBuilder ();
 			return SkiaApi.sk_pathop_simplify (Handle, result.Handle);
 		}
 
@@ -321,7 +315,6 @@ namespace SkiaSharp
 
 		public bool GetTightBounds (out SKRect result)
 		{
-			FlushBuilder ();
 			fixed (SKRect* r = &result) {
 				return SkiaApi.sk_pathop_tight_bounds (Handle, r);
 			}
@@ -332,7 +325,6 @@ namespace SkiaSharp
 			if (result == null)
 				throw new ArgumentNullException (nameof (result));
 
-			FlushBuilder ();
 			return SkiaApi.sk_pathop_as_winding (Handle, result.Handle);
 		}
 
@@ -349,7 +341,6 @@ namespace SkiaSharp
 
 		public string ToSvgPathData ()
 		{
-			FlushBuilder ();
 			using var str = new SKString ();
 			SkiaApi.sk_path_to_svg_string (Handle, str.Handle);
 			return (string)str;
