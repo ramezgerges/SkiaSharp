@@ -98,7 +98,7 @@ namespace HarfBuzzSharp
 			if (count == 0)
 				return Array.Empty<OpenTypeVarAxisInfo> ();
 
-			var axes = new OpenTypeVarAxisInfo[count];
+			var axes = new OpenTypeVarAxisInfo[(int)count];
 			fixed (OpenTypeVarAxisInfo* ptr = axes) {
 				HarfBuzzApi.hb_ot_var_get_axis_infos (Handle, 0, &count, ptr);
 			}
@@ -115,20 +115,31 @@ namespace HarfBuzzSharp
 		public int GetNamedInstanceCount () =>
 			(int)HarfBuzzApi.hb_ot_var_get_named_instance_count (Handle);
 
-		public OpenTypeNameId GetNamedInstanceSubfamilyNameId (int instanceIndex) =>
-			HarfBuzzApi.hb_ot_var_named_instance_get_subfamily_name_id (Handle, (uint)instanceIndex);
+		public OpenTypeNameId GetNamedInstanceSubfamilyNameId (int instanceIndex)
+		{
+			if (instanceIndex < 0)
+				throw new ArgumentOutOfRangeException (nameof (instanceIndex));
+			return HarfBuzzApi.hb_ot_var_named_instance_get_subfamily_name_id (Handle, (uint)instanceIndex);
+		}
 
-		public OpenTypeNameId GetNamedInstancePostScriptNameId (int instanceIndex) =>
-			HarfBuzzApi.hb_ot_var_named_instance_get_postscript_name_id (Handle, (uint)instanceIndex);
+		public OpenTypeNameId GetNamedInstancePostScriptNameId (int instanceIndex)
+		{
+			if (instanceIndex < 0)
+				throw new ArgumentOutOfRangeException (nameof (instanceIndex));
+			return HarfBuzzApi.hb_ot_var_named_instance_get_postscript_name_id (Handle, (uint)instanceIndex);
+		}
 
 		public float[] GetNamedInstanceDesignCoords (int instanceIndex)
 		{
+			if (instanceIndex < 0)
+				throw new ArgumentOutOfRangeException (nameof (instanceIndex));
+
 			uint coordsLength = 0;
 			HarfBuzzApi.hb_ot_var_named_instance_get_design_coords (Handle, (uint)instanceIndex, &coordsLength, null);
 			if (coordsLength == 0)
 				return Array.Empty<float> ();
 
-			var coords = new float[coordsLength];
+			var coords = new float[(int)coordsLength];
 			fixed (float* ptr = coords) {
 				HarfBuzzApi.hb_ot_var_named_instance_get_design_coords (Handle, (uint)instanceIndex, &coordsLength, ptr);
 			}

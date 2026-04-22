@@ -327,8 +327,12 @@ namespace HarfBuzzSharp
 			return coords;
 		}
 
-		public void SetVarNamedInstance (int instanceIndex) =>
+		public void SetVarNamedInstance (int instanceIndex)
+		{
+			if (instanceIndex < 0)
+				throw new ArgumentOutOfRangeException (nameof (instanceIndex));
 			HarfBuzzApi.hb_font_set_var_named_instance (Handle, (uint)instanceIndex);
+		}
 
 		public void SetFunctionsOpenType () =>
 			HarfBuzzApi.hb_ot_font_set_funcs (Handle);

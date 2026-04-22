@@ -10,7 +10,7 @@ namespace HarfBuzzSharp.Tests
 		// Variable font helpers
 		private Face CreateVariableFace ()
 		{
-			var blob = Blob.FromFile (Path.Combine (PathToFonts, "Distortable.ttf"));
+			using var blob = Blob.FromFile (Path.Combine (PathToFonts, "Distortable.ttf"));
 			return new Face (blob, 0);
 		}
 
