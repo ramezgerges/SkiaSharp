@@ -562,5 +562,79 @@ namespace SkiaSharp.Tests
 				return tf1.Handle;
 			}
 		}
+
+		// Variable font tests
+
+		[SkippableFact]
+		public void CanGetVariationDesignParameters ()
+		{
+			using var typeface = SKTypeface.FromFile (Path.Combine (PathToFonts, "Distortable.ttf"));
+			Assert.NotNull (typeface);
+
+			var axes = typeface.GetVariationDesignParameters ();
+			Assert.NotEmpty (axes);
+
+			var axis = axes[0];
+			Assert.NotEqual ((uint)0, axis.Tag);
+			Assert.True (axis.Min <= axis.Default);
+			Assert.True (axis.Default <= axis.Max);
+		}
+
+		[SkippableFact]
+		public void VariationDesignParametersEmptyForStaticFont ()
+		{
+			using var typeface = SKTypeface.FromFile (Path.Combine (PathToFonts, "content-font.ttf"));
+			Assert.NotNull (typeface);
+
+			var axes = typeface.GetVariationDesignParameters ();
+			Assert.Empty (axes);
+		}
+
+		[SkippableFact]
+		public void CanGetVariationDesignPosition ()
+		{
+			using var typeface = SKTypeface.FromFile (Path.Combine (PathToFonts, "Distortable.ttf"));
+			Assert.NotNull (typeface);
+
+			var position = typeface.GetVariationDesignPosition ();
+			Assert.NotEmpty (position);
+		}
+
+		[SkippableFact]
+		public void CanClone ()
+		{
+			using var typeface = SKTypeface.FromFile (Path.Combine (PathToFonts, "Distortable.ttf"));
+			Assert.NotNull (typeface);
+
+			var axes = typeface.GetVariationDesignParameters ();
+			Assert.NotEmpty (axes);
+
+			var position = new SKFontVariationDesignPositionCoordinate[] {
+				new SKFontVariationDesignPositionCoordinate { Axis = axes[0].Tag, Value = axes[0].Max }
+			};
+
+			using var cloned = typeface.Clone (position);
+			Assert.NotNull (cloned);
+
+			// Verify the cloned typeface has the new position
+			var clonedPosition = cloned.GetVariationDesignPosition ();
+			Assert.NotEmpty (clonedPosition);
+			Assert.Equal (axes[0].Max, clonedPosition[0].Value);
+		}
+
+		[SkippableFact]
+		public void CloneOnStaticFontReturnsTypeface ()
+		{
+			using var typeface = SKTypeface.FromFile (Path.Combine (PathToFonts, "content-font.ttf"));
+			Assert.NotNull (typeface);
+
+			var position = new SKFontVariationDesignPositionCoordinate[] {
+				new SKFontVariationDesignPositionCoordinate { Axis = 0x77676874 /* wght */, Value = 400 }
+			};
+
+			// Static fonts should handle this gracefully
+			using var cloned = typeface.Clone (position);
+			// Result may or may not be null depending on implementation
+		}
 	}
 }

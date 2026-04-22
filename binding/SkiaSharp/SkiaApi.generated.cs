@@ -14397,7 +14397,7 @@ namespace SkiaSharp
 			(sk_stream_is_at_end_delegate ??= GetSymbol<Delegates.sk_stream_is_at_end> ("sk_stream_is_at_end")).Invoke (cstream);
 		#endif
 
-		// bool sk_stream_move(sk_stream_t* cstream, int offset)
+		// bool sk_stream_move(sk_stream_t* cstream, long offset)
 		#if !USE_DELEGATES
 		#if USE_LIBRARY_IMPORT
 		[LibraryImport (SKIA)]
@@ -16338,6 +16338,25 @@ namespace SkiaSharp
 			(sk_fontstyleset_unref_delegate ??= GetSymbol<Delegates.sk_fontstyleset_unref> ("sk_fontstyleset_unref")).Invoke (fss);
 		#endif
 
+		// sk_typeface_t* sk_typeface_clone_with_arguments(const sk_typeface_t* typeface, const sk_fontarguments_variation_position_coordinate_t* coordinates, int coordinateCount, int collectionIndex)
+		#if !USE_DELEGATES
+		#if USE_LIBRARY_IMPORT
+		[LibraryImport (SKIA)]
+		internal static partial sk_typeface_t sk_typeface_clone_with_arguments (sk_typeface_t typeface, SKFontVariationDesignPositionCoordinate* coordinates, Int32 coordinateCount, Int32 collectionIndex);
+		#else // !USE_LIBRARY_IMPORT
+		[DllImport (SKIA, CallingConvention = CallingConvention.Cdecl)]
+		internal static extern sk_typeface_t sk_typeface_clone_with_arguments (sk_typeface_t typeface, SKFontVariationDesignPositionCoordinate* coordinates, Int32 coordinateCount, Int32 collectionIndex);
+		#endif
+		#else
+		private partial class Delegates {
+			[UnmanagedFunctionPointer (CallingConvention.Cdecl)]
+			internal delegate sk_typeface_t sk_typeface_clone_with_arguments (sk_typeface_t typeface, SKFontVariationDesignPositionCoordinate* coordinates, Int32 coordinateCount, Int32 collectionIndex);
+		}
+		private static Delegates.sk_typeface_clone_with_arguments sk_typeface_clone_with_arguments_delegate;
+		internal static sk_typeface_t sk_typeface_clone_with_arguments (sk_typeface_t typeface, SKFontVariationDesignPositionCoordinate* coordinates, Int32 coordinateCount, Int32 collectionIndex) =>
+			(sk_typeface_clone_with_arguments_delegate ??= GetSymbol<Delegates.sk_typeface_clone_with_arguments> ("sk_typeface_clone_with_arguments")).Invoke (typeface, coordinates, coordinateCount, collectionIndex);
+		#endif
+
 		// sk_data_t* sk_typeface_copy_table_data(const sk_typeface_t* typeface, sk_font_table_tag_t tag)
 		#if !USE_DELEGATES
 		#if USE_LIBRARY_IMPORT
@@ -16700,6 +16719,44 @@ namespace SkiaSharp
 		private static Delegates.sk_typeface_get_units_per_em sk_typeface_get_units_per_em_delegate;
 		internal static Int32 sk_typeface_get_units_per_em (sk_typeface_t typeface) =>
 			(sk_typeface_get_units_per_em_delegate ??= GetSymbol<Delegates.sk_typeface_get_units_per_em> ("sk_typeface_get_units_per_em")).Invoke (typeface);
+		#endif
+
+		// int sk_typeface_get_variation_design_parameters(const sk_typeface_t* typeface, sk_fontarguments_variation_axis_t* parameters, int parameterCount)
+		#if !USE_DELEGATES
+		#if USE_LIBRARY_IMPORT
+		[LibraryImport (SKIA)]
+		internal static partial Int32 sk_typeface_get_variation_design_parameters (sk_typeface_t typeface, SKFontVariationAxis* parameters, Int32 parameterCount);
+		#else // !USE_LIBRARY_IMPORT
+		[DllImport (SKIA, CallingConvention = CallingConvention.Cdecl)]
+		internal static extern Int32 sk_typeface_get_variation_design_parameters (sk_typeface_t typeface, SKFontVariationAxis* parameters, Int32 parameterCount);
+		#endif
+		#else
+		private partial class Delegates {
+			[UnmanagedFunctionPointer (CallingConvention.Cdecl)]
+			internal delegate Int32 sk_typeface_get_variation_design_parameters (sk_typeface_t typeface, SKFontVariationAxis* parameters, Int32 parameterCount);
+		}
+		private static Delegates.sk_typeface_get_variation_design_parameters sk_typeface_get_variation_design_parameters_delegate;
+		internal static Int32 sk_typeface_get_variation_design_parameters (sk_typeface_t typeface, SKFontVariationAxis* parameters, Int32 parameterCount) =>
+			(sk_typeface_get_variation_design_parameters_delegate ??= GetSymbol<Delegates.sk_typeface_get_variation_design_parameters> ("sk_typeface_get_variation_design_parameters")).Invoke (typeface, parameters, parameterCount);
+		#endif
+
+		// int sk_typeface_get_variation_design_position(const sk_typeface_t* typeface, sk_fontarguments_variation_position_coordinate_t* coordinates, int coordinateCount)
+		#if !USE_DELEGATES
+		#if USE_LIBRARY_IMPORT
+		[LibraryImport (SKIA)]
+		internal static partial Int32 sk_typeface_get_variation_design_position (sk_typeface_t typeface, SKFontVariationDesignPositionCoordinate* coordinates, Int32 coordinateCount);
+		#else // !USE_LIBRARY_IMPORT
+		[DllImport (SKIA, CallingConvention = CallingConvention.Cdecl)]
+		internal static extern Int32 sk_typeface_get_variation_design_position (sk_typeface_t typeface, SKFontVariationDesignPositionCoordinate* coordinates, Int32 coordinateCount);
+		#endif
+		#else
+		private partial class Delegates {
+			[UnmanagedFunctionPointer (CallingConvention.Cdecl)]
+			internal delegate Int32 sk_typeface_get_variation_design_position (sk_typeface_t typeface, SKFontVariationDesignPositionCoordinate* coordinates, Int32 coordinateCount);
+		}
+		private static Delegates.sk_typeface_get_variation_design_position sk_typeface_get_variation_design_position_delegate;
+		internal static Int32 sk_typeface_get_variation_design_position (sk_typeface_t typeface, SKFontVariationDesignPositionCoordinate* coordinates, Int32 coordinateCount) =>
+			(sk_typeface_get_variation_design_position_delegate ??= GetSymbol<Delegates.sk_typeface_get_variation_design_position> ("sk_typeface_get_variation_design_position")).Invoke (typeface, coordinates, coordinateCount);
 		#endif
 
 		// bool sk_typeface_is_fixed_pitch(const sk_typeface_t* typeface)
@@ -17533,7 +17590,7 @@ namespace SkiaSharp {
 	[return: MarshalAs (UnmanagedType.I1)]
 	internal unsafe delegate bool SKManagedStreamIsAtEndProxyDelegate(sk_stream_managedstream_t s, void* context);
 
-	// typedef bool (*)(sk_stream_managedstream_t* s, void* context, int offset)* sk_managedstream_move_proc
+	// typedef bool (*)(sk_stream_managedstream_t* s, void* context, long offset)* sk_managedstream_move_proc
 	[UnmanagedFunctionPointer (CallingConvention.Cdecl)]
 	[return: MarshalAs (UnmanagedType.I1)]
 	internal unsafe delegate bool SKManagedStreamMoveProxyDelegate(sk_stream_managedstream_t s, void* context, Int32 offset);
@@ -18916,6 +18973,112 @@ namespace SkiaSharp {
 			hash.Add (fRasterDPI);
 			hash.Add (fPDFA);
 			hash.Add (fEncodingQuality);
+			return hash.ToHashCode ();
+		}
+
+	}
+
+	// sk_fontarguments_variation_axis_t
+	[StructLayout (LayoutKind.Sequential)]
+	public unsafe partial struct SKFontVariationAxis : IEquatable<SKFontVariationAxis> {
+		// public uint32_t tag
+		private UInt32 tag;
+		public UInt32 Tag {
+			readonly get => tag;
+			set => tag = value;
+		}
+
+		// public float min
+		private Single min;
+		public Single Min {
+			readonly get => min;
+			set => min = value;
+		}
+
+		// public float def
+		private Single def;
+		public Single Default {
+			readonly get => def;
+			set => def = value;
+		}
+
+		// public float max
+		private Single max;
+		public Single Max {
+			readonly get => max;
+			set => max = value;
+		}
+
+		// public bool isHidden
+		private Byte isHidden;
+		public bool IsHidden {
+			readonly get => isHidden > 0;
+			set => isHidden = value ? (byte)1 : (byte)0;
+		}
+
+		public readonly bool Equals (SKFontVariationAxis obj) =>
+#pragma warning disable CS8909
+			tag == obj.tag && min == obj.min && def == obj.def && max == obj.max && isHidden == obj.isHidden;
+#pragma warning restore CS8909
+
+		public readonly override bool Equals (object obj) =>
+			obj is SKFontVariationAxis f && Equals (f);
+
+		public static bool operator == (SKFontVariationAxis left, SKFontVariationAxis right) =>
+			left.Equals (right);
+
+		public static bool operator != (SKFontVariationAxis left, SKFontVariationAxis right) =>
+			!left.Equals (right);
+
+		public readonly override int GetHashCode ()
+		{
+			var hash = new HashCode ();
+			hash.Add (tag);
+			hash.Add (min);
+			hash.Add (def);
+			hash.Add (max);
+			hash.Add (isHidden);
+			return hash.ToHashCode ();
+		}
+
+	}
+
+	// sk_fontarguments_variation_position_coordinate_t
+	[StructLayout (LayoutKind.Sequential)]
+	public unsafe partial struct SKFontVariationDesignPositionCoordinate : IEquatable<SKFontVariationDesignPositionCoordinate> {
+		// public uint32_t axis
+		private UInt32 axis;
+		public UInt32 Axis {
+			readonly get => axis;
+			set => axis = value;
+		}
+
+		// public float value
+		private Single value;
+		public Single Value {
+			readonly get => this.value;
+			set => this.value = value;
+		}
+
+		public readonly bool Equals (SKFontVariationDesignPositionCoordinate obj) =>
+#pragma warning disable CS8909
+			axis == obj.axis && value == obj.value;
+#pragma warning restore CS8909
+
+		public readonly override bool Equals (object obj) =>
+			obj is SKFontVariationDesignPositionCoordinate f && Equals (f);
+
+		public static bool operator == (SKFontVariationDesignPositionCoordinate left, SKFontVariationDesignPositionCoordinate right) =>
+			left.Equals (right);
+
+		public static bool operator != (SKFontVariationDesignPositionCoordinate left, SKFontVariationDesignPositionCoordinate right) =>
+			!left.Equals (right);
+
+		public readonly override int GetHashCode ()
+		{
+			var hash = new HashCode ();
+			hash.Add (axis);
+			hash.Add (value);
 			return hash.ToHashCode ();
 		}
 

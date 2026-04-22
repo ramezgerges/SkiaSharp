@@ -52,6 +52,17 @@
       "sk_font_table_tag_t": {
         "cs": "UInt32"
       },
+      // variable fonts
+      "sk_fontarguments_variation_axis_t": {
+        "cs": "SKFontVariationAxis",
+        "members": {
+          "def": "Default",
+          "isHidden": "IsHidden"
+        }
+      },
+      "sk_fontarguments_variation_position_coordinate_t": {
+        "cs": "SKFontVariationDesignPositionCoordinate"
+      },
       // the rest
       "gr_vk_imageinfo_t": {
         "cs": "GRVkImageInfo"

@@ -85,6 +85,56 @@ namespace HarfBuzzSharp
 
 		public void MakeImmutable () => HarfBuzzApi.hb_face_make_immutable (Handle);
 
+		// Variable font support
+
+		public bool HasVariationData => HarfBuzzApi.hb_ot_var_has_data (Handle);
+
+		public int GetVariationAxisCount () =>
+			(int)HarfBuzzApi.hb_ot_var_get_axis_count (Handle);
+
+		public OpenTypeVarAxisInfo[] GetVariationAxisInfos ()
+		{
+			var count = HarfBuzzApi.hb_ot_var_get_axis_count (Handle);
+			if (count == 0)
+				return Array.Empty<OpenTypeVarAxisInfo> ();
+
+			var axes = new OpenTypeVarAxisInfo[count];
+			fixed (OpenTypeVarAxisInfo* ptr = axes) {
+				HarfBuzzApi.hb_ot_var_get_axis_infos (Handle, 0, &count, ptr);
+			}
+			return axes;
+		}
+
+		public bool TryFindVariationAxis (Tag tag, out OpenTypeVarAxisInfo axisInfo)
+		{
+			fixed (OpenTypeVarAxisInfo* ptr = &axisInfo) {
+				return HarfBuzzApi.hb_ot_var_find_axis_info (Handle, tag, ptr);
+			}
+		}
+
+		public int GetNamedInstanceCount () =>
+			(int)HarfBuzzApi.hb_ot_var_get_named_instance_count (Handle);
+
+		public OpenTypeNameId GetNamedInstanceSubfamilyNameId (int instanceIndex) =>
+			HarfBuzzApi.hb_ot_var_named_instance_get_subfamily_name_id (Handle, (uint)instanceIndex);
+
+		public OpenTypeNameId GetNamedInstancePostScriptNameId (int instanceIndex) =>
+			HarfBuzzApi.hb_ot_var_named_instance_get_postscript_name_id (Handle, (uint)instanceIndex);
+
+		public float[] GetNamedInstanceDesignCoords (int instanceIndex)
+		{
+			uint coordsLength = 0;
+			HarfBuzzApi.hb_ot_var_named_instance_get_design_coords (Handle, (uint)instanceIndex, &coordsLength, null);
+			if (coordsLength == 0)
+				return Array.Empty<float> ();
+
+			var coords = new float[coordsLength];
+			fixed (float* ptr = coords) {
+				HarfBuzzApi.hb_ot_var_named_instance_get_design_coords (Handle, (uint)instanceIndex, &coordsLength, ptr);
+			}
+			return coords;
+		}
+
 		protected override void Dispose (bool disposing) =>
 			base.Dispose (disposing);
 

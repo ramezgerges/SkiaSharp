@@ -291,6 +291,45 @@ namespace HarfBuzzSharp
 			}
 		}
 
+		// Variable font support
+
+		public void SetVariations (ReadOnlySpan<Variation> variations)
+		{
+			fixed (Variation* ptr = variations) {
+				HarfBuzzApi.hb_font_set_variations (Handle, ptr, (uint)variations.Length);
+			}
+		}
+
+		public void SetVarCoordsDesign (ReadOnlySpan<float> coords)
+		{
+			fixed (float* ptr = coords) {
+				HarfBuzzApi.hb_font_set_var_coords_design (Handle, ptr, (uint)coords.Length);
+			}
+		}
+
+		public void SetVarCoordsNormalized (ReadOnlySpan<int> coords)
+		{
+			fixed (int* ptr = coords) {
+				HarfBuzzApi.hb_font_set_var_coords_normalized (Handle, ptr, (uint)coords.Length);
+			}
+		}
+
+		public int[] GetVarCoordsNormalized ()
+		{
+			uint length;
+			var ptr = HarfBuzzApi.hb_font_get_var_coords_normalized (Handle, &length);
+			if (length == 0 || ptr == null)
+				return Array.Empty<int> ();
+
+			var coords = new int[length];
+			for (uint i = 0; i < length; i++)
+				coords[i] = ptr[i];
+			return coords;
+		}
+
+		public void SetVarNamedInstance (int instanceIndex) =>
+			HarfBuzzApi.hb_font_set_var_named_instance (Handle, (uint)instanceIndex);
+
 		public void SetFunctionsOpenType () =>
 			HarfBuzzApi.hb_ot_font_set_funcs (Handle);
 

@@ -362,6 +362,44 @@ namespace SkiaSharp
 			return res;
 		}
 
+		// Variable fonts
+
+		public SKFontVariationAxis[] GetVariationDesignParameters ()
+		{
+			var count = SkiaApi.sk_typeface_get_variation_design_parameters (Handle, null, 0);
+			if (count <= 0)
+				return Array.Empty<SKFontVariationAxis> ();
+
+			var axes = new SKFontVariationAxis[count];
+			fixed (SKFontVariationAxis* ptr = axes) {
+				SkiaApi.sk_typeface_get_variation_design_parameters (Handle, ptr, count);
+			}
+			return axes;
+		}
+
+		public SKFontVariationDesignPositionCoordinate[] GetVariationDesignPosition ()
+		{
+			var count = SkiaApi.sk_typeface_get_variation_design_position (Handle, null, 0);
+			if (count <= 0)
+				return Array.Empty<SKFontVariationDesignPositionCoordinate> ();
+
+			var coords = new SKFontVariationDesignPositionCoordinate[count];
+			fixed (SKFontVariationDesignPositionCoordinate* ptr = coords) {
+				SkiaApi.sk_typeface_get_variation_design_position (Handle, ptr, count);
+			}
+			return coords;
+		}
+
+		public SKTypeface Clone (SKFontVariationDesignPositionCoordinate[] position, int collectionIndex = 0)
+		{
+			if (position == null)
+				throw new ArgumentNullException (nameof (position));
+
+			fixed (SKFontVariationDesignPositionCoordinate* ptr = position) {
+				return GetObject (SkiaApi.sk_typeface_clone_with_arguments (Handle, ptr, position.Length, collectionIndex));
+			}
+		}
+
 		//
 
 		internal static SKTypeface GetObject (IntPtr handle) =>

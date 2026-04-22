@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Buffers;
+using System.IO;
 using System.Text;
 using Xunit;
 
@@ -7,6 +8,126 @@ namespace HarfBuzzSharp.Tests
 {
 	public class HbFontTest : HBTest
 	{
+		// Variable font helpers
+		private (Face face, Font font) CreateVariableFontPair ()
+		{
+			var blob = Blob.FromFile (Path.Combine (PathToFonts, "Distortable.ttf"));
+			var face = new Face (blob, 0);
+			var font = new Font (face);
+			return (face, font);
+		}
+
+		// US2: Set Font Variation Values
+
+		[SkippableFact]
+		public void CanSetVariations ()
+		{
+			var (face, font) = CreateVariableFontPair ();
+			using (face)
+			using (font) {
+				var axes = face.GetVariationAxisInfos ();
+				Assert.NotEmpty (axes);
+
+				var variations = new Variation[] {
+					new Variation { Tag = axes[0].Tag, Value = axes[0].DefaultValue }
+				};
+				font.SetVariations (variations);
+			}
+		}
+
+		[SkippableFact]
+		public void CanSetMultipleVariationsSimultaneously ()
+		{
+			var (face, font) = CreateVariableFontPair ();
+			using (face)
+			using (font) {
+				var axes = face.GetVariationAxisInfos ();
+				if (axes.Length < 1) return;
+
+				// Set all axes to their min values
+				var variations = new Variation[axes.Length];
+				for (int i = 0; i < axes.Length; i++) {
+					variations[i] = new Variation { Tag = axes[i].Tag, Value = axes[i].MinValue };
+				}
+				font.SetVariations (variations);
+			}
+		}
+
+		[SkippableFact]
+		public void CanSetVarCoordsDesign ()
+		{
+			var (face, font) = CreateVariableFontPair ();
+			using (face)
+			using (font) {
+				var axisCount = face.GetVariationAxisCount ();
+				Assert.True (axisCount > 0);
+
+				var coords = new float[axisCount];
+				var axes = face.GetVariationAxisInfos ();
+				for (int i = 0; i < axisCount; i++)
+					coords[i] = axes[i].DefaultValue;
+
+				font.SetVarCoordsDesign (coords);
+			}
+		}
+
+		[SkippableFact]
+		public void SetVariationsOnStaticFontDoesNotThrow ()
+		{
+			using var face = new Face (Blob, 0);
+			using var font = new Font (face);
+			var variations = new Variation[] {
+				new Variation { Tag = Tag.Parse ("wght"), Value = 400 }
+			};
+			font.SetVariations (variations); // Should not throw
+		}
+
+		// US3: Named Instances
+
+		[SkippableFact]
+		public void CanSetVarNamedInstance ()
+		{
+			var (face, font) = CreateVariableFontPair ();
+			using (face)
+			using (font) {
+				var count = face.GetNamedInstanceCount ();
+				if (count == 0)
+					return;
+				font.SetVarNamedInstance (0); // Should not throw
+			}
+		}
+
+		// US4: Normalized Coordinates
+
+		[SkippableFact]
+		public void CanSetAndGetNormalizedCoords ()
+		{
+			var (face, font) = CreateVariableFontPair ();
+			using (face)
+			using (font) {
+				var axisCount = face.GetVariationAxisCount ();
+				Assert.True (axisCount > 0);
+
+				// Set normalized coords (HarfBuzz uses 16.16 fixed point: 16384 = 1.0)
+				var coords = new int[axisCount];
+				coords[0] = 8192; // 0.5 in normalized space
+				font.SetVarCoordsNormalized (coords);
+
+				var result = font.GetVarCoordsNormalized ();
+				Assert.Equal (axisCount, result.Length);
+				Assert.Equal (8192, result[0]);
+			}
+		}
+
+		[SkippableFact]
+		public void NormalizedCoordsAreEmptyForStaticFont ()
+		{
+			using var face = new Face (Blob, 0);
+			using var font = new Font (face);
+			var coords = font.GetVarCoordsNormalized ();
+			Assert.Empty (coords);
+		}
+
 		[SkippableFact]
 		public void ShouldHaveDefaultSupportedShapers()
 		{
