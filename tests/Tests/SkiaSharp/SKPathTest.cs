@@ -507,5 +507,223 @@ namespace SkiaSharp.Tests
 			Assert.NotEqual(path, result);
 			Assert.Equal(SKPathFillType.Winding, result.FillType);
 		}
+
+		// --- Lazy-batching correctness -------------------------------------------------------
+		// The following tests exercise the interaction between the [Obsolete] SKPath mutation
+		// methods (which batch into an internal SKPathBuilder) and external/internal readers.
+		// They fail if SKPath.Handle does not flush the pending builder, or if the backward-
+		// compat [Obsolete] overloads that take SKPath dst don't correctly move geometry in.
+
+#pragma warning disable CS0618 // Obsolete SKPath mutation/dst APIs are intentional here.
+
+		[SkippableFact]
+		public void BatchedMutationsVisibleThroughSKPathBuilderAddPath()
+		{
+			// SKPathBuilder.AddPath reads other.Handle directly in native code.
+			// Without Handle-flush, the batched MoveTo/LineTo would be invisible.
+			using var path = new SKPath();
+			path.MoveTo(10, 20);
+			path.LineTo(30, 40);
+
+			using var builder = new SKPathBuilder();
+			builder.AddPath(path);
+			using var snapshot = builder.Snapshot();
+
+			Assert.Equal(2, snapshot.PointCount);
+			Assert.Equal(new SKPoint(10, 20), snapshot.Points[0]);
+			Assert.Equal(new SKPoint(30, 40), snapshot.Points[1]);
+		}
+
+		[SkippableFact]
+		public void BatchedMutationsVisibleToSKRegionSetPath()
+		{
+			// SKRegion.SetPath reads path.Handle in the C shim.
+			using var path = new SKPath();
+			path.AddRect(new SKRect(0, 0, 100, 100));
+
+			using var clip = new SKRegion();
+			clip.SetRect(new SKRectI(-10, -10, 200, 200));
+
+			using var region = new SKRegion();
+			Assert.True(region.SetPath(path, clip));
+			Assert.Equal(new SKRectI(0, 0, 100, 100), region.Bounds);
+		}
+
+		[SkippableFact]
+		public void BatchedMutationsVisibleToSKCanvasDrawPath()
+		{
+			// SKCanvas.DrawPath reads path.Handle. Without flush, the rect wouldn't be drawn.
+			using var bitmap = new SKBitmap(new SKImageInfo(100, 100));
+			using var canvas = new SKCanvas(bitmap);
+			canvas.Clear(SKColors.White);
+
+			using var path = new SKPath();
+			path.AddRect(new SKRect(0, 0, 50, 50));
+
+			using var paint = new SKPaint { Color = SKColors.Red, Style = SKPaintStyle.Fill };
+			canvas.DrawPath(path, paint);
+
+			Assert.Equal(SKColors.Red, bitmap.GetPixel(25, 25));
+			Assert.Equal(SKColors.White, bitmap.GetPixel(75, 75));
+		}
+
+		[SkippableFact]
+		public void MutateReadMutateReadCycleIsConsistent()
+		{
+			// Exercises the flush/swap/rebuild-builder/flush chain.
+			using var path = new SKPath();
+			path.MoveTo(0, 0);
+			path.LineTo(10, 0);
+			var boundsBeforeFlush = path.Bounds;   // forces flush, builder disposed
+
+			path.LineTo(10, 10);                    // EnsureBuilder copies flushed state into a new builder
+			path.Close();
+			var boundsAfterFlush = path.Bounds;
+
+			Assert.Equal(new SKRect(0, 0, 10, 0), boundsBeforeFlush);
+			Assert.Equal(new SKRect(0, 0, 10, 10), boundsAfterFlush);
+		}
+
+		[SkippableFact]
+		public void FillTypeStaysConsistentAcrossFlush()
+		{
+			// FillType setter writes to both native path and builder (if any); getter reads
+			// from the native path. The invariant must survive a flush.
+			using var path = new SKPath();
+			path.FillType = SKPathFillType.EvenOdd;
+			Assert.Equal(SKPathFillType.EvenOdd, path.FillType);
+
+			path.MoveTo(0, 0);      // creates builder, builder copies FillType from path
+			path.LineTo(10, 0);
+			Assert.Equal(SKPathFillType.EvenOdd, path.FillType);
+
+			path.FillType = SKPathFillType.Winding;   // mirror to both
+			_ = path.Bounds;                           // force flush
+			Assert.Equal(SKPathFillType.Winding, path.FillType);
+		}
+
+		// --- SKPath-as-destination tests -----------------------------------------------------
+		// A destination SKPath may hold pending batched mutations. The operation must
+		// overwrite those mutations (matching the "destination is overwritten" contract).
+
+		[SkippableFact]
+		public void TransformWithDestinationOverwritesBatchedMutations()
+		{
+			using var src = new SKPath();
+			src.MoveTo(0, 0);
+			src.LineTo(10, 0);
+
+			using var dst = new SKPath();
+			dst.MoveTo(999, 999);   // batched; must be overwritten, not appended
+
+			var matrix = SKMatrix.CreateTranslation(5, 5);
+			src.Transform(matrix, dst);
+
+			Assert.Equal(2, dst.PointCount);
+			Assert.Equal(new SKPoint(5, 5), dst.Points[0]);
+			Assert.Equal(new SKPoint(15, 5), dst.Points[1]);
+		}
+
+		[SkippableFact]
+		public void OpWithDestinationOverwritesBatchedMutations()
+		{
+			using var a = new SKPath();
+			a.AddRect(new SKRect(0, 0, 10, 10));
+
+			using var b = new SKPath();
+			b.AddRect(new SKRect(5, 5, 15, 15));
+
+			using var result = new SKPath();
+			result.MoveTo(999, 999);   // batched; must be overwritten
+
+			Assert.True(a.Op(b, SKPathOp.Union, result));
+			Assert.Equal(new SKRect(0, 0, 15, 15), result.Bounds);
+		}
+
+		[SkippableFact]
+		public void SimplifyWithDestinationOverwritesBatchedMutations()
+		{
+			using var path = new SKPath();
+			path.AddRect(new SKRect(0, 0, 10, 10));
+
+			using var result = new SKPath();
+			result.MoveTo(999, 999);
+
+			Assert.True(path.Simplify(result));
+			Assert.Equal(new SKRect(0, 0, 10, 10), result.Bounds);
+		}
+
+		[SkippableFact]
+		public void ToWindingWithDestinationOverwritesBatchedMutations()
+		{
+			using var path = new SKPath();
+			path.AddRect(new SKRect(0, 0, 10, 10));
+			path.FillType = SKPathFillType.EvenOdd;
+
+			using var result = new SKPath();
+			result.MoveTo(999, 999);
+
+			Assert.True(path.ToWinding(result));
+			Assert.Equal(SKPathFillType.Winding, result.FillType);
+			Assert.Equal(new SKRect(0, 0, 10, 10), result.Bounds);
+		}
+
+		[SkippableFact]
+		public void SKPaintGetFillPathWithSKPathDstOverwritesBatchedMutations()
+		{
+			// Backward-compat overload restored as [Obsolete]. Goes through a temp
+			// SKPathBuilder and SKPath.ReplaceFromBuilder. Pre-fix: CS1503 at compile time.
+			using var paint = new SKPaint { Style = SKPaintStyle.Stroke, StrokeWidth = 2 };
+
+			using var src = new SKPath();
+			src.AddRect(new SKRect(0, 0, 10, 10));
+
+			using var dst = new SKPath();
+			dst.MoveTo(999, 999);
+
+			Assert.True(paint.GetFillPath(src, dst));
+			Assert.True(dst.VerbCount > 0);
+			Assert.True(dst.Bounds.Width >= 10);
+			// The stroke expanded the rect — the batched MoveTo(999,999) must be gone.
+			Assert.DoesNotContain(new SKPoint(999, 999), dst.Points);
+		}
+
+		[SkippableFact]
+		public void SKPathMeasureGetSegmentWithSKPathDstOverwritesBatchedMutations()
+		{
+			// Backward-compat overload restored as [Obsolete]. Pre-fix: CS1503 at compile time.
+			using var path = new SKPath();
+			path.MoveTo(0, 0);
+			path.LineTo(100, 0);
+
+			using var measure = new SKPathMeasure(path);
+
+			using var dst = new SKPath();
+			dst.MoveTo(999, 999);
+
+			Assert.True(measure.GetSegment(0, 50, dst, true));
+			Assert.True(dst.VerbCount > 0);
+			Assert.DoesNotContain(new SKPoint(999, 999), dst.Points);
+		}
+
+		[SkippableFact]
+		public void TransformInPlaceWhenSrcEqualsDst()
+		{
+			// Edge case: path.Transform(matrix, path) — native code computes the result
+			// before the self-assignment overwrites, so it's safe.
+			using var path = new SKPath();
+			path.MoveTo(0, 0);
+			path.LineTo(10, 0);
+			_ = path.Bounds; // force flush
+
+			var matrix = SKMatrix.CreateTranslation(5, 5);
+			path.Transform(matrix, path);
+
+			Assert.Equal(2, path.PointCount);
+			Assert.Equal(new SKPoint(5, 5), path.Points[0]);
+			Assert.Equal(new SKPoint(15, 5), path.Points[1]);
+		}
+
+#pragma warning restore CS0618
 	}
 }
