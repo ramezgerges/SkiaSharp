@@ -115,6 +115,39 @@ namespace SkiaSharpGenerator
 				}
 			}
 
+			if (OperatingSystem.IsLinux())
+			{
+				var process = new System.Diagnostics.Process
+				{
+					StartInfo = new System.Diagnostics.ProcessStartInfo
+					{
+						FileName = "clang",
+						Arguments = "-print-resource-dir",
+						RedirectStandardOutput = true,
+						UseShellExecute = false,
+						CreateNoWindow = true,
+					}
+				};
+				try
+				{
+					process.Start();
+					var resourceDir = process.StandardOutput.ReadToEnd().Trim();
+					process.WaitForExit();
+					if (!string.IsNullOrEmpty(resourceDir))
+					{
+						var include = Path.Combine(resourceDir, "include");
+						if (Directory.Exists(include))
+							options.SystemIncludeFolders.Add(include);
+					}
+				}
+				catch { }
+				foreach (var sys in new[] { "/usr/include/x86_64-linux-gnu", "/usr/include" })
+				{
+					if (Directory.Exists(sys))
+						options.SystemIncludeFolders.Add(sys);
+				}
+			}
+
 			foreach (var header in config.IncludeDirs)
 			{
 				var path = Path.Combine(SkiaRoot, header);
@@ -192,14 +225,18 @@ namespace SkiaSharpGenerator
 				{ "signed int",           nameof(Int32) },
 				{ "unsigned",             nameof(UInt32) },
 				{ "unsigned int",         nameof(UInt32) },
-				{ "long",                 nameof(Int64) },
-				{ "long int",             nameof(Int64) },
+				// C `long` is 32-bit on Windows (LLP64) and 64-bit on Linux/macOS
+				// (LP64). The checked-in bindings settled on Int32 historically
+				// (older CppAst silently collapsed `long` to `int`). Keep that to
+				// avoid ABI churn across the supported platforms.
+				{ "long",                 nameof(Int32) },
+				{ "long int",             nameof(Int32) },
 				{ "long long",            nameof(Int64) },
 				{ "long long int",        nameof(Int64) },
-				{ "signed long",          nameof(Int64) },
-				{ "signed long int",      nameof(Int64) },
-				{ "unsigned long",        nameof(UInt64) },
-				{ "unsigned long int",    nameof(UInt64) },
+				{ "signed long",          nameof(Int32) },
+				{ "signed long int",      nameof(Int32) },
+				{ "unsigned long",        nameof(UInt32) },
+				{ "unsigned long int",    nameof(UInt32) },
 				{ "float",                nameof(Single) },
 				{ "double",               nameof(Double) },
 				// TODO: long double, wchar_t ?
@@ -352,8 +389,12 @@ namespace SkiaSharpGenerator
 		{
 			var typeName = type.GetDisplayName();
 
-			// remove the const
-			typeName = typeName.Replace("const ", "");
+			// remove the const (both prefix and suffix forms — CppAst switched between them)
+			typeName = typeName.Replace("const ", "").Replace(" const", "");
+
+			// normalize whitespace around pointer/reference sigils: newer CppAst emits
+			// "T *" instead of "T*", which breaks the pointer/name split downstream
+			typeName = typeName.Replace(" *", "*").Replace(" &", "&");
 
 			// replace the [] with a *
 			int start;
