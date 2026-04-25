@@ -390,7 +390,10 @@ namespace SkiaSharp
 			return coords;
 		}
 
-		public SKTypeface Clone (SKFontVariationDesignPositionCoordinate[] position, int collectionIndex = 0)
+		public SKTypeface Clone (SKFontVariationDesignPositionCoordinate[] position) =>
+			Clone (position, 0);
+
+		public SKTypeface Clone (SKFontVariationDesignPositionCoordinate[] position, int collectionIndex)
 		{
 			if (position == null)
 				throw new ArgumentNullException (nameof (position));
