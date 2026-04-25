@@ -414,13 +414,17 @@ namespace SkiaSharp
 			}
 		}
 
-		public SKTypeface Clone (ReadOnlySpan<SKFontVariationPositionCoordinate> position) =>
-			Clone (position, 0);
-
-		public SKTypeface Clone (ReadOnlySpan<SKFontVariationPositionCoordinate> position, int collectionIndex)
+		public SKTypeface Clone (ReadOnlySpan<SKFontVariationPositionCoordinate> position)
 		{
 			fixed (SKFontVariationPositionCoordinate* ptr = position) {
-				return GetObject (SkiaApi.sk_typeface_clone_with_arguments (Handle, ptr, position.Length, collectionIndex));
+				return GetObject (SkiaApi.sk_typeface_clone_with_arguments (Handle, ptr, position.Length, 0));
+			}
+		}
+
+		public SKTypeface Clone (SKFontArguments args)
+		{
+			fixed (SKFontVariationPositionCoordinate* ptr = args.VariationDesignPosition) {
+				return GetObject (SkiaApi.sk_typeface_clone_with_arguments (Handle, ptr, args.VariationDesignPosition.Length, args.CollectionIndex));
 			}
 		}
 

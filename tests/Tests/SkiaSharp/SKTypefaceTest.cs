@@ -951,5 +951,75 @@ namespace SkiaSharp.Tests
 			Assert.Equal (2.0f, axes[0].Max);
 			Assert.False (axes[0].IsHidden);
 		}
+
+		// SKFontArguments tests
+
+		[SkippableFact]
+		public void CloneWithFontArguments ()
+		{
+			using var typeface = SKTypeface.FromFile (Path.Combine (PathToFonts, "Distortable.ttf"));
+			Assert.NotNull (typeface);
+
+			using var cloned = typeface.Clone (new SKFontArguments {
+				VariationDesignPosition = new[] {
+					new SKFontVariationPositionCoordinate { Axis = SKFourByteTag.Parse ("wght"), Value = 0.5f }
+				}
+			});
+			Assert.NotNull (cloned);
+
+			var pos = cloned.VariationDesignPosition;
+			Assert.Single (pos);
+			Assert.Equal (0.5f, pos[0].Value);
+		}
+
+		[SkippableFact]
+		public void CloneWithFontArgumentsDefaultIsNoOp ()
+		{
+			using var typeface = SKTypeface.FromFile (Path.Combine (PathToFonts, "Distortable.ttf"));
+			Assert.NotNull (typeface);
+
+			// Empty args — should clone with defaults
+			using var cloned = typeface.Clone (new SKFontArguments ());
+			Assert.NotNull (cloned);
+		}
+
+		[SkippableFact]
+		public void CloneWithFontArgumentsCollectionIndex ()
+		{
+			using var typeface = SKTypeface.FromFile (Path.Combine (PathToFonts, "Distortable.ttf"));
+			Assert.NotNull (typeface);
+
+			using var cloned = typeface.Clone (new SKFontArguments {
+				CollectionIndex = 0,
+				VariationDesignPosition = new[] {
+					new SKFontVariationPositionCoordinate { Axis = SKFourByteTag.Parse ("wght"), Value = 2.0f }
+				}
+			});
+			Assert.NotNull (cloned);
+
+			var pos = cloned.VariationDesignPosition;
+			Assert.Single (pos);
+			Assert.Equal (2.0f, pos[0].Value);
+		}
+
+		[SkippableFact]
+		public void CloneWithFontArgumentsStackalloc ()
+		{
+			using var typeface = SKTypeface.FromFile (Path.Combine (PathToFonts, "Distortable.ttf"));
+			Assert.NotNull (typeface);
+
+			Span<SKFontVariationPositionCoordinate> pos = stackalloc SKFontVariationPositionCoordinate[] {
+				new SKFontVariationPositionCoordinate { Axis = SKFourByteTag.Parse ("wght"), Value = 1.5f }
+			};
+
+			using var cloned = typeface.Clone (new SKFontArguments {
+				VariationDesignPosition = pos
+			});
+			Assert.NotNull (cloned);
+
+			var result = cloned.VariationDesignPosition;
+			Assert.Single (result);
+			Assert.Equal (1.5f, result[0].Value);
+		}
 	}
 }
