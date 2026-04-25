@@ -14397,7 +14397,7 @@ namespace SkiaSharp
 			(sk_stream_is_at_end_delegate ??= GetSymbol<Delegates.sk_stream_is_at_end> ("sk_stream_is_at_end")).Invoke (cstream);
 		#endif
 
-		// bool sk_stream_move(sk_stream_t* cstream, long offset)
+		// bool sk_stream_move(sk_stream_t* cstream, int32_t offset)
 		#if !USE_DELEGATES
 		#if USE_LIBRARY_IMPORT
 		[LibraryImport (SKIA)]
@@ -17590,7 +17590,7 @@ namespace SkiaSharp {
 	[return: MarshalAs (UnmanagedType.I1)]
 	internal unsafe delegate bool SKManagedStreamIsAtEndProxyDelegate(sk_stream_managedstream_t s, void* context);
 
-	// typedef bool (*)(sk_stream_managedstream_t* s, void* context, long offset)* sk_managedstream_move_proc
+	// typedef bool (*)(sk_stream_managedstream_t* s, void* context, int32_t offset)* sk_managedstream_move_proc
 	[UnmanagedFunctionPointer (CallingConvention.Cdecl)]
 	[return: MarshalAs (UnmanagedType.I1)]
 	internal unsafe delegate bool SKManagedStreamMoveProxyDelegate(sk_stream_managedstream_t s, void* context, Int32 offset);

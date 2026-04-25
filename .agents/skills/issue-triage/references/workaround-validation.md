@@ -34,7 +34,7 @@ Phase 3 (Analyze) → resolution + comment
   Synthesize → pass / fix / reject
          │
          ▼
-  Phase 4 (Schema Validate) continues
+  Phase 5 (Schema Validate) continues
 ```
 
 Uses `explore` agents (read-only, Haiku, has grep/glob/view). All 3 are independent — launch in parallel.
@@ -106,9 +106,9 @@ Before spawning agents, extract from the triage JSON: (1) all fenced code blocks
 After Phase 3 generates the triage JSON:
 
 1. Extract code blocks from proposals + `comment`
-2. No code → skip to Phase 4
+2. No code → skip to Phase 5
 3. Code found → launch 3 parallel `task(agent_type="explore")` calls
-4. Collect 3 JSON results → synthesize → apply fixes → continue to Phase 4
+4. Collect 3 JSON results → synthesize → apply fixes → continue to Phase 5
 
 ## Decision Matrix
 
@@ -145,20 +145,6 @@ elif warnings:
 - **Agent timeout** (~30s): Treat as `verdict: "warn", confidence: 0.5` — never block triage
 - **Non-SkiaSharp code** (MAUI, ASP.NET): Out of scope — warn if obviously wrong, don't fail
 - **Retry budget:** Max 1 retry per failing agent, only if it provided a `fix`; second failure → strip code
-
-## Integration Point in SKILL.md
-
-Insert as **Phase 3.7** between Workaround Search and Validate:
-
-```markdown
-### Phase 3.7 — Workaround Validation (conditional)
-
-If triage JSON contains code in proposals or `comment`:
-1. Extract code blocks (fenced or inline SK* calls)
-2. Launch 3 parallel validation agents per references/workaround-validation.md
-3. Synthesize results — apply fixes, caveats, or downgrades
-If no code → proceed to Phase 4.
-```
 
 ## Example
 
