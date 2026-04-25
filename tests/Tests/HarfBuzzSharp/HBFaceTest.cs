@@ -20,14 +20,14 @@ namespace HarfBuzzSharp.Tests
 		public void CanGetVariationAxisCount ()
 		{
 			using var face = CreateVariableFace ();
-			Assert.True (face.GetVariationAxisCount () > 0);
+			Assert.True (face.VariationAxisCount > 0);
 		}
 
 		[SkippableFact]
 		public void CanGetVariationAxisInfos ()
 		{
 			using var face = CreateVariableFace ();
-			var axes = face.GetVariationAxisInfos ();
+			var axes = face.VariationAxisInfos;
 			Assert.NotEmpty (axes);
 
 			// Distortable.ttf should have at least one axis
@@ -41,14 +41,14 @@ namespace HarfBuzzSharp.Tests
 		public void VariationAxisCountIsZeroForStaticFont ()
 		{
 			using var face = new Face (Blob, 0);
-			Assert.Equal (0, face.GetVariationAxisCount ());
+			Assert.Equal (0, face.VariationAxisCount);
 		}
 
 		[SkippableFact]
 		public void TryFindVariationAxisReturnsTrueForExistingAxis ()
 		{
 			using var face = CreateVariableFace ();
-			var axes = face.GetVariationAxisInfos ();
+			var axes = face.VariationAxisInfos;
 			Assert.NotEmpty (axes);
 
 			Tag axisTag = axes[0].Tag;
@@ -69,31 +69,169 @@ namespace HarfBuzzSharp.Tests
 		// US3: Named Instances
 
 		[SkippableFact]
-		public void CanGetNamedInstanceCount ()
+		public void VariationAxisCountMatchesArrayLength ()
 		{
 			using var face = CreateVariableFace ();
-			var count = face.GetNamedInstanceCount ();
-			// Distortable.ttf may or may not have named instances, but the call should not throw
-			Assert.True (count >= 0);
+			var axes = face.VariationAxisInfos;
+			Assert.Equal (face.VariationAxisCount, axes.Length);
 		}
 
 		[SkippableFact]
-		public void CanGetNamedInstanceDesignCoords ()
+		public void SpanGetVariationAxisInfosMatchesArrayVersion ()
 		{
 			using var face = CreateVariableFace ();
-			var count = face.GetNamedInstanceCount ();
-			if (count == 0)
-				return; // Font has no named instances, skip
+			var arrayResult = face.VariationAxisInfos;
+			Assert.NotEmpty (arrayResult);
 
+			var spanBuffer = new OpenTypeVarAxisInfo[face.VariationAxisCount];
+			var written = face.GetVariationAxisInfos (spanBuffer);
+			Assert.Equal (arrayResult.Length, written);
+
+			for (int i = 0; i < arrayResult.Length; i++) {
+				Assert.Equal (arrayResult[i].Tag, spanBuffer[i].Tag);
+				Assert.Equal (arrayResult[i].MinValue, spanBuffer[i].MinValue);
+				Assert.Equal (arrayResult[i].DefaultValue, spanBuffer[i].DefaultValue);
+				Assert.Equal (arrayResult[i].MaxValue, spanBuffer[i].MaxValue);
+			}
+		}
+
+		[SkippableFact]
+		public void SpanGetVariationAxisInfosWithOversizedBuffer ()
+		{
+			using var face = CreateVariableFace ();
+			var axisCount = face.VariationAxisCount;
+			Assert.True (axisCount > 0);
+
+			// Pass a buffer larger than needed
+			var spanBuffer = new OpenTypeVarAxisInfo[axisCount + 5];
+			var written = face.GetVariationAxisInfos (spanBuffer);
+			Assert.Equal (axisCount, written);
+		}
+
+		[SkippableFact]
+		public void CanGetNamedInstanceCount ()
+		{
+			using var face = CreateVariableFace ();
+			// Distortable.ttf has 3 named instances
+			Assert.True (face.NamedInstanceCount > 0);
+		}
+
+		[SkippableFact]
+		public void NamedInstanceDesignCoordsCountMatchesAxisCount ()
+		{
+			using var face = CreateVariableFace ();
+			Assert.True (face.NamedInstanceCount > 0);
+
+			// Per HarfBuzz docs, design coords count equals the number of axes
+			var coordsCount = face.GetNamedInstanceDesignCoordsCount (0);
+			Assert.Equal (face.VariationAxisCount, coordsCount);
+		}
+
+		[SkippableFact]
+		public void NamedInstanceDesignCoordsArrayLengthMatchesCount ()
+		{
+			using var face = CreateVariableFace ();
+			Assert.True (face.NamedInstanceCount > 0);
+
+			var coordsCount = face.GetNamedInstanceDesignCoordsCount (0);
 			var coords = face.GetNamedInstanceDesignCoords (0);
-			Assert.NotNull (coords);
+			Assert.Equal (coordsCount, coords.Length);
+			Assert.NotEmpty (coords);
+		}
+
+		[SkippableFact]
+		public void SpanGetNamedInstanceDesignCoordsMatchesArrayVersion ()
+		{
+			using var face = CreateVariableFace ();
+			Assert.True (face.NamedInstanceCount > 0);
+
+			var arrayResult = face.GetNamedInstanceDesignCoords (0);
+			Assert.NotEmpty (arrayResult);
+
+			var spanBuffer = new float[face.GetNamedInstanceDesignCoordsCount (0)];
+			var written = face.GetNamedInstanceDesignCoords (0, spanBuffer);
+			Assert.Equal (arrayResult.Length, written);
+
+			for (int i = 0; i < arrayResult.Length; i++)
+				Assert.Equal (arrayResult[i], spanBuffer[i]);
+		}
+
+		[SkippableFact]
+		public void EachNamedInstanceHasDesignCoords ()
+		{
+			using var face = CreateVariableFace ();
+			var instanceCount = face.NamedInstanceCount;
+			Assert.True (instanceCount > 0);
+
+			for (int i = 0; i < instanceCount; i++) {
+				var coords = face.GetNamedInstanceDesignCoords (i);
+				Assert.NotEmpty (coords);
+				Assert.Equal (face.VariationAxisCount, coords.Length);
+			}
+		}
+
+		[SkippableFact]
+		public void NamedInstanceSubfamilyNameIdIsValid ()
+		{
+			using var face = CreateVariableFace ();
+			Assert.True (face.NamedInstanceCount > 0);
+
+			var nameId = face.GetNamedInstanceSubfamilyNameId (0);
+			// Name IDs are unsigned; a valid named instance should have a non-zero subfamily name ID
+			Assert.True ((uint)nameId > 0);
+		}
+
+		[SkippableFact]
+		public void NamedInstancePostScriptNameIdDoesNotThrow ()
+		{
+			using var face = CreateVariableFace ();
+			Assert.True (face.NamedInstanceCount > 0);
+
+			// PostScript name ID may be 0xFFFF (invalid) for some fonts, but it should not throw
+			var nameId = face.GetNamedInstancePostScriptNameId (0);
+			// Just verify it returns without error
+		}
+
+		[SkippableFact]
+		public void NegativeInstanceIndexThrowsForSubfamilyNameId ()
+		{
+			using var face = CreateVariableFace ();
+			Assert.Throws<ArgumentOutOfRangeException> (() => face.GetNamedInstanceSubfamilyNameId (-1));
+		}
+
+		[SkippableFact]
+		public void NegativeInstanceIndexThrowsForPostScriptNameId ()
+		{
+			using var face = CreateVariableFace ();
+			Assert.Throws<ArgumentOutOfRangeException> (() => face.GetNamedInstancePostScriptNameId (-1));
+		}
+
+		[SkippableFact]
+		public void NegativeInstanceIndexThrowsForDesignCoords ()
+		{
+			using var face = CreateVariableFace ();
+			Assert.Throws<ArgumentOutOfRangeException> (() => face.GetNamedInstanceDesignCoords (-1));
+		}
+
+		[SkippableFact]
+		public void NegativeInstanceIndexThrowsForDesignCoordsCount ()
+		{
+			using var face = CreateVariableFace ();
+			Assert.Throws<ArgumentOutOfRangeException> (() => face.GetNamedInstanceDesignCoordsCount (-1));
+		}
+
+		[SkippableFact]
+		public void NegativeInstanceIndexThrowsForDesignCoordsSpan ()
+		{
+			using var face = CreateVariableFace ();
+			Assert.Throws<ArgumentOutOfRangeException> (() => face.GetNamedInstanceDesignCoords (-1, new float[1]));
 		}
 
 		[SkippableFact]
 		public void NamedInstanceCountIsZeroForStaticFont ()
 		{
 			using var face = new Face (Blob, 0);
-			Assert.Equal (0, face.GetNamedInstanceCount ());
+			Assert.Equal (0, face.NamedInstanceCount);
 		}
 
 		[SkippableFact]
