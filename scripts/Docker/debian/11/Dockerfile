@@ -57,7 +57,7 @@ RUN . /etc/skia-env \
     && mkdir -p /skia-utils/libfontconfig-dev \
     && cd /skia-utils/libfontconfig-dev \
     && FC_VERSION=2.13.1-4.2 \
-    && FC_DEV_PKG=libfontconfig1-dev \
+    && FC_DEV_PKG=libfontconfig-dev \
     && FC_RT_PKG=libfontconfig1 \
     && APT_REPO=http://deb.debian.org/debian \
     && TOOLCHAIN_ARCH=$(echo ${TOOLCHAIN_ARCH} | sed 's/x86-64/x86_64/g') \
