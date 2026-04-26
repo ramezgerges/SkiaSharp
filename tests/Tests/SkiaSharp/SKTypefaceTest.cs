@@ -927,7 +927,6 @@ namespace SkiaSharp.Tests
 			Assert.Equal (typeface.VariationDesignPositionCount, typeface.VariationDesignPosition.Length);
 		}
 
-
 		// Interop safety tests — verify struct layout through native round-trip
 
 		[SkippableFact]
