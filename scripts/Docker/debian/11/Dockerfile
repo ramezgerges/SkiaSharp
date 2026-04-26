@@ -22,8 +22,15 @@ RUN case ${BUILD_ARCH} in \
     && echo "export TOOLCHAIN_ARCH_SHORT=${TOOLCHAIN_ARCH_SHORT}" >> /etc/skia-env \
     && echo "export TOOLCHAIN_ARCH_TARGET=${TOOLCHAIN_ARCH_TARGET}" >> /etc/skia-env
 
-# Install the required packages
-ARG LLVM_VERSION=11
+# Install the required packages.
+# clang-13 (rather than 11) — clang-11's bundled mm_malloc.h declares
+# posix_memalign() without `throw()` while the cross-target glibc
+# stdlib.h declares it with `throw()`. C++ requires matching exception
+# specs across redeclarations, so any TU that pulls in <immintrin.h>
+# (e.g. modules/skcms/skcms.cc on x86/x64 with SSE) fails to compile
+# with clang-11. Fixed upstream in clang-12+ which added the throw()
+# spec to the intrinsics header.
+ARG LLVM_VERSION=13
 RUN apt-get update \
     && apt-get install -y \
         curl python3 git clang-${LLVM_VERSION} lld-${LLVM_VERSION} ninja-build xz-utils \
