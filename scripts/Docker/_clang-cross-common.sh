@@ -36,6 +36,7 @@ EXTRA_ARGS=$5
 ADDITIONAL_ARGS=""
 case "$DOCKER_DIR" in
   *debian/10*) ADDITIONAL_ARGS="--verifyGlibcMax=2.28" ;;
+  *debian/11*) ADDITIONAL_ARGS="--verifyGlibcMax=2.31" ;;
   *debian/13*) ADDITIONAL_ARGS="--verifyGlibcMax=2.38" ;;
 esac
 
