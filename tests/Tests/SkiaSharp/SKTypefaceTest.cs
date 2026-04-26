@@ -928,21 +928,7 @@ namespace SkiaSharp.Tests
 		}
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 		// Interop safety tests — verify struct layout through native round-trip
-
 
 		[SkippableFact]
 		public void VariationAxisStructLayoutMatchesNative ()
