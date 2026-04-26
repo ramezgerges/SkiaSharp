@@ -1,9 +1,13 @@
 # Arguments:
 #   DOTNET_SDK_VERSION   - the version of dotnet for the Cake script        [ 10.0 | * ]
 #   LLVM_VERSION         - the version of the LLVM compiler                 [ 19 | * ]
-#   TOOLCHAIN_VERSION    - the version of the GCC toolchain                 [ 14 | * ]
-#   TOOLCHAIN_ARCH       - the architecture of the GCC toolchain            [ arm-linux-gnueabihf | aarch64-linux-gnu | riscv64-linux-gnu | loongarch64-linux-gnu ]
-#   TOOLCHAIN_ARCH_SHORT - the short form architecture of the GCC toolchain [ armhf | arm64 | riscv64 | loong64 ]
+#   TOOLCHAIN_ARCH       - the multiarch triple                             [ arm-linux-gnueabihf | aarch64-linux-gnu | i386-linux-gnu | loongarch64-linux-gnu | riscv64-linux-gnu | x86_64-linux-gnu ]
+#   TOOLCHAIN_ARCH_SHORT - the dpkg/Debian short architecture               [ armhf | arm64 | i386 | loong64 | riscv64 | amd64 ]
+#   TOOLCHAIN_ARCH_TARGET - the LLVM target triple passed to clang          [ armv7a-linux-gnueabihf | aarch64-linux-gnu | i686-linux-gnu | loongarch64-linux-gnu | riscv64-linux-gnu | x86_64-linux-gnu ]
+#
+# Toolchain: clang/LLVM end-to-end. Cross-target runtime libraries (libc,
+# compiler-rt builtins, libc++/libc++abi, libunwind) come from Debian's
+# multiarch packages installed for the target. No GCC cross packages.
 
 # Use --platform flag when building to select architecture
 # NOTE: Using devcontainers base image because mcr.microsoft.com/mirror/docker/library/debian:13
@@ -19,67 +23,43 @@ RUN case ${BUILD_ARCH} in \
         arm64)       TOOLCHAIN_ARCH=aarch64-linux-gnu         ; TOOLCHAIN_ARCH_SHORT=arm64   ; TOOLCHAIN_ARCH_TARGET=aarch64-linux-gnu          ;; \
         loongarch64) TOOLCHAIN_ARCH=loongarch64-linux-gnu     ; TOOLCHAIN_ARCH_SHORT=loong64 ; TOOLCHAIN_ARCH_TARGET=loongarch64-linux-gnu      ;; \
         riscv64)     TOOLCHAIN_ARCH=riscv64-linux-gnu         ; TOOLCHAIN_ARCH_SHORT=riscv64 ; TOOLCHAIN_ARCH_TARGET=riscv64-linux-gnu          ;; \
-        x86)         TOOLCHAIN_ARCH=i686-linux-gnu            ; TOOLCHAIN_ARCH_SHORT=i386    ; TOOLCHAIN_ARCH_TARGET=i686-linux-gnu             ;; \
-        x64)         TOOLCHAIN_ARCH=x86-64-linux-gnu          ; TOOLCHAIN_ARCH_SHORT=amd64   ; TOOLCHAIN_ARCH_TARGET=x86_64-linux-gnu           ;; \
+        x86)         TOOLCHAIN_ARCH=i386-linux-gnu            ; TOOLCHAIN_ARCH_SHORT=i386    ; TOOLCHAIN_ARCH_TARGET=i686-linux-gnu             ;; \
+        x64)         TOOLCHAIN_ARCH=x86_64-linux-gnu          ; TOOLCHAIN_ARCH_SHORT=amd64   ; TOOLCHAIN_ARCH_TARGET=x86_64-linux-gnu           ;; \
         *) echo "Unsupported architecture: ${BUILD_ARCH}" && exit 1 ;; \
     esac \
     && echo "export TOOLCHAIN_ARCH=${TOOLCHAIN_ARCH}" > /etc/skia-env \
     && echo "export TOOLCHAIN_ARCH_SHORT=${TOOLCHAIN_ARCH_SHORT}" >> /etc/skia-env \
     && echo "export TOOLCHAIN_ARCH_TARGET=${TOOLCHAIN_ARCH_TARGET}" >> /etc/skia-env
 
-# Install the required packages
+# Enable the target architecture for multiarch installs (no-op for amd64).
+RUN . /etc/skia-env \
+    && dpkg --add-architecture ${TOOLCHAIN_ARCH_SHORT}
+
+# Install the host build tools.
 ARG LLVM_VERSION=19
 RUN apt-get update \
     && apt-get install -y \
-        curl python3 git clang-${LLVM_VERSION} ninja-build xz-utils \
+        curl python3 git ninja-build xz-utils \
+        clang-${LLVM_VERSION} lld-${LLVM_VERSION} \
     && rm -rf /var/lib/apt/lists/*
 
-# Install the cross-compilation GCC toolchain
-ARG TOOLCHAIN_VERSION=14
+# Install the cross-target runtime libraries via Debian multiarch:
+#   libc6-dev:<arch>            target glibc + headers
+#   libclang-rt-19-dev:<arch>   compiler-rt builtins + crt files (replaces libgcc)
+#   libc++-19-dev:<arch>        libc++ headers + static archive (replaces libstdc++)
+#   libc++abi-19-dev:<arch>     libc++abi static archive
+#   libunwind-19-dev:<arch>     LLVM libunwind static archive (replaces libgcc_s)
+#   libfontconfig1-dev:<arch>   fontconfig headers + library (Skia dep)
 RUN . /etc/skia-env \
     && apt-get update \
     && apt-get install -y \
-       libc6-dev-${TOOLCHAIN_ARCH_SHORT}-cross \
-       libstdc++-${TOOLCHAIN_VERSION}-dev-${TOOLCHAIN_ARCH_SHORT}-cross \
-       libgcc-${TOOLCHAIN_VERSION}-dev-${TOOLCHAIN_ARCH_SHORT}-cross \
-       binutils-${TOOLCHAIN_ARCH} \
+        libc6-dev:${TOOLCHAIN_ARCH_SHORT} \
+        libclang-rt-${LLVM_VERSION}-dev:${TOOLCHAIN_ARCH_SHORT} \
+        libc++-${LLVM_VERSION}-dev:${TOOLCHAIN_ARCH_SHORT} \
+        libc++abi-${LLVM_VERSION}-dev:${TOOLCHAIN_ARCH_SHORT} \
+        libunwind-${LLVM_VERSION}-dev:${TOOLCHAIN_ARCH_SHORT} \
+        libfontconfig1-dev:${TOOLCHAIN_ARCH_SHORT} \
     && rm -rf /var/lib/apt/lists/*
-
-# Make the script more flexible and use "current" instead of the actual version
-# libpthread.so.0 for loong64 is in https://packages.debian.org/trixie/all/libc6-loong64-cross/filelist that use GCC 14 and Glibc 2.41 to programmed
-RUN . /etc/skia-env \
-    && TOOLCHAIN_ARCH=$(echo ${TOOLCHAIN_ARCH} | sed 's/x86-64/x86_64/g') \
-    && ln -s /usr/${TOOLCHAIN_ARCH}/include/c++/${TOOLCHAIN_VERSION} /usr/${TOOLCHAIN_ARCH}/include/c++/current \
-    && sed -i "s/\/usr\/${TOOLCHAIN_ARCH}\/lib\///g" /usr/${TOOLCHAIN_ARCH}/lib/libpthread.so.0 \
-    && sed -i "s/\/usr\/${TOOLCHAIN_ARCH}\/lib\///g" /usr/${TOOLCHAIN_ARCH}/lib/libc.so
-
-# Install the cross-compilation skia build dependencies (fontconfig)
-# We need BOTH libfontconfig1 (runtime .so) and libfontconfig1-dev (headers and .a)
-# The -dev package only has a broken symlink; the runtime package has the actual .so
-RUN . /etc/skia-env \
-    && mkdir -p /skia-utils/libfontconfig-dev \
-    && cd /skia-utils/libfontconfig-dev \
-    && case "${TOOLCHAIN_ARCH_SHORT}" in \
-         loong64) FC_VERSION=2.17.1-5   ; FC_DEV_PKG=libfontconfig-dev  ; FC_RT_PKG=libfontconfig1 ; APT_REPO=http://deb.debian.org/debian ;; \
-         riscv64) FC_VERSION=2.15.0-2.3 ; FC_DEV_PKG=libfontconfig-dev  ; FC_RT_PKG=libfontconfig1 ; APT_REPO=http://deb.debian.org/debian ;; \
-         *)       FC_VERSION=2.15.0-2.3 ; FC_DEV_PKG=libfontconfig-dev  ; FC_RT_PKG=libfontconfig1 ; APT_REPO=http://deb.debian.org/debian ;; \
-       esac \
-    && TOOLCHAIN_ARCH=$(echo ${TOOLCHAIN_ARCH} | sed 's/x86-64/x86_64/g') \
-    && FC_DEV_URL=${APT_REPO}/pool/main/f/fontconfig/${FC_DEV_PKG}_${FC_VERSION}_${TOOLCHAIN_ARCH_SHORT}.deb \
-    && echo "Downloading fontconfig-dev from $FC_DEV_URL" \
-    && curl $FC_DEV_URL -L -o libfontconfig-dev.deb \
-    && ar vx libfontconfig-dev.deb \
-    && tar -xJvf data.tar.xz \
-    && cp -R usr/lib/*/* /usr/${TOOLCHAIN_ARCH}/lib/ \
-    && cp -R usr/include/* /usr/${TOOLCHAIN_ARCH}/include/ \
-    && rm -rf *.deb *.tar* debian-binary usr \
-    && FC_RT_URL=${APT_REPO}/pool/main/f/fontconfig/${FC_RT_PKG}_${FC_VERSION}_${TOOLCHAIN_ARCH_SHORT}.deb \
-    && echo "Downloading fontconfig runtime from $FC_RT_URL" \
-    && curl $FC_RT_URL -L -o libfontconfig1.deb \
-    && ar vx libfontconfig1.deb \
-    && tar -xJvf data.tar.xz \
-    && cp -R usr/lib/*/* /usr/${TOOLCHAIN_ARCH}/lib/ \
-    && rm -rf *.deb *.tar* debian-binary usr
 
 # Install the .NET SDK
 ARG DOTNET_SDK_VERSION=10.0.1xx

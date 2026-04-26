@@ -98,23 +98,22 @@ Task("libSkiaSharp")
         var bionicDefine = isBionic ? ", '-DSK_BUILD_FOR_UNIX'" : "";
         var bionicArgs = isBionic ? "skia_use_fontconfig=false " : "";
 
-        // 32-bit Linux cross-link needs an explicit -L to the cross-libgcc
-        // dir so `-static-libgcc` can resolve `__mulodi4` (the runtime
-        // helper for 64-bit signed-mul-with-overflow on 32-bit ABIs,
-        // emitted by dng_sdk's __builtin_smul_overflow uses post-m133).
-        // clang-13's auto-detect of /usr/lib/gcc-cross/<triple>/<ver>/
-        // works for compile but doesn't reliably feed -static-libgcc on
-        // a `--start-group ... --end-group` link with `--no-undefined`.
-        // Only relevant for the default (debian-cross) variant; alpine
-        // and bionic ship their own libgcc layouts.
-        // TOOLCHAIN_VERSION here must match scripts/Docker/debian/11/Dockerfile.
+        // Default (debian-cross) variant uses a pure clang/LLVM runtime stack:
+        //   -stdlib=libc++       libc++ instead of libstdc++
+        //   -rtlib=compiler-rt   compiler-rt builtins instead of libgcc (this
+        //                        provides __mulodi4 for 64-bit signed-mul-with-
+        //                        overflow on 32-bit ABIs, emitted by dng_sdk's
+        //                        __builtin_smul_overflow uses post-m133)
+        //   -unwindlib=libunwind LLVM libunwind instead of libgcc_s
+        //   -static-libstdc++    statically link libc++ into the .so
+        //   -static-libgcc       in clang's driver this also flips libunwind
+        //                        to its static archive (-l:libunwind.a)
+        // Net effect: libSkiaSharp.so depends only on libc/libm/libdl/ld-linux.
+        // Alpine and bionic keep their own toolchains (musl/NDK).
         var isDefaultVariant = !isBionic && !VARIANT.ToLower().StartsWith("alpine");
-        var crossLibgccLdflag = isDefaultVariant
-            ? arch switch {
-                "x86" => ", '-L/usr/lib/gcc-cross/i686-linux-gnu/10'",
-                "arm" => ", '-L/usr/lib/gcc-cross/arm-linux-gnueabihf/10'",
-                _     => ""
-            }
+        var llvmRuntimeCflags = isDefaultVariant ? ", '-stdlib=libc++'" : "";
+        var llvmRuntimeLdflags = isDefaultVariant
+            ? ", '-stdlib=libc++', '-rtlib=compiler-rt', '-unwindlib=libunwind'"
             : "";
 
         GnNinja($"{VARIANT}/{arch}", "SkiaSharp",
@@ -134,8 +133,8 @@ Task("libSkiaSharp")
             $"skia_use_vulkan={SUPPORT_VULKAN} ".ToLower() +
             bionicArgs +
             $"extra_asmflags=[] " +
-            $"extra_cflags=[ '-DSKIA_C_DLL', '-DHAVE_SYSCALL_GETRANDOM', '-DXML_DEV_URANDOM'{spectreFlags}{wordSizeDefine}{bionicDefine} ] " +
-            $"extra_ldflags=[ '-static-libstdc++', '-static-libgcc', '-Wl,--version-script={map}'{crossLibgccLdflag} ] " +
+            $"extra_cflags=[ '-DSKIA_C_DLL', '-DHAVE_SYSCALL_GETRANDOM', '-DXML_DEV_URANDOM'{spectreFlags}{wordSizeDefine}{bionicDefine}{llvmRuntimeCflags} ] " +
+            $"extra_ldflags=[ '-static-libstdc++', '-static-libgcc'{llvmRuntimeLdflags}, '-Wl,--version-script={map}' ] " +
             COMPILERS +
             $"linux_soname_version='{soname}' " +
             ADDITIONAL_GN_ARGS);
@@ -163,13 +162,24 @@ Task("libHarfBuzzSharp")
         var soname = GetVersion("HarfBuzz", "soname");
         var map = MakeAbsolute((FilePath)"libHarfBuzzSharp/libHarfBuzzSharp.map");
 
+        // Match libSkiaSharp's pure clang/LLVM runtime stack on the default
+        // (debian-cross) variant. See libSkiaSharp task above for rationale.
+        var hbIsBionic = VARIANT.ToLower().StartsWith("bionic");
+        var hbIsDefaultVariant = !hbIsBionic && !VARIANT.ToLower().StartsWith("alpine");
+        var hbLlvmRuntimeCflags = hbIsDefaultVariant ? "'-stdlib=libc++'" : "";
+        var hbLlvmRuntimeLdflags = hbIsDefaultVariant
+            ? ", '-stdlib=libc++', '-rtlib=compiler-rt', '-unwindlib=libunwind'"
+            : "";
+        var hbBionicDefine = hbIsBionic ? "'-DSK_BUILD_FOR_UNIX'" : "";
+        var hbExtraCflags = string.Join(", ", new[] { hbBionicDefine, hbLlvmRuntimeCflags }.Where(s => !string.IsNullOrEmpty(s)));
+
         GnNinja($"{VARIANT}/{arch}", "HarfBuzzSharp",
             $"target_os='linux' " +
             $"target_cpu='{skiaArch}' " +
             $"visibility_hidden=false " +
             $"extra_asmflags=[] " +
-            $"extra_cflags=[ {(VARIANT.ToLower().StartsWith("bionic") ? "'-DSK_BUILD_FOR_UNIX'" : "")} ] " +
-            $"extra_ldflags=[ '-static-libstdc++', '-static-libgcc', '-Wl,--version-script={map}' ] " +
+            $"extra_cflags=[ {hbExtraCflags} ] " +
+            $"extra_ldflags=[ '-static-libstdc++', '-static-libgcc'{hbLlvmRuntimeLdflags}, '-Wl,--version-script={map}' ] " +
             COMPILERS +
             $"linux_soname_version='{soname}' " +
             ADDITIONAL_GN_ARGS);
