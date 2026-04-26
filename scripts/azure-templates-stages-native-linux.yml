@@ -26,11 +26,17 @@ stages:
               additionalArgs: --verifyExcluded=fontconfig
               gnArgs: skia_use_fontconfig=false
           matrix:
-            - arch: loongarch64
-              docker: scripts/Docker/debian/13
-              target: externals-linux-clang-cross
-              additionalArgs: --verifyGlibcMax=2.38
-            - ${{ each arch in split('arm,arm64,x86,x64,riscv64', ',') }}:
+            # Debian 13 / Trixie (gcc-14, glibc 2.38) — for archs that
+            # weren't release-supported on Bullseye:
+            #   - loongarch64 (LoongArch port; not in Bullseye/Bookworm main)
+            #   - riscv64 (became a release arch only in Trixie; Bullseye
+            #              has no riscv64 .debs in deb.debian.org/debian)
+            - ${{ each arch in split('loongarch64,riscv64', ',') }}:
+              - arch: ${{ arch }}
+                docker: scripts/Docker/debian/13
+                target: externals-linux-clang-cross
+                additionalArgs: --verifyGlibcMax=2.38
+            - ${{ each arch in split('arm,arm64,x86,x64', ',') }}:
               - arch: ${{ arch }}
                 docker: scripts/Docker/debian/11
                 target: externals-linux-clang-cross
