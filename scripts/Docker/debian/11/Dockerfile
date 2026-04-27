@@ -1,13 +1,23 @@
 # Arguments:
 #   DOTNET_SDK_VERSION   - the version of dotnet for the Cake script        [ 10.0 | * ]
 #   LLVM_VERSION         - the version of the LLVM compiler                 [ 13 | * ]
+#   TOOLCHAIN_VERSION    - the version of the GCC toolchain (riscv64 only)  [ 10 | * ]
 #   TOOLCHAIN_ARCH       - the multiarch triple                             [ arm-linux-gnueabihf | aarch64-linux-gnu | i386-linux-gnu | riscv64-linux-gnu | x86_64-linux-gnu ]
 #   TOOLCHAIN_ARCH_SHORT - the dpkg/Debian short architecture               [ armhf | arm64 | i386 | riscv64 | amd64 ]
 #   TOOLCHAIN_ARCH_TARGET - the LLVM target triple passed to clang          [ armv7a-linux-gnueabihf | aarch64-linux-gnu | i686-linux-gnu | riscv64-linux-gnu | x86_64-linux-gnu ]
 #
-# Toolchain: clang/LLVM end-to-end. Cross-target runtime libraries (libc,
-# compiler-rt builtins, libc++/libc++abi, libunwind) come from Debian's
-# multiarch packages installed for the target. No GCC cross packages.
+# Toolchain: clang/LLVM end-to-end for arm/arm64/x86/x64 — cross-target
+# runtime libraries (libc, compiler-rt builtins, libc++/libc++abi,
+# libunwind) come from Debian's multiarch packages.
+#
+# riscv64 is a carve-out: Bullseye main has no riscv64 binary archive
+# (riscv64 only became a Debian release arch in Trixie), so multiarch
+# can't install LLVM runtime libraries for it. Instead riscv64 uses
+# the gcc-N-cross packages (built from the cross-toolchain-base source
+# package, shipped as amd64 .debs containing a riscv64 sysroot) and the
+# build links against libstdc++/libgcc statically. This keeps glibc 2.31
+# parity with the other archs at the cost of not using the LLVM runtime
+# stack on this one target.
 
 # Use --platform flag when building to select architecture
 FROM mcr.microsoft.com/mirror/docker/library/debian:11
@@ -26,9 +36,12 @@ RUN case ${BUILD_ARCH} in \
     && echo "export TOOLCHAIN_ARCH_SHORT=${TOOLCHAIN_ARCH_SHORT}" >> /etc/skia-env \
     && echo "export TOOLCHAIN_ARCH_TARGET=${TOOLCHAIN_ARCH_TARGET}" >> /etc/skia-env
 
-# Enable the target architecture for multiarch installs (no-op for amd64).
+# Enable the target architecture for multiarch installs (only the LLVM
+# multiarch path; riscv64 has no Bullseye binary archive so skip it).
 RUN . /etc/skia-env \
-    && dpkg --add-architecture ${TOOLCHAIN_ARCH_SHORT}
+    && if [ "${TOOLCHAIN_ARCH_SHORT}" != "riscv64" ]; then \
+           dpkg --add-architecture ${TOOLCHAIN_ARCH_SHORT}; \
+       fi
 
 # Install the host build tools.
 # clang-13 (rather than 11) — clang-11's bundled mm_malloc.h declares
@@ -45,23 +58,78 @@ RUN apt-get update \
         clang-${LLVM_VERSION} lld-${LLVM_VERSION} \
     && rm -rf /var/lib/apt/lists/*
 
-# Install the cross-target runtime libraries via Debian multiarch:
+# Install the cross-target runtime libraries.
+#
+# arm/arm64/x86/x64 (LLVM multiarch path):
 #   libc6-dev:<arch>            target glibc + headers
-#   libclang-rt-13-dev:<arch>   compiler-rt builtins + crt files (replaces libgcc)
-#   libc++-13-dev:<arch>        libc++ headers + static archive (replaces libstdc++)
+#   libclang-rt-13-dev:<arch>   compiler-rt builtins + crt files
+#   libc++-13-dev:<arch>        libc++ headers + static archive
 #   libc++abi-13-dev:<arch>     libc++abi static archive
-#   libunwind-13-dev:<arch>     LLVM libunwind static archive (replaces libgcc_s)
-#   libfontconfig1-dev:<arch>   fontconfig headers + library (Skia dep)
+#   libunwind-13-dev:<arch>     LLVM libunwind static archive
+#   libfontconfig1-dev:<arch>   fontconfig headers + library
+#
+# riscv64 (gcc-cross path — see file header for rationale):
+#   libstdc++-10-dev-riscv64-cross  target glibc + libstdc++ + libgcc sysroot
+#                                   under /usr/riscv64-linux-gnu/, glibc 2.31
+#   binutils-riscv64-linux-gnu      cross-arch ld/as
+#   libfontconfig is fetched from the Trixie pool below (Bullseye has no
+#   riscv64 .debs in the regular archive)
+ARG TOOLCHAIN_VERSION=10
 RUN . /etc/skia-env \
     && apt-get update \
-    && apt-get install -y \
-        libc6-dev:${TOOLCHAIN_ARCH_SHORT} \
-        libclang-rt-${LLVM_VERSION}-dev:${TOOLCHAIN_ARCH_SHORT} \
-        libc++-${LLVM_VERSION}-dev:${TOOLCHAIN_ARCH_SHORT} \
-        libc++abi-${LLVM_VERSION}-dev:${TOOLCHAIN_ARCH_SHORT} \
-        libunwind-${LLVM_VERSION}-dev:${TOOLCHAIN_ARCH_SHORT} \
-        libfontconfig1-dev:${TOOLCHAIN_ARCH_SHORT} \
+    && if [ "${TOOLCHAIN_ARCH_SHORT}" = "riscv64" ]; then \
+           apt-get install -y \
+               libstdc++-${TOOLCHAIN_VERSION}-dev-${TOOLCHAIN_ARCH_SHORT}-cross \
+               libgcc-${TOOLCHAIN_VERSION}-dev-${TOOLCHAIN_ARCH_SHORT}-cross \
+               binutils-${TOOLCHAIN_ARCH}; \
+       else \
+           apt-get install -y \
+               libc6-dev:${TOOLCHAIN_ARCH_SHORT} \
+               libclang-rt-${LLVM_VERSION}-dev:${TOOLCHAIN_ARCH_SHORT} \
+               libc++-${LLVM_VERSION}-dev:${TOOLCHAIN_ARCH_SHORT} \
+               libc++abi-${LLVM_VERSION}-dev:${TOOLCHAIN_ARCH_SHORT} \
+               libunwind-${LLVM_VERSION}-dev:${TOOLCHAIN_ARCH_SHORT} \
+               libfontconfig1-dev:${TOOLCHAIN_ARCH_SHORT}; \
+       fi \
     && rm -rf /var/lib/apt/lists/*
+
+# riscv64-only: native/linux-clang-cross/build.cake adds
+# `-I/usr/<triple>/include/c++/current` to the GN cflags so the
+# version-specific libstdc++ headers can be referenced without baking
+# the toolchain version into the build script. Create that symlink
+# pointing at the gcc-N-cross libstdc++ headers, and strip absolute
+# `/usr/<triple>/lib/` prefixes from the libc / libpthread linker
+# scripts so they resolve relative to the cross sysroot at link time.
+RUN . /etc/skia-env \
+    && if [ "${TOOLCHAIN_ARCH_SHORT}" = "riscv64" ]; then \
+           ln -s /usr/${TOOLCHAIN_ARCH}/include/c++/${TOOLCHAIN_VERSION} \
+                 /usr/${TOOLCHAIN_ARCH}/include/c++/current \
+           && sed -i "s|/usr/${TOOLCHAIN_ARCH}/lib/||g" /usr/${TOOLCHAIN_ARCH}/lib/libpthread.so \
+           && sed -i "s|/usr/${TOOLCHAIN_ARCH}/lib/||g" /usr/${TOOLCHAIN_ARCH}/lib/libc.so; \
+       fi
+
+# riscv64-only: pull libfontconfig from Trixie's pool — Bullseye main
+# has no riscv64 .debs and the pool/ tree is suite-agnostic, so a
+# Trixie-built libfontconfig.so.1 + headers drop in cleanly. The .so
+# is dynamic-linked at runtime against whatever fontconfig the user's
+# system ships; we only need symbols/ABI here.
+RUN . /etc/skia-env \
+    && if [ "${TOOLCHAIN_ARCH_SHORT}" = "riscv64" ]; then \
+           mkdir -p /skia-utils/libfontconfig-dev \
+           && cd /skia-utils/libfontconfig-dev \
+           && FC_VERSION=2.15.0-2.3 \
+           && APT_REPO=http://deb.debian.org/debian \
+           && for pkg in libfontconfig-dev libfontconfig1; do \
+                  url="${APT_REPO}/pool/main/f/fontconfig/${pkg}_${FC_VERSION}_${TOOLCHAIN_ARCH_SHORT}.deb"; \
+                  echo "Downloading $url"; \
+                  curl -L -o "${pkg}.deb" "$url"; \
+                  ar x "${pkg}.deb" data.tar.xz \
+                  && tar -xf data.tar.xz \
+                  && cp -R usr/lib/*/* /usr/${TOOLCHAIN_ARCH}/lib/ \
+                  && { [ -d usr/include ] && cp -R usr/include/* /usr/${TOOLCHAIN_ARCH}/include/ || true; } \
+                  && rm -rf *.deb *.tar* debian-binary usr; \
+              done; \
+       fi
 
 # Install the .NET SDK
 ARG DOTNET_SDK_VERSION=10.0.1xx

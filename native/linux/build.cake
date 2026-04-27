@@ -98,7 +98,7 @@ Task("libSkiaSharp")
         var bionicDefine = isBionic ? ", '-DSK_BUILD_FOR_UNIX'" : "";
         var bionicArgs = isBionic ? "skia_use_fontconfig=false " : "";
 
-        // All variants build with a pure clang/LLVM runtime stack:
+        // Most variants build with a pure clang/LLVM runtime stack:
         //   -stdlib=libc++       libc++ instead of libstdc++
         //   -rtlib=compiler-rt   compiler-rt builtins instead of libgcc (this
         //                        provides __mulodi4 for 64-bit signed-mul-with-
@@ -112,8 +112,17 @@ Task("libSkiaSharp")
         // The Android NDK already configures all of this by default, so adding
         // the flags is a no-op on bionic; alpine and debian-cross images install
         // the matching libc++/libunwind/compiler-rt packages.
-        var llvmRuntimeCflags = ", '-stdlib=libc++'";
-        var llvmRuntimeLdflags = ", '-stdlib=libc++', '-rtlib=compiler-rt', '-unwindlib=libunwind'";
+        //
+        // riscv64 is a carve-out: Bullseye main has no riscv64 binary archive,
+        // so the LLVM runtime libs aren't installable for it via multiarch and
+        // the debian/11 image falls back to the gcc-N-cross packages
+        // (libstdc++-10-dev-riscv64-cross + libgcc-10-dev-riscv64-cross). On
+        // that target, link against libstdc++/libgcc statically and skip the
+        // LLVM runtime flags. 64-bit `__builtin_smul_overflow` doesn't lower
+        // to `__mulodi4` so the post-m133 dng_sdk link issue doesn't apply.
+        var isRiscv64 = arch == "riscv64";
+        var llvmRuntimeCflags = isRiscv64 ? "" : ", '-stdlib=libc++'";
+        var llvmRuntimeLdflags = isRiscv64 ? "" : ", '-stdlib=libc++', '-rtlib=compiler-rt', '-unwindlib=libunwind'";
 
         GnNinja($"{VARIANT}/{arch}", "SkiaSharp",
             $"target_os='linux' " +
@@ -161,17 +170,21 @@ Task("libHarfBuzzSharp")
         var soname = GetVersion("HarfBuzz", "soname");
         var map = MakeAbsolute((FilePath)"libHarfBuzzSharp/libHarfBuzzSharp.map");
 
-        // Match libSkiaSharp's pure clang/LLVM runtime stack on every variant.
-        // See libSkiaSharp task above for rationale.
-        var hbBionicDefine = VARIANT.ToLower().StartsWith("bionic") ? "'-DSK_BUILD_FOR_UNIX', " : "";
+        // Match libSkiaSharp's clang/LLVM runtime stack on every variant
+        // except riscv64 (carve-out — see libSkiaSharp task above).
+        var hbIsRiscv64 = arch == "riscv64";
+        var hbBionicDefine = VARIANT.ToLower().StartsWith("bionic") ? "'-DSK_BUILD_FOR_UNIX'" : "";
+        var hbLlvmRuntimeCflag = hbIsRiscv64 ? "" : "'-stdlib=libc++'";
+        var hbExtraCflags = string.Join(", ", new[] { hbBionicDefine, hbLlvmRuntimeCflag }.Where(s => !string.IsNullOrEmpty(s)));
+        var hbLlvmRuntimeLdflags = hbIsRiscv64 ? "" : ", '-stdlib=libc++', '-rtlib=compiler-rt', '-unwindlib=libunwind'";
 
         GnNinja($"{VARIANT}/{arch}", "HarfBuzzSharp",
             $"target_os='linux' " +
             $"target_cpu='{skiaArch}' " +
             $"visibility_hidden=false " +
             $"extra_asmflags=[] " +
-            $"extra_cflags=[ {hbBionicDefine}'-stdlib=libc++' ] " +
-            $"extra_ldflags=[ '-static-libstdc++', '-static-libgcc', '-stdlib=libc++', '-rtlib=compiler-rt', '-unwindlib=libunwind', '-Wl,--version-script={map}' ] " +
+            $"extra_cflags=[ {hbExtraCflags} ] " +
+            $"extra_ldflags=[ '-static-libstdc++', '-static-libgcc'{hbLlvmRuntimeLdflags}, '-Wl,--version-script={map}' ] " +
             COMPILERS +
             $"linux_soname_version='{soname}' " +
             ADDITIONAL_GN_ARGS);
