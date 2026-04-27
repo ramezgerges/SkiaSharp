@@ -98,25 +98,6 @@ Task("libSkiaSharp")
         var bionicDefine = isBionic ? ", '-DSK_BUILD_FOR_UNIX'" : "";
         var bionicArgs = isBionic ? "skia_use_fontconfig=false " : "";
 
-        // 32-bit Linux cross-link needs an explicit -L to the cross-libgcc
-        // dir so `-static-libgcc` can resolve `__mulodi4` (the runtime
-        // helper for 64-bit signed-mul-with-overflow on 32-bit ABIs,
-        // emitted by dng_sdk's __builtin_smul_overflow uses post-m133).
-        // clang-13's auto-detect of /usr/lib/gcc-cross/<triple>/<ver>/
-        // works for compile but doesn't reliably feed -static-libgcc on
-        // a `--start-group ... --end-group` link with `--no-undefined`.
-        // Only relevant for the default (debian-cross) variant; alpine
-        // and bionic ship their own libgcc layouts.
-        // TOOLCHAIN_VERSION here must match scripts/Docker/debian/11/Dockerfile.
-        var isDefaultVariant = !isBionic && !VARIANT.ToLower().StartsWith("alpine");
-        var crossLibgccLdflag = isDefaultVariant
-            ? arch switch {
-                "x86" => ", '-L/usr/lib/gcc-cross/i686-linux-gnu/10'",
-                "arm" => ", '-L/usr/lib/gcc-cross/arm-linux-gnueabihf/10'",
-                _     => ""
-            }
-            : "";
-
         GnNinja($"{VARIANT}/{arch}", "SkiaSharp",
             $"target_os='linux' " +
             $"target_cpu='{skiaArch}' " +
@@ -135,7 +116,7 @@ Task("libSkiaSharp")
             bionicArgs +
             $"extra_asmflags=[] " +
             $"extra_cflags=[ '-DSKIA_C_DLL', '-DHAVE_SYSCALL_GETRANDOM', '-DXML_DEV_URANDOM'{spectreFlags}{wordSizeDefine}{bionicDefine} ] " +
-            $"extra_ldflags=[ '-static-libstdc++', '-static-libgcc', '-Wl,--version-script={map}'{crossLibgccLdflag} ] " +
+            $"extra_ldflags=[ '-static-libstdc++', '-static-libgcc', '-Wl,--version-script={map}' ] " +
             COMPILERS +
             $"linux_soname_version='{soname}' " +
             ADDITIONAL_GN_ARGS);
