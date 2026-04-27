@@ -329,7 +329,7 @@ namespace SkiaSharp.Tests
 		[SkippableFact]
 		public void GetTextPathWithPositionsProducesNonEmptyPath()
 		{
-			using var font = new SKFont { Typeface = SKTypeface.Default };
+			var font = new SKFont();
 			var text = "AV";
 			var glyphCount = font.CountGlyphs(text);
 			Assert.True(glyphCount > 0);
@@ -348,7 +348,7 @@ namespace SkiaSharp.Tests
 		[SkippableFact]
 		public void GetTextPathWithPositionsMatchesExpectedBounds()
 		{
-			using var font = new SKFont { Typeface = SKTypeface.Default };
+			var font = new SKFont();
 			var text = "A";
 
 			// Get path at origin

@@ -18,7 +18,7 @@ namespace SkiaSharp
 		}
 
 		public SKFont ()
-			: this (null, DefaultSize, DefaultScaleX, DefaultSkewX)
+			: this (SKTypeface.Default, DefaultSize, DefaultScaleX, DefaultSkewX)
 		{
 		}
 
