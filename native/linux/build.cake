@@ -98,7 +98,7 @@ Task("libSkiaSharp")
         var bionicDefine = isBionic ? ", '-DSK_BUILD_FOR_UNIX'" : "";
         var bionicArgs = isBionic ? "skia_use_fontconfig=false " : "";
 
-        // Default (debian-cross) variant uses a pure clang/LLVM runtime stack:
+        // All variants build with a pure clang/LLVM runtime stack:
         //   -stdlib=libc++       libc++ instead of libstdc++
         //   -rtlib=compiler-rt   compiler-rt builtins instead of libgcc (this
         //                        provides __mulodi4 for 64-bit signed-mul-with-
@@ -109,12 +109,11 @@ Task("libSkiaSharp")
         //   -static-libgcc       in clang's driver this also flips libunwind
         //                        to its static archive (-l:libunwind.a)
         // Net effect: libSkiaSharp.so depends only on libc/libm/libdl/ld-linux.
-        // Alpine and bionic keep their own toolchains (musl/NDK).
-        var isDefaultVariant = !isBionic && !VARIANT.ToLower().StartsWith("alpine");
-        var llvmRuntimeCflags = isDefaultVariant ? ", '-stdlib=libc++'" : "";
-        var llvmRuntimeLdflags = isDefaultVariant
-            ? ", '-stdlib=libc++', '-rtlib=compiler-rt', '-unwindlib=libunwind'"
-            : "";
+        // The Android NDK already configures all of this by default, so adding
+        // the flags is a no-op on bionic; alpine and debian-cross images install
+        // the matching libc++/libunwind/compiler-rt packages.
+        var llvmRuntimeCflags = ", '-stdlib=libc++'";
+        var llvmRuntimeLdflags = ", '-stdlib=libc++', '-rtlib=compiler-rt', '-unwindlib=libunwind'";
 
         GnNinja($"{VARIANT}/{arch}", "SkiaSharp",
             $"target_os='linux' " +
@@ -162,24 +161,17 @@ Task("libHarfBuzzSharp")
         var soname = GetVersion("HarfBuzz", "soname");
         var map = MakeAbsolute((FilePath)"libHarfBuzzSharp/libHarfBuzzSharp.map");
 
-        // Match libSkiaSharp's pure clang/LLVM runtime stack on the default
-        // (debian-cross) variant. See libSkiaSharp task above for rationale.
-        var hbIsBionic = VARIANT.ToLower().StartsWith("bionic");
-        var hbIsDefaultVariant = !hbIsBionic && !VARIANT.ToLower().StartsWith("alpine");
-        var hbLlvmRuntimeCflags = hbIsDefaultVariant ? "'-stdlib=libc++'" : "";
-        var hbLlvmRuntimeLdflags = hbIsDefaultVariant
-            ? ", '-stdlib=libc++', '-rtlib=compiler-rt', '-unwindlib=libunwind'"
-            : "";
-        var hbBionicDefine = hbIsBionic ? "'-DSK_BUILD_FOR_UNIX'" : "";
-        var hbExtraCflags = string.Join(", ", new[] { hbBionicDefine, hbLlvmRuntimeCflags }.Where(s => !string.IsNullOrEmpty(s)));
+        // Match libSkiaSharp's pure clang/LLVM runtime stack on every variant.
+        // See libSkiaSharp task above for rationale.
+        var hbBionicDefine = VARIANT.ToLower().StartsWith("bionic") ? "'-DSK_BUILD_FOR_UNIX', " : "";
 
         GnNinja($"{VARIANT}/{arch}", "HarfBuzzSharp",
             $"target_os='linux' " +
             $"target_cpu='{skiaArch}' " +
             $"visibility_hidden=false " +
             $"extra_asmflags=[] " +
-            $"extra_cflags=[ {hbExtraCflags} ] " +
-            $"extra_ldflags=[ '-static-libstdc++', '-static-libgcc'{hbLlvmRuntimeLdflags}, '-Wl,--version-script={map}' ] " +
+            $"extra_cflags=[ {hbBionicDefine}'-stdlib=libc++' ] " +
+            $"extra_ldflags=[ '-static-libstdc++', '-static-libgcc', '-stdlib=libc++', '-rtlib=compiler-rt', '-unwindlib=libunwind', '-Wl,--version-script={map}' ] " +
             COMPILERS +
             $"linux_soname_version='{soname}' " +
             ADDITIONAL_GN_ARGS);
