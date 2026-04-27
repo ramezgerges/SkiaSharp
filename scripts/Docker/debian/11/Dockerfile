@@ -20,13 +20,20 @@
 FROM mcr.microsoft.com/mirror/docker/library/debian:11
 
 # Set the architecture-specific variables based on the value of the BUILD_ARCH argument
+# NOTE: x64 keeps `x86-64-linux-gnu` (with hyphen) in TOOLCHAIN_ARCH so
+# the apt package name `binutils-${TOOLCHAIN_ARCH}` matches Debian's
+# binutils-x86-64-linux-gnu (Debian uses the dpkg/gcc alias spelling
+# for cross binutils, not the canonical `x86_64-linux-gnu` triple). The
+# follow-up sed in the symlink step normalizes `x86-64` -> `x86_64`
+# for the `/usr/<triple>/` filesystem paths, which use the canonical
+# spelling.
 ARG BUILD_ARCH=arm64
 RUN case ${BUILD_ARCH} in \
         arm)         TOOLCHAIN_ARCH=arm-linux-gnueabihf       ; TOOLCHAIN_ARCH_SHORT=armhf   ; TOOLCHAIN_ARCH_TARGET=armv7a-linux-gnueabihf     ;; \
         arm64)       TOOLCHAIN_ARCH=aarch64-linux-gnu         ; TOOLCHAIN_ARCH_SHORT=arm64   ; TOOLCHAIN_ARCH_TARGET=aarch64-linux-gnu          ;; \
         riscv64)     TOOLCHAIN_ARCH=riscv64-linux-gnu         ; TOOLCHAIN_ARCH_SHORT=riscv64 ; TOOLCHAIN_ARCH_TARGET=riscv64-linux-gnu          ;; \
         x86)         TOOLCHAIN_ARCH=i686-linux-gnu            ; TOOLCHAIN_ARCH_SHORT=i386    ; TOOLCHAIN_ARCH_TARGET=i686-linux-gnu             ;; \
-        x64)         TOOLCHAIN_ARCH=x86_64-linux-gnu          ; TOOLCHAIN_ARCH_SHORT=amd64   ; TOOLCHAIN_ARCH_TARGET=x86_64-linux-gnu           ;; \
+        x64)         TOOLCHAIN_ARCH=x86-64-linux-gnu          ; TOOLCHAIN_ARCH_SHORT=amd64   ; TOOLCHAIN_ARCH_TARGET=x86_64-linux-gnu           ;; \
         *) echo "Unsupported architecture: ${BUILD_ARCH}" && exit 1 ;; \
     esac \
     && echo "export TOOLCHAIN_ARCH=${TOOLCHAIN_ARCH}" > /etc/skia-env \
@@ -62,6 +69,12 @@ RUN . /etc/skia-env \
         binutils-${TOOLCHAIN_ARCH} \
     && rm -rf /var/lib/apt/lists/*
 
+# Normalize TOOLCHAIN_ARCH for filesystem path use — the apt package
+# name `binutils-x86-64-linux-gnu` uses hyphens, but the cross sysroot
+# lives under `/usr/x86_64-linux-gnu/` (underscore). Rewrite from this
+# point on so the rest of the Dockerfile (and the build) sees the
+# canonical underscored triple.
+#
 # native/linux-clang-cross/build.cake adds
 # `-I/usr/<triple>/include/c++/current` to the GN cflags so the
 # version-specific libstdc++ headers can be referenced without baking
@@ -71,6 +84,7 @@ RUN . /etc/skia-env \
 # sysroot at link time. (Bullseye glibc 2.31 keeps the libpthread
 # linker script under libpthread.so, not libpthread.so.0.)
 RUN . /etc/skia-env \
+    && TOOLCHAIN_ARCH=$(echo ${TOOLCHAIN_ARCH} | sed 's/x86-64/x86_64/g') \
     && ln -s /usr/${TOOLCHAIN_ARCH}/include/c++/${TOOLCHAIN_VERSION} \
              /usr/${TOOLCHAIN_ARCH}/include/c++/current \
     && sed -i "s|/usr/${TOOLCHAIN_ARCH}/lib/||g" /usr/${TOOLCHAIN_ARCH}/lib/libpthread.so \
@@ -92,6 +106,7 @@ RUN . /etc/skia-env \
          *)       FC_VERSION=2.13.1-4.2 ;; \
        esac \
     && APT_REPO=http://deb.debian.org/debian \
+    && TOOLCHAIN_ARCH=$(echo ${TOOLCHAIN_ARCH} | sed 's/x86-64/x86_64/g') \
     && for pkg in libfontconfig-dev libfontconfig1; do \
            url="${APT_REPO}/pool/main/f/fontconfig/${pkg}_${FC_VERSION}_${TOOLCHAIN_ARCH_SHORT}.deb"; \
            echo "Downloading $url"; \
