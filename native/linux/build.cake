@@ -98,49 +98,23 @@ Task("libSkiaSharp")
         var bionicDefine = isBionic ? ", '-DSK_BUILD_FOR_UNIX'" : "";
         var bionicArgs = isBionic ? "skia_use_fontconfig=false " : "";
 
-        // Most variants build with a pure clang/LLVM runtime stack:
-        //   -stdlib=libc++       libc++ instead of libstdc++
-        //   -rtlib=compiler-rt   compiler-rt builtins instead of libgcc (this
-        //                        provides __mulodi4 for 64-bit signed-mul-with-
-        //                        overflow on 32-bit ABIs, emitted by dng_sdk's
-        //                        __builtin_smul_overflow uses post-m133)
-        //   -unwindlib=libunwind LLVM libunwind instead of libgcc_s
-        //   -static-libstdc++    statically link libc++ into the .so
-        //   -static-libgcc       in clang's driver this also flips libunwind
-        //                        to its static archive (-l:libunwind.a)
-        // Net effect: libSkiaSharp.so depends only on libc/libm/libdl/ld-linux.
-        // The Android NDK already configures all of this by default, so adding
-        // the flags is a no-op on bionic; the debian-cross image installs the
-        // matching libc++/libunwind/compiler-rt multiarch packages.
-        //
-        // Three carve-outs stay on the historical `-static-libstdc++
-        // -static-libgcc` GCC stack:
-        //
-        //   * riscv64 — Bullseye main has no riscv64 binary archive, so the
-        //     LLVM runtime libs aren't multiarch-installable. The debian/11
-        //     image falls back to gcc-N-cross packages
-        //     (libstdc++-10-dev-riscv64-cross + libgcc-10-dev-riscv64-cross).
-        //   * loongarch64 — Trixie main has no loong64 binary archive
-        //     either (loong64 is still a debian-ports arch, not yet a
-        //     release arch in Trixie). The debian/13 image uses the same
-        //     gcc-N-cross fallback as riscv64 above.
-        //   * alpine — Alpine ships libc++abi.a built without -fPIC (uses
-        //     R_ARM_TLS_LE32 / equivalent local-exec TLS relocations), so it
-        //     can't be statically linked into a -shared output. The libc++
-        //     and libc++abi static archives also aren't merged the way
-        //     Ubuntu/Debian's libc++.a is, so a static libc++ link leaves
-        //     every __cxa_throw / __gxx_personality_v0 unresolved.
-        //
-        // 64-bit `__builtin_smul_overflow` on riscv64 / loongarch64 doesn't
-        // lower to `__mulodi4`, and alpine ships its own libgcc with the
-        // helper available, so the post-m133 dng_sdk link issue doesn't
-        // apply on any of the three carve-outs.
-        var isGccCarveOut = arch == "riscv64" || arch == "loongarch64";
-        var isAlpine = VARIANT.ToLower().StartsWith("alpine");
-        var useLlvmRuntime = !isGccCarveOut && !isAlpine;
-        var llvmRuntimeCflags = useLlvmRuntime ? ", '-stdlib=libc++'" : "";
-        var llvmRuntimeLdflags = useLlvmRuntime
-            ? ", '-stdlib=libc++', '-rtlib=compiler-rt', '-unwindlib=libunwind'"
+        // 32-bit Linux cross-link needs an explicit -L to the cross-libgcc
+        // dir so `-static-libgcc` can resolve `__mulodi4` (the runtime
+        // helper for 64-bit signed-mul-with-overflow on 32-bit ABIs,
+        // emitted by dng_sdk's __builtin_smul_overflow uses post-m133).
+        // clang-13's auto-detect of /usr/lib/gcc-cross/<triple>/<ver>/
+        // works for compile but doesn't reliably feed -static-libgcc on
+        // a `--start-group ... --end-group` link with `--no-undefined`.
+        // Only relevant for the default (debian-cross) variant; alpine
+        // and bionic ship their own libgcc layouts.
+        // TOOLCHAIN_VERSION here must match scripts/Docker/debian/11/Dockerfile.
+        var isDefaultVariant = !isBionic && !VARIANT.ToLower().StartsWith("alpine");
+        var crossLibgccLdflag = isDefaultVariant
+            ? arch switch {
+                "x86" => ", '-L/usr/lib/gcc-cross/i686-linux-gnu/10'",
+                "arm" => ", '-L/usr/lib/gcc-cross/arm-linux-gnueabihf/10'",
+                _     => ""
+            }
             : "";
 
         GnNinja($"{VARIANT}/{arch}", "SkiaSharp",
@@ -160,8 +134,8 @@ Task("libSkiaSharp")
             $"skia_use_vulkan={SUPPORT_VULKAN} ".ToLower() +
             bionicArgs +
             $"extra_asmflags=[] " +
-            $"extra_cflags=[ '-DSKIA_C_DLL', '-DHAVE_SYSCALL_GETRANDOM', '-DXML_DEV_URANDOM'{spectreFlags}{wordSizeDefine}{bionicDefine}{llvmRuntimeCflags} ] " +
-            $"extra_ldflags=[ '-static-libstdc++', '-static-libgcc'{llvmRuntimeLdflags}, '-Wl,--version-script={map}' ] " +
+            $"extra_cflags=[ '-DSKIA_C_DLL', '-DHAVE_SYSCALL_GETRANDOM', '-DXML_DEV_URANDOM'{spectreFlags}{wordSizeDefine}{bionicDefine} ] " +
+            $"extra_ldflags=[ '-static-libstdc++', '-static-libgcc', '-Wl,--version-script={map}'{crossLibgccLdflag} ] " +
             COMPILERS +
             $"linux_soname_version='{soname}' " +
             ADDITIONAL_GN_ARGS);
@@ -189,24 +163,13 @@ Task("libHarfBuzzSharp")
         var soname = GetVersion("HarfBuzz", "soname");
         var map = MakeAbsolute((FilePath)"libHarfBuzzSharp/libHarfBuzzSharp.map");
 
-        // Match libSkiaSharp's clang/LLVM runtime stack on every variant
-        // except the riscv64 + loongarch64 + alpine carve-outs — see
-        // libSkiaSharp task above for rationale.
-        var hbIsGccCarveOut = arch == "riscv64" || arch == "loongarch64";
-        var hbIsAlpine = VARIANT.ToLower().StartsWith("alpine");
-        var hbUseLlvmRuntime = !hbIsGccCarveOut && !hbIsAlpine;
-        var hbBionicDefine = VARIANT.ToLower().StartsWith("bionic") ? "'-DSK_BUILD_FOR_UNIX'" : "";
-        var hbLlvmRuntimeCflag = hbUseLlvmRuntime ? "'-stdlib=libc++'" : "";
-        var hbExtraCflags = string.Join(", ", new[] { hbBionicDefine, hbLlvmRuntimeCflag }.Where(s => !string.IsNullOrEmpty(s)));
-        var hbLlvmRuntimeLdflags = hbUseLlvmRuntime ? ", '-stdlib=libc++', '-rtlib=compiler-rt', '-unwindlib=libunwind'" : "";
-
         GnNinja($"{VARIANT}/{arch}", "HarfBuzzSharp",
             $"target_os='linux' " +
             $"target_cpu='{skiaArch}' " +
             $"visibility_hidden=false " +
             $"extra_asmflags=[] " +
-            $"extra_cflags=[ {hbExtraCflags} ] " +
-            $"extra_ldflags=[ '-static-libstdc++', '-static-libgcc'{hbLlvmRuntimeLdflags}, '-Wl,--version-script={map}' ] " +
+            $"extra_cflags=[ {(VARIANT.ToLower().StartsWith("bionic") ? "'-DSK_BUILD_FOR_UNIX'" : "")} ] " +
+            $"extra_ldflags=[ '-static-libstdc++', '-static-libgcc', '-Wl,--version-script={map}' ] " +
             COMPILERS +
             $"linux_soname_version='{soname}' " +
             ADDITIONAL_GN_ARGS);
