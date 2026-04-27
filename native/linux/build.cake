@@ -113,13 +113,17 @@ Task("libSkiaSharp")
         // the flags is a no-op on bionic; the debian-cross image installs the
         // matching libc++/libunwind/compiler-rt multiarch packages.
         //
-        // Two carve-outs stay on the historical `-static-libstdc++ -static-
-        // libgcc` GCC stack:
+        // Three carve-outs stay on the historical `-static-libstdc++
+        // -static-libgcc` GCC stack:
         //
         //   * riscv64 — Bullseye main has no riscv64 binary archive, so the
         //     LLVM runtime libs aren't multiarch-installable. The debian/11
         //     image falls back to gcc-N-cross packages
         //     (libstdc++-10-dev-riscv64-cross + libgcc-10-dev-riscv64-cross).
+        //   * loongarch64 — Trixie main has no loong64 binary archive
+        //     either (loong64 is still a debian-ports arch, not yet a
+        //     release arch in Trixie). The debian/13 image uses the same
+        //     gcc-N-cross fallback as riscv64 above.
         //   * alpine — Alpine ships libc++abi.a built without -fPIC (uses
         //     R_ARM_TLS_LE32 / equivalent local-exec TLS relocations), so it
         //     can't be statically linked into a -shared output. The libc++
@@ -127,13 +131,13 @@ Task("libSkiaSharp")
         //     Ubuntu/Debian's libc++.a is, so a static libc++ link leaves
         //     every __cxa_throw / __gxx_personality_v0 unresolved.
         //
-        // 64-bit `__builtin_smul_overflow` on riscv64 doesn't lower to
-        // `__mulodi4`, and alpine ships its own libgcc with the helper
-        // available, so the post-m133 dng_sdk link issue doesn't apply on
-        // either carve-out.
-        var isRiscv64 = arch == "riscv64";
+        // 64-bit `__builtin_smul_overflow` on riscv64 / loongarch64 doesn't
+        // lower to `__mulodi4`, and alpine ships its own libgcc with the
+        // helper available, so the post-m133 dng_sdk link issue doesn't
+        // apply on any of the three carve-outs.
+        var isGccCarveOut = arch == "riscv64" || arch == "loongarch64";
         var isAlpine = VARIANT.ToLower().StartsWith("alpine");
-        var useLlvmRuntime = !isRiscv64 && !isAlpine;
+        var useLlvmRuntime = !isGccCarveOut && !isAlpine;
         var llvmRuntimeCflags = useLlvmRuntime ? ", '-stdlib=libc++'" : "";
         var llvmRuntimeLdflags = useLlvmRuntime
             ? ", '-stdlib=libc++', '-rtlib=compiler-rt', '-unwindlib=libunwind'"
@@ -186,11 +190,11 @@ Task("libHarfBuzzSharp")
         var map = MakeAbsolute((FilePath)"libHarfBuzzSharp/libHarfBuzzSharp.map");
 
         // Match libSkiaSharp's clang/LLVM runtime stack on every variant
-        // except the riscv64 + alpine carve-outs — see libSkiaSharp task
-        // above for rationale.
-        var hbIsRiscv64 = arch == "riscv64";
+        // except the riscv64 + loongarch64 + alpine carve-outs — see
+        // libSkiaSharp task above for rationale.
+        var hbIsGccCarveOut = arch == "riscv64" || arch == "loongarch64";
         var hbIsAlpine = VARIANT.ToLower().StartsWith("alpine");
-        var hbUseLlvmRuntime = !hbIsRiscv64 && !hbIsAlpine;
+        var hbUseLlvmRuntime = !hbIsGccCarveOut && !hbIsAlpine;
         var hbBionicDefine = VARIANT.ToLower().StartsWith("bionic") ? "'-DSK_BUILD_FOR_UNIX'" : "";
         var hbLlvmRuntimeCflag = hbUseLlvmRuntime ? "'-stdlib=libc++'" : "";
         var hbExtraCflags = string.Join(", ", new[] { hbBionicDefine, hbLlvmRuntimeCflag }.Where(s => !string.IsNullOrEmpty(s)));
