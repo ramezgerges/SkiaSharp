@@ -58,7 +58,7 @@ RUN . /etc/skia-env \
         -U --allow-untrusted --root /alpine --arch "$APK_ARCH" --no-scripts \
         add fontconfig-dev linux-headers musl-dev \
             libc++-dev libc++-static \
-            compiler-rt compiler-rt-static \
+            compiler-rt \
             llvm-libunwind-dev llvm-libunwind-static
 
 # Install the .NET SDK
