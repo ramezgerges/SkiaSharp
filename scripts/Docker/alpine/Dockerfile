@@ -56,10 +56,7 @@ RUN . /etc/skia-env \
         -X "http://dl-cdn.alpinelinux.org/alpine/v$DISTRO_VERSION/main" \
         -X "http://dl-cdn.alpinelinux.org/alpine/v$DISTRO_VERSION/community" \
         -U --allow-untrusted --root /alpine --arch "$APK_ARCH" --no-scripts \
-        add fontconfig-dev linux-headers musl-dev \
-            libc++-dev libc++-static \
-            compiler-rt \
-            llvm-libunwind-dev llvm-libunwind-static
+        add fontconfig-dev build-base linux-headers
 
 # Install the .NET SDK
 ARG DOTNET_SDK_VERSION=10.0.1xx
