@@ -6,20 +6,17 @@
 #   TOOLCHAIN_ARCH_SHORT - the dpkg/Debian short architecture               [ loong64 ]
 #   TOOLCHAIN_ARCH_TARGET - the LLVM target triple passed to clang          [ loongarch64-linux-gnu ]
 #
-# This image only services architectures that aren't release-arch on
-# Trixie main — currently just loongarch64 (still in debian-ports, not a
-# Trixie release arch). The other archs are routed to scripts/Docker/
-# debian/11 (which has multiarch loong64 packages? no — Bullseye doesn't
-# have loong64 either, but its gcc-cross story does).
+# This image only services loongarch64. Other archs are routed to
+# scripts/Docker/debian/11 (Bullseye + glibc 2.31), which has the
+# matching gcc-N-cross packages for those targets.
 #
-# loong64 path mirrors the riscv64 carve-out in debian/11:
-# Bullseye/Trixie main have no loong64 binary archive, so multiarch
-# installs (libc6-dev:loong64, libclang-rt-19-dev:loong64) fail with
-# "Unable to locate package". Trixie does ship gcc-14-cross packages
-# (built from cross-toolchain-base, packaged as amd64 .debs containing
-# a loong64 sysroot under /usr/loongarch64-linux-gnu/), so we use those
-# and link libstdc++/libgcc statically. native/linux/build.cake gates
-# the LLVM runtime flags off for arch == "loongarch64".
+# Trixie main has no loong64 binary archive (loong64 is still a
+# debian-ports arch, not yet a release arch), but Trixie does ship
+# gcc-14-cross packages built from cross-toolchain-base — packaged
+# as amd64 .debs containing a loong64 sysroot under
+# /usr/loongarch64-linux-gnu/. The build links libstdc++/libgcc
+# statically against that sysroot. Same shape as the Bullseye image,
+# just on Trixie's gcc-14 / glibc 2.38.
 
 # Use --platform flag when building to select architecture
 # NOTE: Using devcontainers base image because mcr.microsoft.com/mirror/docker/library/debian:13
