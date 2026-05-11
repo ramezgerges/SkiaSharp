@@ -23,16 +23,49 @@ internal static partial class WasmRenderers
 		return ReadRgbaPremul (surface, info);
 	}
 
-	public static byte[] RenderGaneshGl (ISkiaScene scene, SKImageInfo info)
+	// Lazy: created on first call, kept for the WASM process lifetime.
+	// emscripten exposes only one "current" GL context at a time per
+	// thread, so MakeCurrent before every render keeps us sticky against
+	// any other (hypothetical) GL consumers in the same module.
+	private static int s_glContextHandle;
+	private static bool s_glReady;
+
+	public static async Task<byte[]> RenderGaneshGlAsync (ISkiaScene scene, SKImageInfo info)
 	{
-		// Ganesh-WebGL2 needs a separate JS-library shim to bring up
-		// an OffscreenCanvas + emscripten WebGL2 context and make it
-		// current before GRGlInterface.Create() can succeed. Not wired
-		// in this host yet — the wasm-graphite-dawn cell exercises the
-		// high-value WebGPU path; Ganesh-on-WASM is a follow-up.
-		throw new NotImplementedException (
-			"wasm-ganesh-gles is not implemented in this host yet (needs a parallel JS-library " +
-			"for emscripten_webgl_create_context + make_context_current).");
+		if (!s_glReady) {
+			s_glContextHandle = await JsBridge.InitOffscreenGlAsync ();
+			if (s_glContextHandle == 0)
+				throw new InvalidOperationException (
+					"globalThis.skiaSharpOffscreenGl.initAsync returned 0 — OffscreenCanvas/WebGL2 unavailable");
+			s_glReady = true;
+		}
+		if (JsBridge.MakeGlCurrent (s_glContextHandle) == 0)
+			throw new InvalidOperationException (
+				$"globalThis.skiaSharpOffscreenGl.makeCurrent({s_glContextHandle}) failed");
+
+		using var glInterface = GRGlInterface.Create ()
+			?? throw new InvalidOperationException ("GRGlInterface.Create returned null");
+		using var ctx = GRContext.CreateGl (glInterface)
+			?? throw new InvalidOperationException ("GRContext.CreateGl returned null");
+		using var surface = SKSurface.Create (ctx, budgeted: true, info)
+			?? throw new InvalidOperationException ("SKSurface.Create returned null on Ganesh/WebGL2");
+
+		scene.Draw (surface.Canvas);
+		ctx.Flush ();
+		// WebGL is synchronous: queued commands run on the GPU process and
+		// glReadPixels blocks until they're done. No mapAsync dance needed
+		// (unlike WebGPU); we can read pixels straight back from C#.
+		ctx.Submit (synchronous: true);
+
+		var rgba = new SKImageInfo (info.Width, info.Height, SKColorType.Rgba8888, SKAlphaType.Premul);
+		var pixels = new byte[rgba.BytesSize];
+		unsafe {
+			fixed (byte* p = pixels) {
+				if (!surface.ReadPixels (rgba, (IntPtr)p, rgba.RowBytes, 0, 0))
+					throw new InvalidOperationException ("SKSurface.ReadPixels failed on Ganesh/WebGL2");
+			}
+		}
+		return pixels;
 	}
 
 	// Non-yielding mode disallows SKGraphiteContext.Dispose() while any GPU
@@ -125,5 +158,13 @@ internal static partial class WasmRenderers
 
 		[JSImport ("globalThis.skiaSharpWebGpu.releaseOffscreenTexture")]
 		internal static partial void ReleaseOffscreenTexture (int textureId);
+
+		// Offscreen-WebGL2 bridge (skia_gl_bridge.js). InitOffscreenGl
+		// returns an emscripten GL context handle; MakeGlCurrent binds it.
+		[JSImport ("globalThis.skiaSharpOffscreenGl.initAsync")]
+		internal static partial Task<int> InitOffscreenGlAsync ();
+
+		[JSImport ("globalThis.skiaSharpOffscreenGl.makeCurrent")]
+		internal static partial int MakeGlCurrent (int contextHandle);
 	}
 }

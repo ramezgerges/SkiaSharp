@@ -39,10 +39,19 @@
        library-forced anchor) lives in the NativeAssets.WebAssembly nuget's
        targets, which we don't consume here because we project-reference
        SkiaSharp directly. Replicate the same emcc flags inline so the
-       final link resolves wgpu:: symbols. -->
-  <PropertyGroup Condition="'$(SkiaSharpEnableWebGpu)'=='True'">
-    <EmccExtraLDFlags>$(EmccExtraLDFlags) -s USE_WEBGPU=1 --js-library "$(MSBuildThisFileDirectory)..\..\..\native\wasm\skia_wgpu_bridge.js"</EmccExtraLDFlags>
-    <EmccExtraLDFlags>$(EmccExtraLDFlags) -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=['%24SkiaSharpWebGpuBridge']</EmccExtraLDFlags>
+       final link resolves wgpu:: symbols.
+
+       Also bring in skia_gl_bridge.js (local to this host) for the
+       wasm-ganesh-gles cell — offscreen-WebGL2 plumbing. Production
+       consumers don't need it because they target a real canvas. Both
+       bridges' __postset installers are anchored via DEFAULT_LIBRARY_
+       FUNCS_TO_INCLUDE (one combined invocation — emcc takes the last
+       -s X=value, so the WebGPU-only definition higher up would otherwise
+       override). -->
+  <PropertyGroup>
+    <EmccExtraLDFlags Condition="'$(SkiaSharpEnableWebGpu)'=='True'">$(EmccExtraLDFlags) -s USE_WEBGPU=1 --js-library "$(MSBuildThisFileDirectory)..\..\..\native\wasm\skia_wgpu_bridge.js"</EmccExtraLDFlags>
+    <EmccExtraLDFlags>$(EmccExtraLDFlags) --js-library "$(MSBuildThisFileDirectory)skia_gl_bridge.js"</EmccExtraLDFlags>
+    <EmccExtraLDFlags>$(EmccExtraLDFlags) -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=['%24SkiaSharpWebGpuBridge','%24SkiaSharpOffscreenGlBridge']</EmccExtraLDFlags>
   </PropertyGroup>
 
   <!-- Scenes live alongside the in-process visual tests; compile the same
