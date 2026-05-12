@@ -31,14 +31,12 @@
        on iOS — reuse them as-is. -->
   <ItemGroup>
     <Compile Include="..\..\Tests\SkiaSharp\Visual\Scenes\ISkiaScene.cs"                Link="Scenes\ISkiaScene.cs" />
-    <Compile Include="..\..\Tests\SkiaSharp\Visual\Scenes\SceneRequirements.cs"        Link="Scenes\SceneRequirements.cs" />
     <Compile Include="..\..\Tests\SkiaSharp\Visual\Scenes\SceneCatalog.cs"             Link="Scenes\SceneCatalog.cs" />
     <Compile Include="..\..\Tests\SkiaSharp\Visual\Scenes\DiagonalLinesScene.cs"       Link="Scenes\DiagonalLinesScene.cs" />
-    <Compile Include="..\..\Tests\SkiaSharp\Visual\Scenes\GpuOnlyFilledCircleScene.cs"  Link="Scenes\GpuOnlyFilledCircleScene.cs" />
+    <Compile Include="..\..\Tests\SkiaSharp\Visual\Scenes\FilledCircleScene.cs"        Link="Scenes\FilledCircleScene.cs" />
     <Compile Include="..\..\Tests\SkiaSharp\Visual\Scenes\RedRoundedRectOnWhiteScene.cs" Link="Scenes\RedRoundedRectOnWhiteScene.cs" />
 
     <Compile Include="..\..\Tests\SkiaSharp\Visual\Renderers\IRenderer.cs"                Link="Renderers\IRenderer.cs" />
-    <Compile Include="..\..\Tests\SkiaSharp\Visual\Renderers\RendererCapabilities.cs"    Link="Renderers\RendererCapabilities.cs" />
     <Compile Include="..\..\Tests\SkiaSharp\Visual\Renderers\RendererUnavailableException.cs" Link="Renderers\RendererUnavailableException.cs" />
     <Compile Include="..\..\Tests\SkiaSharp\Visual\Renderers\RasterRenderer.cs"          Link="Renderers\RasterRenderer.cs" />
     <Compile Include="..\..\Tests\SkiaSharp\Visual\Renderers\GaneshMetalRenderer.cs"     Link="Renderers\GaneshMetalRenderer.cs" />

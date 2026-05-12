@@ -29,10 +29,9 @@
        A scene/renderer change updates desktop AND android with one edit. -->
   <ItemGroup>
     <Compile Include="..\..\Tests\SkiaSharp\Visual\Scenes\ISkiaScene.cs"               Link="Scenes\ISkiaScene.cs" />
-    <Compile Include="..\..\Tests\SkiaSharp\Visual\Scenes\SceneRequirements.cs"       Link="Scenes\SceneRequirements.cs" />
     <Compile Include="..\..\Tests\SkiaSharp\Visual\Scenes\SceneCatalog.cs"            Link="Scenes\SceneCatalog.cs" />
     <Compile Include="..\..\Tests\SkiaSharp\Visual\Scenes\DiagonalLinesScene.cs"      Link="Scenes\DiagonalLinesScene.cs" />
-    <Compile Include="..\..\Tests\SkiaSharp\Visual\Scenes\GpuOnlyFilledCircleScene.cs" Link="Scenes\GpuOnlyFilledCircleScene.cs" />
+    <Compile Include="..\..\Tests\SkiaSharp\Visual\Scenes\FilledCircleScene.cs"       Link="Scenes\FilledCircleScene.cs" />
     <Compile Include="..\..\Tests\SkiaSharp\Visual\Scenes\RedRoundedRectOnWhiteScene.cs" Link="Scenes\RedRoundedRectOnWhiteScene.cs" />
 
     <Compile Include="..\..\Tests\SkiaSharp\Visual\VulkanLoader.cs"                   Link="Renderers\VulkanLoader.cs" />
