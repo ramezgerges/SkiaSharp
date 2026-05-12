@@ -30,11 +30,17 @@
     <NativeReference Include="$(MSBuildThisFileDirectory)..\output\native\ios\libSkiaSharp.framework" Kind="Framework" Condition="!$(RuntimeIdentifier.StartsWith('iossimulator'))" />
   </ItemGroup>
 
+  <!-- Skip ABIs whose libSkiaSharp.so isn't on disk. Lets developers build
+       only the ABI(s) they actually have a device for (`dotnet cake
+       --target=externals-android --arch=arm64`) without the APK packager
+       failing on missing files. Production / NuGet builds still need all
+       four; their verifyExcluded / verifyIncluded checks catch the gap
+       earlier. -->
   <ItemGroup Condition="$(TargetFramework.Contains('-android'))">
-    <AndroidNativeLibrary Include="$(MSBuildThisFileDirectory)..\output\native\android\x86\libSkiaSharp.so" Abi="x86" />
-    <AndroidNativeLibrary Include="$(MSBuildThisFileDirectory)..\output\native\android\x86_64\libSkiaSharp.so" Abi="x86_64" />
-    <AndroidNativeLibrary Include="$(MSBuildThisFileDirectory)..\output\native\android\armeabi-v7a\libSkiaSharp.so" Abi="armeabi-v7a" />
-    <AndroidNativeLibrary Include="$(MSBuildThisFileDirectory)..\output\native\android\arm64-v8a\libSkiaSharp.so" Abi="arm64-v8a" />
+    <AndroidNativeLibrary Include="$(MSBuildThisFileDirectory)..\output\native\android\x86\libSkiaSharp.so"          Abi="x86"          Condition="Exists('$(MSBuildThisFileDirectory)..\output\native\android\x86\libSkiaSharp.so')" />
+    <AndroidNativeLibrary Include="$(MSBuildThisFileDirectory)..\output\native\android\x86_64\libSkiaSharp.so"       Abi="x86_64"       Condition="Exists('$(MSBuildThisFileDirectory)..\output\native\android\x86_64\libSkiaSharp.so')" />
+    <AndroidNativeLibrary Include="$(MSBuildThisFileDirectory)..\output\native\android\armeabi-v7a\libSkiaSharp.so"  Abi="armeabi-v7a"  Condition="Exists('$(MSBuildThisFileDirectory)..\output\native\android\armeabi-v7a\libSkiaSharp.so')" />
+    <AndroidNativeLibrary Include="$(MSBuildThisFileDirectory)..\output\native\android\arm64-v8a\libSkiaSharp.so"    Abi="arm64-v8a"    Condition="Exists('$(MSBuildThisFileDirectory)..\output\native\android\arm64-v8a\libSkiaSharp.so')" />
   </ItemGroup>
 
   <ItemGroup Condition="$(TargetFramework.Contains('-maccatalyst'))">
