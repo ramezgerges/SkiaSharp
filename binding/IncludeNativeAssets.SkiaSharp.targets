@@ -31,11 +31,10 @@
   </ItemGroup>
 
   <!-- Skip ABIs whose libSkiaSharp.so isn't on disk. Lets developers build
-       only the ABI(s) they actually have a device for (`dotnet cake
-       --target=externals-android --arch=arm64`) without the APK packager
-       failing on missing files. Production / NuGet builds still need all
-       four; their verifyExcluded / verifyIncluded checks catch the gap
-       earlier. -->
+       only the ABI(s) they actually have a device for (e.g. cake target
+       externals-android with arch=arm64) without the APK packager failing
+       on missing files. Production / NuGet builds still need all four;
+       their verifyExcluded / verifyIncluded checks catch the gap earlier. -->
   <ItemGroup Condition="$(TargetFramework.Contains('-android'))">
     <AndroidNativeLibrary Include="$(MSBuildThisFileDirectory)..\output\native\android\x86\libSkiaSharp.so"          Abi="x86"          Condition="Exists('$(MSBuildThisFileDirectory)..\output\native\android\x86\libSkiaSharp.so')" />
     <AndroidNativeLibrary Include="$(MSBuildThisFileDirectory)..\output\native\android\x86_64\libSkiaSharp.so"       Abi="x86_64"       Condition="Exists('$(MSBuildThisFileDirectory)..\output\native\android\x86_64\libSkiaSharp.so')" />
