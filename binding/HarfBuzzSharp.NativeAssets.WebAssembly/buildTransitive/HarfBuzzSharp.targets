@@ -21,10 +21,6 @@
     <_HarfBuzzSharpNativeBinaryType Condition="'$(WasmEnableSIMD)' != 'True'">$(_HarfBuzzSharpNativeBinaryType)</_HarfBuzzSharpNativeBinaryType>
   </PropertyGroup>
   <ItemGroup Condition="('$(UsingMicrosoftNETSdkBlazorWebAssembly)' == 'true' or '$(UsingMicrosoftNETSdkWebAssembly)' == 'true') and '$(TargetFrameworkVersion)' != '' and '$(ShouldIncludeNativeHarfBuzzSharp)' == 'True'">
-    <!--
-      Use POSIX separators below: MSBuild glob does NOT normalize `\` on
-      Linux. Same bug fix as SkiaSharp.NativeAssets.WebAssembly.targets.
-    -->
     <!-- net6.0 (only has st and non-simd) -->
     <NativeFileReference Include="$(HarfBuzzSharpStaticLibraryPath)/2.0.23/*.a" Condition="$([MSBuild]::VersionEquals($(TargetFrameworkVersion), '6.0'))" />
     <!-- net7.0 -->

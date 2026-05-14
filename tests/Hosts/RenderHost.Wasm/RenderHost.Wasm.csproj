@@ -11,12 +11,6 @@
     <SkipGenerateAssemblyVersionInfo>true</SkipGenerateAssemblyVersionInfo>
     <SkipMDocGenerateDocs>true</SkipMDocGenerateDocs>
     <DefineConstants>$(DefineConstants);USE_LIBRARY_IMPORT</DefineConstants>
-
-    <!-- Pull Skia's Graphite-on-WebGPU plumbing into the emcc link. This
-         turns on -sUSE_WEBGPU=1 and merges skia_wgpu_bridge.js (the JS
-         library that exposes globalThis.skiaSharpWebGpu, including the
-         offscreen-device entry point we added). -->
-    <SkiaSharpEnableWebGpu>True</SkiaSharpEnableWebGpu>
   </PropertyGroup>
 
   <!-- The scene types are discovered by reflection (SceneCatalog scans
@@ -49,7 +43,7 @@
        -s X=value, so the WebGPU-only definition higher up would otherwise
        override). -->
   <PropertyGroup>
-    <EmccExtraLDFlags Condition="'$(SkiaSharpEnableWebGpu)'=='True'">$(EmccExtraLDFlags) -s USE_WEBGPU=1 --js-library "$(MSBuildThisFileDirectory)..\..\..\native\wasm\skia_wgpu_bridge.js"</EmccExtraLDFlags>
+    <EmccExtraLDFlags>$(EmccExtraLDFlags) -s USE_WEBGPU=1 --js-library "$(MSBuildThisFileDirectory)..\..\..\native\wasm\skia_wgpu_bridge.js"</EmccExtraLDFlags>
     <EmccExtraLDFlags>$(EmccExtraLDFlags) --js-library "$(MSBuildThisFileDirectory)skia_gl_bridge.js"</EmccExtraLDFlags>
     <EmccExtraLDFlags>$(EmccExtraLDFlags) -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=['%24SkiaSharpWebGpuBridge','%24SkiaSharpOffscreenGlBridge']</EmccExtraLDFlags>
   </PropertyGroup>
