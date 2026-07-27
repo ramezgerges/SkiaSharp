@@ -14,6 +14,12 @@
     <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
     <!-- Silk.NET pulls transitives that no longer advertise net6.0 support; noise only. -->
     <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
+    <!-- benchmarks/Directory.Build.targets imports SkiaSharp.Build.targets, which
+         wires MDocGenerateDocs. BenchmarkDotNet's spawned wrapper build restores
+         into a redirected ArtifactsPath where $(Pkgmdoc) doesn't populate, so
+         the target runs "\tools\mdoc.exe" (empty prefix) and MSB3073s. The
+         harness has no use for mdoc-generated XML; skip the target outright. -->
+    <SkipMDocGenerateDocs>true</SkipMDocGenerateDocs>
   </PropertyGroup>
 
   <ItemGroup>
