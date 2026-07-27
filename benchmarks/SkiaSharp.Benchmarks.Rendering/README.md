@@ -25,10 +25,30 @@ Scenes come from two places, both merged by the reflection catalog:
 - `tests/Tests/SkiaSharp/Visual/Scenes/*.cs` — the small, curated set the
   visual-regression matrix also uses (`DiagonalLines`, `FilledCircle`,
   `GradientBlend`, `RedRoundedRectOnWhite`, `Text`).
-- `Scenes/*.cs` here — heavier scenes ported from Flutter's
+- `Scenes/*.cs` here — scenes ported from Flutter's
   `dev/benchmarks/macrobenchmarks/`, kept out of the visual matrix so they
-  don't demand golden files: `BackdropBlur`, `CubicBezier`, `OpacityLayers`,
-  `DrawAtlas`, `RRectBlur`, `DrawVertices`.
+  don't demand golden files. Every non-widget benchmark from Flutter's
+  suite has a Skia equivalent here; the mapping is:
+
+  | Flutter source | Scene here | Notes |
+  |---|---|---|
+  | `animated_advanced_blend` | `AdvancedBlend` | Non-`SrcOver` blend modes stacked |
+  | `animated_blur_backdrop_filter`, `backdrop_filter`, `post_backdrop_filter` | `BackdropBlur` | `SaveLayerRec` with backdrop blur |
+  | `animated_complex_image_filtered`, `filtered_child_animation` | `ImageFilterChain` | ColorFilter → Blur → DropShadow |
+  | `animated_complex_opacity`, `cull_opacity`, `opacity_peephole` | `OpacityLayers` | 8 nested `SaveLayer(alpha)` |
+  | `color_filter_and_fade` | `ColorFilterFade` | Color-matrix fade filter |
+  | `color_filter_cache` | `ColorFilterMatrix` | Shared filter reused across draws |
+  | `cubic_bezier`, `path_tessellation` | `CubicBezier` | 200 stroked cubic bezier paths |
+  | `draw_arcs` | `DrawArcs` | 48 arcs with mixed `useCenter` |
+  | `draw_atlas` | `DrawAtlas` | 200 sprites from a small atlas |
+  | `draw_points` | `DrawPoints` | 900 points across 3 `SKPointMode`s |
+  | `draw_vertices` | `DrawVertices` | 17×17 gouraud triangle mesh |
+  | `gradient_perf` | `RadialSweepGradient` | Radial + sweep gradient shaders |
+  | `large_images` | `LargeImage` | 512×512 image drawn with mipmap sampling |
+  | `picture_cache` | `PictureCache` | Record once, replay 24× per frame |
+  | `rrect_blur` | `RRectBlur` | Rrects with `SKMaskFilter` shadow blur |
+  | `rsuperellipse_blur` | `SuperellipseBlur` | Discretized squircle (Skia has no rsuperellipse primitive) |
+  | `shader_mask_cache` | `ShaderMask` | Gradient shader as DstIn mask |
 
 Drop a new `ISkiaScene` in either directory and it appears in every backend's
 column here automatically.
