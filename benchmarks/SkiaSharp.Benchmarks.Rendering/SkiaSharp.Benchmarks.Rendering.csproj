@@ -1,0 +1,66 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>$(TFMCurrent)</TargetFramework>
+    <RootNamespace>SkiaSharp.Benchmarks.Rendering</RootNamespace>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <SkipGenerateAssemblyVersionInfo>true</SkipGenerateAssemblyVersionInfo>
+    <!-- Reflection-based backend + scene discovery. -->
+    <RootAssemblyName>SkiaSharp.Benchmarks.Rendering</RootAssemblyName>
+    <IsPackable>false</IsPackable>
+    <ServerGarbageCollection>true</ServerGarbageCollection>
+    <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
+    <!-- Silk.NET pulls transitives that no longer advertise net6.0 support; noise only. -->
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.15.8" />
+    <PackageReference Include="Silk.NET.Vulkan" Version="2.23.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\binding\SkiaSharp\SkiaSharp.csproj" />
+    <ProjectReference Include="..\..\binding\HarfBuzzSharp\HarfBuzzSharp.csproj" />
+    <ProjectReference Include="..\..\source\SkiaSharp.HarfBuzz\SkiaSharp.HarfBuzz\SkiaSharp.HarfBuzz.csproj" />
+    <ProjectReference Include="..\..\source\SkiaSharp.Vulkan\SkiaSharp.Vulkan.Silk.NET\SkiaSharp.Vulkan.Silk.NET.csproj" />
+  </ItemGroup>
+
+  <!--
+    Reuse the scene catalog + Silk.NET Vulkan bring-up from tests/. Single source
+    of truth; adding a scene under tests/Tests/SkiaSharp/Visual/Scenes/ picks it
+    up here automatically.
+  -->
+  <ItemGroup>
+    <Compile Include="..\..\tests\Tests\SkiaSharp\Visual\ISkiaScene.cs"       Link="Linked\Visual\ISkiaScene.cs" />
+    <Compile Include="..\..\tests\Tests\SkiaSharp\Visual\SceneCatalog.cs"    Link="Linked\Visual\SceneCatalog.cs" />
+    <Compile Include="..\..\tests\Tests\SkiaSharp\Visual\CatalogReflection.cs" Link="Linked\Visual\CatalogReflection.cs" />
+    <Compile Include="..\..\tests\Tests\SkiaSharp\Visual\Scenes\*.cs"        LinkBase="Linked\Visual\Scenes" />
+    <Compile Include="..\..\tests\Tests\TestConfig.cs"                       Link="Linked\TestConfig.cs" />
+    <Compile Include="..\..\tests\Tests\DefaultTestConfig.cs"                Link="Linked\DefaultTestConfig.cs" />
+    <Compile Include="..\..\tests\Tests\SkiaSharp\GlContexts\GlContext.cs"   Link="Linked\GlContexts\GlContext.cs" />
+    <Compile Include="..\..\tests\VulkanTests\VkContexts\SilkVkContext.cs"   Link="Linked\VkContexts\SilkVkContext.cs" />
+  </ItemGroup>
+
+  <!--
+    Deploy fonts/images next to the exe. FindRepoRoot() walks up for source-tree
+    runs; standalone zips fall back to AppContext.BaseDirectory/Content.
+  -->
+  <ItemGroup>
+    <Content Include="..\..\tests\Content\**\*"
+             Link="Content\%(RecursiveDir)%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!--
+    Copy the platform-appropriate libSkiaSharp / libHarfBuzzSharp binaries from
+    output/native/{platform}/{arch} into the benchmark's bin directory so the
+    P/Invoke loader can find them. Matches the pattern the existing
+    SkiaSharp.Benchmarks project uses.
+  -->
+  <Import Project="..\..\binding\IncludeNativeAssets.SkiaSharp.targets" />
+  <Import Project="..\..\binding\IncludeNativeAssets.HarfBuzzSharp.targets" />
+
+</Project>
