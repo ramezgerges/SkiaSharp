@@ -20,9 +20,18 @@ Benchmarks/
 Program.cs                        BenchmarkSwitcher entry
 ```
 
-Scenes come from `tests/Tests/SkiaSharp/Visual/Scenes/*.cs` — same catalog
-the visual-regression matrix uses. Drop a new `ISkiaScene` in there and it
-appears in every backend's column here automatically.
+Scenes come from two places, both merged by the reflection catalog:
+
+- `tests/Tests/SkiaSharp/Visual/Scenes/*.cs` — the small, curated set the
+  visual-regression matrix also uses (`DiagonalLines`, `FilledCircle`,
+  `GradientBlend`, `RedRoundedRectOnWhite`, `Text`).
+- `Scenes/*.cs` here — heavier scenes ported from Flutter's
+  `dev/benchmarks/macrobenchmarks/`, kept out of the visual matrix so they
+  don't demand golden files: `BackdropBlur`, `CubicBezier`, `OpacityLayers`,
+  `DrawAtlas`, `RRectBlur`, `DrawVertices`.
+
+Drop a new `ISkiaScene` in either directory and it appears in every backend's
+column here automatically.
 
 Vulkan bring-up (`SilkVkContext`) is also linked in from
 `tests/VulkanTests/VkContexts/`. Backends that need Metal / GL / Dawn will
