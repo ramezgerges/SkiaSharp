@@ -1,5 +1,7 @@
 using System;
+using System.IO;
 using BenchmarkDotNet.Running;
+using SkiaSharp.Tests.Visual;
 
 namespace SkiaSharp.Benchmarks.Rendering;
 
@@ -25,10 +27,49 @@ internal static class Program
 {
 	private static int Main(string[] args)
 	{
+		// `--record-scene <name> --output <path>` — record an existing ISkiaScene
+		// through an SKPictureRecorder and serialize the picture to disk. Useful
+		// as a smoke test for the playback path and for turning any hand-written
+		// scene into a captured-picture scene to compare direct-draw vs
+		// picture-playback cost of the same drawing.
+		if (Array.IndexOf(args, "--record-scene") >= 0)
+			return RecordScene(args);
+
 		var summaries = BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
 		foreach (var s in summaries)
 			if (s.HasCriticalValidationErrors)
 				return 2;
+		return 0;
+	}
+
+	private static int RecordScene(string[] args)
+	{
+		string? sceneName = null;
+		string? output = null;
+		for (var i = 0; i < args.Length - 1; i++)
+		{
+			if (args[i] == "--record-scene") sceneName = args[i + 1];
+			else if (args[i] == "--output") output = args[i + 1];
+		}
+		if (sceneName is null || output is null)
+		{
+			Console.Error.WriteLine("Usage: --record-scene <scene-name> --output <path.skp>");
+			return 2;
+		}
+
+		var scene = SceneCatalog.Get(sceneName);
+		using var recorder = new SKPictureRecorder();
+		var cull = new SKRect(0, 0, scene.Info.Width, scene.Info.Height);
+		var canvas = recorder.BeginRecording(cull);
+		scene.Draw(canvas);
+		using var picture = recorder.EndRecording();
+
+		Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(output))!);
+		using var data = picture.Serialize();
+		using var stream = File.Create(output);
+		data.SaveTo(stream);
+
+		Console.Out.WriteLine($"Recorded '{sceneName}' → {output} ({data.Size:N0} bytes)");
 		return 0;
 	}
 }

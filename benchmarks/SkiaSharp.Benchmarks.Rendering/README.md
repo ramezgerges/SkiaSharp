@@ -105,8 +105,30 @@ allocated bytes. What to look at:
   (pipeline compile, texture upload, etc.). Consistent iteration cost after
   warmup is the interesting signal.
 
+## Captured SKPictures (real-UI workloads)
+
+Beyond the hand-written scenes, this project can replay serialized
+`SKPicture` files captured from a real UI framework. Drop any `.skp` file
+under `Captures/` and it becomes a benchmark row named
+`Captured.<filename>`. Since a picture is a backend-neutral command
+stream, the *same* real-UI workload replays identically on raster, Ganesh,
+and Graphite — arguably the fairest possible comparison.
+
+See [`Captures/HOW_TO_CAPTURE.md`](Captures/HOW_TO_CAPTURE.md) for the
+Uno-side hook (small opt-in patch to `SkiaRenderHelper.skia.cs` gated by
+`UNO_DUMP_SKPICTURE_DIR`).
+
+To sanity-check the playback path without doing a real UI capture, use the
+built-in recorder — it runs any hand-written scene through
+`SKPictureRecorder` and drops the `.skp` next to the others:
+
+```
+dotnet run -c Release --project benchmarks/SkiaSharp.Benchmarks.Rendering -- \
+    --record-scene GradientBlend --output Captures/Sample.GradientBlend.skp
+```
+
 ## Follow-ons
 
 - Backends: Ganesh-Metal, Ganesh-GL, Graphite-Metal, Graphite-Dawn (WASM).
-- More scenes: backdrop filters, layer compositing, path-heavy, Skottie playback.
+- Real-UI captures from Uno.Gallery + Avalonia demos.
 - Machine-readable output (JSON) for CI trend tracking / PR-comment diff tables.

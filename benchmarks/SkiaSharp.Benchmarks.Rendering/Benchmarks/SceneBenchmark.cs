@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using BenchmarkDotNet.Attributes;
+using SkiaSharp.Benchmarks.Rendering.Scenes;
 using SkiaSharp.Tests.Visual;
 
 namespace SkiaSharp.Benchmarks.Rendering;
@@ -39,7 +40,13 @@ public class SceneBenchmark
 	public string Scene { get; set; } = "";
 
 	public static IEnumerable<string> BackendNames => BackendCatalog.AllNames;
-	public static IEnumerable<string> SceneNames => SceneCatalog.AllNames;
+
+	// Two sources of scenes: reflected ISkiaScene implementations, and .skp
+	// files captured from real UIs (see CapturedSceneRegistry). File-based
+	// captures win a name collision, so a hand-written scene can be shadowed
+	// by dropping its .skp equivalent into Captures/.
+	public static IEnumerable<string> SceneNames =>
+		CapturedSceneRegistry.AllNames.Concat(SceneCatalog.AllNames).Distinct();
 
 	private IRenderBackend? _backend;
 	private ISkiaScene? _scene;
@@ -51,7 +58,9 @@ public class SceneBenchmark
 		if (!_backend.IsAvailable)
 			throw new BackendUnavailableException(_backend.UnavailableReason ?? "backend unavailable");
 
-		_scene = SceneCatalog.Get(Scene);
+		_scene = CapturedSceneRegistry.TryGet(Scene, out var captured)
+			? captured
+			: SceneCatalog.Get(Scene);
 		_backend.Setup(_scene.Info);
 
 		// One un-timed draw to force any lazy pipeline compilation into the

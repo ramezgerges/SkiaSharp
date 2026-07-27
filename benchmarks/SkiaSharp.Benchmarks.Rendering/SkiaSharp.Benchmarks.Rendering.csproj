@@ -68,6 +68,14 @@
   </ItemGroup>
 
   <!--
+    Captured SKPictures dropped in here become PicturePlaybackScene benchmark
+    rows automatically. See Captures/HOW_TO_CAPTURE.md for the Uno-side hook.
+  -->
+  <ItemGroup>
+    <Content Include="Captures\**\*.skp" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!--
     Copy the platform-appropriate libSkiaSharp / libHarfBuzzSharp binaries from
     output/native/{platform}/{arch} into the benchmark's bin directory so the
     P/Invoke loader can find them. Matches the pattern the existing
