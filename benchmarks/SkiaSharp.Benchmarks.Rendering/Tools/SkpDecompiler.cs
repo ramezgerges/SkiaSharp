@@ -111,7 +111,24 @@ public static class SkpDecompiler
 		int BlendMode, // -1 for "custom blender" sentinel
 		int StrokeCap, int StrokeJoin, int Style,
 		bool HasEffects,
-		string[] EffectSummaries); // one per: pathEffect, shader, maskFilter, colorFilter, imageFilter, blender
+		ParsedFlattenable?[] Effects); // one per: pathEffect, shader, maskFilter, colorFilter, imageFilter, blender
+
+	// Flattenable = anything SkWriteBuffer::writeFlattenable serialises: shaders,
+	// mask filters, image filters, color filters, path effects, blenders. Each
+	// specific subclass overrides ::flatten with its own payload; we decode
+	// only the ones Uno's captures reference and leave the rest as `Unknown`.
+	private abstract record ParsedFlattenable(string FactoryName);
+	private sealed record UnknownFlattenable(string FactoryName, byte[] Payload) : ParsedFlattenable(FactoryName);
+	// SkModeColorFilter / SkBlendModeColorFilter: color4f + blend mode.
+	private sealed record ModeColorFilter(float R, float G, float B, float A, int BlendMode) : ParsedFlattenable("SkModeColorFilter");
+	// SkImageFilter base header: N inputs (each optional flattenable). Modern
+	// versions (>= kRemoveDeprecatedCropRect=103) omit the old crop rect.
+	// Then per-subclass fields.
+	private sealed record BlurImageFilter(ParsedFlattenable?[] Inputs, float SigmaX, float SigmaY, int TileMode) : ParsedFlattenable("SkBlurImageFilterImpl");
+	private sealed record ColorFilterImageFilter(ParsedFlattenable?[] Inputs, ParsedFlattenable? ColorFilter) : ParsedFlattenable("SkColorFilterImageFilterImpl");
+	private sealed record MatrixTransformImageFilter(ParsedFlattenable?[] Inputs, float[] Matrix9, ParsedSampling Sampling) : ParsedFlattenable("SkMatrixTransformImageFilter");
+	private sealed record ComposeImageFilter(ParsedFlattenable?[] Inputs) : ParsedFlattenable("SkComposeImageFilterImpl");
+	private sealed record ParsedSampling(int MaxAniso, bool UseCubic, float CubicB, float CubicC, int Filter, int Mipmap);
 
 	private sealed class ParsedSkp
 	{
@@ -586,13 +603,10 @@ public static class SkpDecompiler
 		var hasEffects = (flatFlags & 0x02) != 0;
 		var blend = blendByte == 0xFF ? -1 : blendByte;
 
-		var effects = new string[6];
+		var effects = new ParsedFlattenable?[6];
 		if (hasEffects)
-		{
-			var labels = new[] { "PathEffect", "Shader", "MaskFilter", "ColorFilter", "ImageFilter", "Blender" };
 			for (var i = 0; i < 6; i++)
-				effects[i] = ReadFlattenableSummary(r, factoryNames, labels[i]);
-		}
+				effects[i] = ParseFlattenable(r, factoryNames);
 
 		return new ParsedPaint(
 			strokeWidth, strokeMiter,
@@ -602,16 +616,18 @@ public static class SkpDecompiler
 			hasEffects, effects);
 	}
 
-	private static string ReadFlattenableSummary(BinaryReader r, List<string> factoryNames, string label)
+	// Read one flattenable from the buffer. Wire format (from
+	// SkReadBuffer::readRawFlattenable / SkBinaryWriteBuffer::writeFlattenable):
+	//   int32 factoryIndex   (1-based into picture's "fact" table; 0 = null)
+	//   uint32 sizeRecorded  (bytes of payload)
+	//   payload of size bytes — per-subclass CreateProc
+	// Advances the reader past exactly `sizeRecorded` bytes regardless of
+	// whether we recognised the subclass, so callers stay in sync on unknowns.
+	private static ParsedFlattenable? ParseFlattenable(BinaryReader r, List<string> factoryNames)
 	{
 		var idx = r.ReadUInt32();
 		if (idx == 0)
-			return $"{label}=null";
-		// The SkPicture path uses the factory-set encoding: `idx` is a 1-based
-		// index into the "fact" tag's name table. The alternate string-name
-		// encoding is signalled by having the low byte be 0 and the rest be a
-		// dict index (idx << 8); we don't see that in SkPicture serialization,
-		// but tolerate the sentinel.
+			return null;
 		string name;
 		if ((idx & 0xFF) == 0)
 			name = $"<dict-idx {idx >> 8}>";
@@ -620,12 +636,108 @@ public static class SkpDecompiler
 				? factoryNames[(int)idx - 1]
 				: $"<factory {idx}>";
 
-		var payloadSize = r.ReadUInt32();
-		var startOffset = r.BaseStream.Position;
-		// Skip the payload — parsing the flattenable's internal format is
-		// per-subclass work.
-		r.BaseStream.Position += payloadSize;
-		return $"{label}={name} (payload {payloadSize} B at buffer offset {startOffset})";
+		var payloadSize = (int)r.ReadUInt32();
+		var startPos = r.BaseStream.Position;
+		ParsedFlattenable? result;
+		try
+		{
+			result = name switch
+			{
+				"SkModeColorFilter" => DecodeModeColorFilter(r),
+				"SkBlurImageFilterImpl" => DecodeBlurImageFilter(r, factoryNames),
+				"SkColorFilterImageFilterImpl" => DecodeColorFilterImageFilter(r, factoryNames),
+				"SkMatrixTransformImageFilter" => DecodeMatrixTransformImageFilter(r, factoryNames),
+				"SkComposeImageFilterImpl" => DecodeComposeImageFilter(r, factoryNames),
+				_ => new UnknownFlattenable(name, r.ReadBytes(payloadSize)),
+			};
+		}
+		catch
+		{
+			r.BaseStream.Position = startPos;
+			result = new UnknownFlattenable(name, r.ReadBytes(payloadSize));
+		}
+		// Force alignment to the recorded end, even if the subclass decoder
+		// over- or under-read (unknown-version drift).
+		var consumed = r.BaseStream.Position - startPos;
+		if (consumed != payloadSize)
+			r.BaseStream.Position = startPos + payloadSize;
+		return result;
+	}
+
+	private static ParsedFlattenable DecodeModeColorFilter(BinaryReader r)
+	{
+		var rC = r.ReadSingle();
+		var gC = r.ReadSingle();
+		var bC = r.ReadSingle();
+		var aC = r.ReadSingle();
+		var mode = r.ReadInt32();
+		return new ModeColorFilter(rC, gC, bC, aC, mode);
+	}
+
+	// Base image-filter header: int32 inputCount, then for each input a
+	// bool (uint32) marker followed (if true) by a full flattenable.
+	// Modern .skp (>= v103 kRemoveDeprecatedCropRect) omit the old rect+flags.
+	private static ParsedFlattenable?[] DecodeImageFilterCommon(BinaryReader r, List<string> factoryNames)
+	{
+		var count = r.ReadInt32();
+		if (count < 0 || count > 32) throw new InvalidDataException($"image filter input count {count}");
+		var inputs = new ParsedFlattenable?[count];
+		for (var i = 0; i < count; i++)
+		{
+			var hasInput = r.ReadUInt32() != 0;
+			inputs[i] = hasInput ? ParseFlattenable(r, factoryNames) : null;
+		}
+		return inputs;
+	}
+
+	private static ParsedFlattenable DecodeBlurImageFilter(BinaryReader r, List<string> factoryNames)
+	{
+		var inputs = DecodeImageFilterCommon(r, factoryNames);
+		var sigmaX = r.ReadSingle();
+		var sigmaY = r.ReadSingle();
+		var tileMode = r.ReadInt32();
+		return new BlurImageFilter(inputs, sigmaX, sigmaY, tileMode);
+	}
+
+	private static ParsedFlattenable DecodeColorFilterImageFilter(BinaryReader r, List<string> factoryNames)
+	{
+		var inputs = DecodeImageFilterCommon(r, factoryNames);
+		var cf = ParseFlattenable(r, factoryNames);
+		return new ColorFilterImageFilter(inputs, cf);
+	}
+
+	private static ParsedFlattenable DecodeMatrixTransformImageFilter(BinaryReader r, List<string> factoryNames)
+	{
+		var inputs = DecodeImageFilterCommon(r, factoryNames);
+		var m = new float[9];
+		for (var i = 0; i < 9; i++) m[i] = r.ReadSingle();
+		var s = DecodeSampling(r);
+		return new MatrixTransformImageFilter(inputs, m, s);
+	}
+
+	private static ParsedFlattenable DecodeComposeImageFilter(BinaryReader r, List<string> factoryNames)
+	{
+		var inputs = DecodeImageFilterCommon(r, factoryNames);
+		return new ComposeImageFilter(inputs);
+	}
+
+	// Sampling wire format: uint32 maxAniso, then (if 0) uint32 useCubic; if
+	// true → 2 scalars, else 2 uint32s (filter+mipmap). Matches
+	// SkWriter32::writeSampling.
+	private static ParsedSampling DecodeSampling(BinaryReader r)
+	{
+		var maxAniso = r.ReadInt32();
+		if (maxAniso != 0) return new ParsedSampling(maxAniso, false, 0, 0, 0, 0);
+		var useCubic = r.ReadUInt32() != 0;
+		if (useCubic)
+		{
+			var b = r.ReadSingle();
+			var c = r.ReadSingle();
+			return new ParsedSampling(0, true, b, c, 0, 0);
+		}
+		var filter = r.ReadInt32();
+		var mipmap = r.ReadInt32();
+		return new ParsedSampling(0, false, 0, 0, filter, mipmap);
 	}
 
 	private static uint ReadPackedUInt(BinaryReader r)
@@ -1195,12 +1307,99 @@ public static class SkpDecompiler
 		if (pt.BlendMode >= 0 && pt.BlendMode != (int)SKBlendMode.SrcOver)
 			sb.Append($", BlendMode = (SKBlendMode){pt.BlendMode} /* {BlendName(pt.BlendMode)} */");
 		sb.AppendLine(" };");
-		if (pt.HasEffects)
+
+		if (!pt.HasEffects) return;
+
+		// Paint effect slots: 0=PathEffect 1=Shader 2=MaskFilter 3=ColorFilter
+		//                    4=ImageFilter 5=Blender. We reconstruct
+		// ColorFilter and ImageFilter from their flattenable payloads;
+		// PathEffect/Shader/MaskFilter/Blender still fall through to a
+		// comment since their subclass formats aren't decoded yet.
+		var slotNames = new[] { "PathEffect", "Shader", "MaskFilter", "ColorFilter", "ImageFilter", "Blender" };
+		for (var slot = 0; slot < 6; slot++)
 		{
-			foreach (var eff in pt.EffectSummaries)
-				if (!eff.EndsWith("=null"))
-					sb.AppendLine($"{indent}// paints[{idx}].{eff}");
+			var f = pt.Effects[slot];
+			if (f is null) continue;
+
+			var expr = slot switch
+			{
+				3 => EmitColorFilterExpr(f),
+				4 => EmitImageFilterExpr(f),
+				_ => null,
+			};
+
+			if (expr != null && slotNames[slot] switch
+				{
+					"ColorFilter" => true,
+					"ImageFilter" => true,
+					_ => false,
+				})
+			{
+				sb.AppendLine($"{indent}paints[{idx}].{slotNames[slot]} = {expr};");
+			}
+			else
+			{
+				sb.AppendLine($"{indent}// paints[{idx}].{slotNames[slot]} = {f.FactoryName} — not reconstructed");
+			}
 		}
+	}
+
+	// ────────────────────────────────────────────────────────────────────────
+	// Emit-side flattenable reconstructors — turn ParsedFlattenable back into
+	// a SkiaSharp expression at scene-construction time.
+	// ────────────────────────────────────────────────────────────────────────
+
+	private static string? EmitColorFilterExpr(ParsedFlattenable f) => f switch
+	{
+		ModeColorFilter m =>
+			$"SKColorFilter.CreateBlendMode(new SKColor({B255(m.R)}, {B255(m.G)}, {B255(m.B)}, {B255(m.A)}), (SKBlendMode){m.BlendMode})",
+		_ => null,
+	};
+
+	private static string? EmitImageFilterExpr(ParsedFlattenable f)
+	{
+		switch (f)
+		{
+			case BlurImageFilter blur:
+			{
+				var input = blur.Inputs.Length > 0 ? EmitImageFilterExpr(blur.Inputs[0]) : null;
+				return $"SKImageFilter.CreateBlur({F(blur.SigmaX)}, {F(blur.SigmaY)}, (SKShaderTileMode){blur.TileMode}, {input ?? "null"})";
+			}
+			case ColorFilterImageFilter cf:
+			{
+				var input = cf.Inputs.Length > 0 ? EmitImageFilterExpr(cf.Inputs[0]) : null;
+				var inner = cf.ColorFilter is null ? "null" : EmitColorFilterExpr(cf.ColorFilter);
+				return $"SKImageFilter.CreateColorFilter({inner ?? "null"}, {input ?? "null"})";
+			}
+			case MatrixTransformImageFilter mt:
+			{
+				var input = mt.Inputs.Length > 0 ? EmitImageFilterExpr(mt.Inputs[0]) : null;
+				var m = mt.Matrix9;
+				var matrix = $"new SKMatrix({F(m[0])}, {F(m[1])}, {F(m[2])}, {F(m[3])}, {F(m[4])}, {F(m[5])}, {F(m[6])}, {F(m[7])}, {F(m[8])})";
+				return $"SKImageFilter.CreateMatrix({matrix}, {EmitSamplingExpr(mt.Sampling)}, {input ?? "null"})";
+			}
+			case ComposeImageFilter co:
+			{
+				var outer = co.Inputs.Length > 0 ? EmitImageFilterExpr(co.Inputs[0]) : null;
+				var inner = co.Inputs.Length > 1 ? EmitImageFilterExpr(co.Inputs[1]) : null;
+				return $"SKImageFilter.CreateCompose({outer ?? "null"}, {inner ?? "null"})";
+			}
+			case UnknownFlattenable u:
+				return $"/* unknown image filter '{Escape(u.FactoryName)}' */ null";
+			case null:
+				return null;
+			default:
+				return null;
+		}
+	}
+
+	private static string EmitSamplingExpr(ParsedSampling s)
+	{
+		if (s.MaxAniso != 0)
+			return $"new SKSamplingOptions({s.MaxAniso})";
+		if (s.UseCubic)
+			return $"new SKSamplingOptions(new SKCubicResampler({F(s.CubicB)}, {F(s.CubicC)}))";
+		return $"new SKSamplingOptions((SKFilterMode){s.Filter}, (SKMipmapMode){s.Mipmap})";
 	}
 
 	// ────────────────────────────────────────────────────────────────────────
@@ -1578,13 +1777,11 @@ public static class SkpDecompiler
 					var packed = r.ReadUInt32();
 					_ = r.ReadUInt32(); // offsetToRestore
 					// Skia's playback of CLIP_PATH short-circuits the rest of a
-					// save-block when the resulting clip is empty (see
-					// SkPicturePlayback CLIP_PATH: `if (canvas->isClipEmpty()...) skip`).
-					// We don't emulate that skip-forward here, so applying the
-					// clip literally leaves subsequent draws in the same
-					// save-block invisible. Emit as a comment: rendering is
-					// slightly leaky (draws that were only visible through the
-					// clip appear unclipped) but the picture stays visible.
+					// save-block when the resulting clip is empty (isClipEmpty
+					// skip-forward optimisation in SkPicturePlayback). We don't
+					// emulate that skip, so applying the clip literally leaves
+					// subsequent draws in the same save-block invisible in
+					// Uno-style captures. Emit as a comment.
 					if (pathI == 0)
 						sb.AppendLine($"{indent}// CLIP_PATH idx=0 skipped");
 					else
