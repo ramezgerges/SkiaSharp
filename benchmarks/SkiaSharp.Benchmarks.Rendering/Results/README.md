@@ -41,22 +41,36 @@ Three specific regressions survive real-hardware measurement — the rest
 of the "Graphite slower" pattern from lavapipe was software-Vulkan
 overhead, not a Graphite defect.
 
-1. **`LargeImage`: Graphite 154× slower than Ganesh (103.5 ms vs 674 μs).**
-   Draws a 512×512 image 20 times with mipmap sampling. Ganesh does this
-   in 674 μs, Graphite takes 103 ms — 4× slower than software raster.
-   Something in Graphite's texture upload / mipmap chain / sampler cache
-   path is genuinely broken. This is the biggest smoking gun in the
-   suite.
+1. ~~**`LargeImage`: Graphite 154× slower than Ganesh (103.5 ms vs 674 μs).**~~
+   **FIXED in `c33e6509e62`**: this was a SkiaSharp binding-side benchmark
+   bug, not a Skia issue. Graphite's `SKGraphiteContext.CreateRecorder`
+   image-provider callback fires *per DrawImage*, not once per image.
+   The inline lambda was calling `image.ToTextureImage(recorder, mipmapped)`
+   on every invocation — allocating a fresh texture and rebuilding the
+   mipmap chain per draw. Adding a `Dictionary<uint, SKImage>` keyed by
+   `(image.UniqueId, mipmapped)` cache brought Graphite from 103 ms to
+   sub-millisecond, and on lavapipe **Graphite is now faster than Ganesh
+   on this scene**. Re-run on real hardware to confirm the direction.
 
 2. **`RRectBlur`: Graphite 3.76× slower than Ganesh (3.11 ms vs 826 μs).**
-   Rounded rectangles drawn with `SKMaskFilter.CreateBlur` — the
-   classic "drop-shadow" path. Ganesh has a specialised fast path here;
-   Graphite doesn't (yet).
+   Rounded rectangles drawn with `SKMaskFilter.CreateBlur`.
+   Investigated: both backends hit their respective "analytic blurred
+   rrect" fast paths (Ganesh: `GrBlurUtils::MakeRRectBlur`; Graphite:
+   `AnalyticBlurMask::MakeRRect` in
+   `src/gpu/graphite/geom/AnalyticBlurMask.cpp`). The Graphite
+   implementation still generates a CPU-side blurred-rrect nine-patch
+   texture and uploads it (see the `TODO(b/343684954, b/338032240)`
+   comment in that file — Skia team already tracking this). Even with
+   the proxy cache deduping the texture across draws, the analytic
+   render step's per-draw cost is measurably heavier than Ganesh's
+   fragment processor. Legitimate upstream issue, not fixable in the
+   binding.
 
-3. **`SuperellipseBlur`: Graphite 3.03× slower than Ganesh.** Same
-   `SKMaskFilter.CreateBlur` path applied to a discretised squircle
-   path. Consistent with the `RRectBlur` finding — same missing fast
-   path.
+3. **`SuperellipseBlur`: Graphite 3.03× slower than Ganesh.** Uses
+   `SKPath` (discretised squircle), which doesn't hit the analytic
+   shortcut — falls back to general path-blur (render mask, Gaussian
+   blur, draw). Both Ganesh and Graphite take this path; Graphite's
+   is 3× slower. Also upstream.
 
 Everything else is within 1.3× of Ganesh, most within 1.15× —
 acceptable overhead attributable to Graphite's Recorder + Snap machinery
@@ -93,13 +107,20 @@ where the new architecture is paying off.
   `canvas.DrawPicture` adds negligible overhead on top of the actual
   drawing on GPU backends. Picture playback is essentially free.
 
-### Suggested Skia bugs to file
+### Suggested upstream Skia issues
 
-- **Skia issue #1**: Graphite mipmap sampling / texture caching regression.
-  20 draws of a pre-uploaded `SKImage` shouldn't take 100 ms. Investigate
-  `SKGraphiteContext.CreateRecorder` + image-provider callback pathway
-  and whether textures are being re-uploaded per draw.
-- **Skia issue #2**: Graphite `SKMaskFilter.CreateBlur` fast path.
-  Ganesh has a rect-mask-blur specialisation (`SkBlurMaskFilter::box`
-  or similar) that Graphite hasn't picked up yet — see `RRectBlur` and
-  `SuperellipseBlur` both landing at 3× Ganesh.
+Only two remain — the LargeImage one turned out to be on our side.
+
+- **Skia issue #1**: Graphite `AnalyticBlurMask::MakeRRect` slower than
+  Ganesh's `GrBlurUtils::MakeRRectBlur` on the same drawing. Both hit
+  their "analytic blurred rrect" fast paths but the Graphite render step
+  runs ~3.76× slower per-draw on real hardware. Skia's own TODO comment
+  in `AnalyticBlurMask.cpp` (`b/343684954`, `b/338032240`) already
+  tracks this — that TODO mentions moving the nine-patch generation to
+  GPU or using a shared blur-mask cache, both of which would help.
+
+- **Skia issue #2**: Graphite general path-blur is 3× slower than
+  Ganesh's for `SKPath` shapes that don't have an analytic shortcut
+  (arbitrary polygons like `SuperellipseBlur`'s discretised squircle).
+  Path → mask → 2-pass Gaussian → blit; each stage is slower on
+  Graphite. Might share machinery with the rrect case above.
