@@ -131,6 +131,63 @@ dotnet run -c Release --project benchmarks/SkiaSharp.Benchmarks.Rendering -- \
     --filter "*RenderScene*Captured.Gallery*" --job medium
 ```
 
+## Headless capture on Linux (validated 2026-07-28)
+
+The full workflow works headlessly under Xvfb + fluxbox — no display needed.
+Validated end-to-end on this branch: patched Uno's `SkiaRenderHelper`, ran
+`SamplesApp.Skia.Generic` under `Xvfb :99`, captured 6 frames, replayed one on
+raster at 15.3 ms.
+
+```bash
+# One-time setup
+sudo apt-get install -y xvfb fluxbox xdotool x11-utils
+
+# Launch
+rm -f /tmp/.X99-lock
+Xvfb :99 -screen 0 1024x768x24 -ac -nolisten tcp &
+DISPLAY=:99 fluxbox &
+DISPLAY=:99 UNO_DUMP_SKPICTURE_DIR=/tmp/captures \
+    dotnet path/to/SamplesApp.Skia.Generic.dll
+```
+
+Splice in a matching `libSkiaSharp.so` if Uno's bundled NuGet native lib
+doesn't match the SkiaSharp managed API version (the version guard will trip
+otherwise — the message is unambiguous). Copy your build into
+`bin/Release/net10.0/runtimes/linux-x64/native/libSkiaSharp.so`.
+
+## Realistic expectations for capture size
+
+**Skia serializes every typeface a picture references, per picture.** Uno's
+default host loads Segoe UI + Fluent icon fonts + emoji fallbacks, and every
+recorded frame embeds those glyph tables from scratch — `SKPicture` has no
+inter-picture typeface sharing. On the Uno SamplesApp landing screen I
+measured:
+
+| frame | size    | notes                                              |
+|-------|--------:|----------------------------------------------------|
+| 0001  |  43 MB  | pre-content paint (fewer glyphs referenced)        |
+| 0002+ | 179 MB+ | full sidebar rendered, every category name glyph'd |
+
+`gzip -9` on the 43 MB frame gets it down to 17 MB — still too large for a
+git commit.
+
+For a git-committable capture, consider:
+
+1. **Minimal repro app**: build a tiny Uno app with one Page containing only
+   the primitives you want to benchmark (a Grid + a few Buttons + a Border).
+   Its captured picture will be a few hundred KB, not tens of MB.
+2. **Post-process**: write a small tool that deserializes the picture,
+   iterates its ops, and re-records without the DrawTextBlob calls
+   (or replaces them with rects of the same bounds). Loses text signal,
+   keeps everything else.
+3. **External hosting**: use git-LFS, an S3 bucket, or a GitHub Release for
+   the captures. The `CapturedSceneRegistry` just scans local files, so
+   any download-into-place tooling works.
+
+The seed `Sample.GradientBlend.skp` in this directory is 478 bytes — proves
+the plumbing without adding bulk. Real Uno captures should be produced
+locally per developer, not committed to the tree.
+
 ## Other frameworks
 
 The same trick works anywhere you can get at the `SKCanvas` a framework
