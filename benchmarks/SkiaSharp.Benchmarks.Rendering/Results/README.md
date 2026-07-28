@@ -4,6 +4,41 @@ Files here are raw BenchmarkDotNet artifacts from actual runs. File naming
 is `YYYY-MM-DD-<cpu>.{md,csv}`. Add new runs alongside instead of
 overwriting; version history is where trend-tracking will eventually go.
 
+## 2026-07-28 — Intel Core i5-8365U — KanbanBoard parallel comparison
+
+Focused three-way comparison to answer "is Graphite's parallel-recording
+architecturally different from N graphics contexts + blit?" Same machine as
+below, but this run compares only the 5 backends on the partitioned
+`KanbanBoard` scene:
+
+| Backend | Mean | vs sequential Ganesh | vs Graphite parallel |
+|---|---:|---:|---:|
+| raster | 22.07 ms | 14.1× | 9.2× |
+| **ganesh-vulkan** (sequential) | **1.56 ms** | 1.0× | 0.65× |
+| **graphite-vulkan** (sequential) | 1.91 ms | 1.22× | 0.80× |
+| **graphite-vulkan-parallel** | 2.39 ms | 1.53× | 1.0× |
+| **ganesh-vulkan-nctx** (parallel via 8 CPU raster + blit) | 10.83 ms | **6.9×** | **4.5×** |
+
+**The key finding**: `graphite-vulkan-parallel` is **4.5× faster than
+`ganesh-vulkan-nctx`** — that's the value of "no offscreen buffers + shared
+resource pool + no pixel copies." The Ganesh parallel alternative is 6.9×
+slower than *sequential* Ganesh, so on this workload the blit tax alone
+dominates.
+
+**Caveats on this specific measurement**:
+- Sequential Ganesh (1.56 ms) still wins outright — total work is tiny
+  (~200 μs per partition), well below thread-pool wakeup latency, so
+  parallel dispatch overhead swamps the win.
+- `KanbanBoard` shadows use `SKMaskFilter.CreateBlur` which hits the
+  known Graphite `RRectBlur` regression (~3.76× slower). Sequential
+  Graphite pays that ~350 μs; parallel Graphite pays it 8 times in
+  parallel, so it recovers some of the loss but not all.
+
+A `HeavyKanbanBoard` variant (3× the partitions, 6 tickets per card, no
+mask-filter shadows) sits in the same matrix — see next run — to push
+per-partition work above dispatch latency and isolate the parallelism
+delta from the shadow regression.
+
 ## 2026-07-28 — Intel Core i5-8365U (Iris Plus iGPU), Windows 11
 
 Full 23-scene × 3-backend matrix. Sorted by `graphite / ganesh` ratio,
