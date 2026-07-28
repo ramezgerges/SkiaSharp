@@ -45,29 +45,29 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 		paints[6] = new SKPaint { Color = new SKColor(28, 27, 31, 255), IsAntialias = true };
 		paints[7] = new SKPaint { Color = new SKColor(28, 27, 31, 204), IsAntialias = true };
 		paints[8] = new SKPaint { Color = new SKColor(0, 0, 0, 255) };
-		paints[8].ImageFilter = SKImageFilter.CreateMatrix(new SKMatrix(1f, 0f, 0.280000001f, 0f, 1f, 0.460000008f, 0f, 0f, 1f), new SKSamplingOptions((SKFilterMode)0, (SKMipmapMode)0), SKImageFilter.CreateCompose(SKImageFilter.CreateBlur(0.180000007f, 0.180000007f, (SKShaderTileMode)3, null), SKImageFilter.CreateColorFilter(SKColorFilter.CreateBlendMode(new SKColor(0, 0, 0, 64), (SKBlendMode)13), null)));
+		// paints[8]: effects skipped — no op references this paint index
 		paints[9] = new SKPaint { Color = new SKColor(0, 0, 0, 255) };
-		paints[9].ImageFilter = SKImageFilter.CreateMatrix(new SKMatrix(1f, 0f, 0.280000001f, 0f, 1f, 0.460000008f, 0f, 0f, 1f), new SKSamplingOptions((SKFilterMode)0, (SKMipmapMode)0), SKImageFilter.CreateCompose(SKImageFilter.CreateBlur(0.180000007f, 0.180000007f, (SKShaderTileMode)3, null), SKImageFilter.CreateColorFilter(SKColorFilter.CreateBlendMode(new SKColor(0, 0, 0, 64), (SKBlendMode)13), null)));
+		// paints[9]: effects skipped — no op references this paint index
 		paints[10] = new SKPaint { Color = new SKColor(0, 0, 0, 255) };
-		paints[10].ImageFilter = SKImageFilter.CreateMatrix(new SKMatrix(1f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 1f), new SKSamplingOptions((SKFilterMode)0, (SKMipmapMode)0), SKImageFilter.CreateCompose(SKImageFilter.CreateBlur(0f, 0f, (SKShaderTileMode)3, null), SKImageFilter.CreateColorFilter(SKColorFilter.CreateBlendMode(new SKColor(0, 0, 0, 64), (SKBlendMode)13), null)));
+		// paints[10]: effects skipped — no op references this paint index
 		paints[11] = new SKPaint { Color = new SKColor(28, 27, 31, 163), IsAntialias = true };
 		paints[12] = new SKPaint { Color = new SKColor(28, 27, 31, 255), IsAntialias = true };
 		paints[13] = new SKPaint { Color = new SKColor(28, 27, 31, 204), IsAntialias = true };
 		paints[14] = new SKPaint { Color = new SKColor(0, 0, 0, 255) };
-		paints[14].ImageFilter = SKImageFilter.CreateMatrix(new SKMatrix(1f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 1f), new SKSamplingOptions((SKFilterMode)0, (SKMipmapMode)0), SKImageFilter.CreateCompose(SKImageFilter.CreateBlur(0f, 0f, (SKShaderTileMode)3, null), SKImageFilter.CreateColorFilter(SKColorFilter.CreateBlendMode(new SKColor(0, 0, 0, 64), (SKBlendMode)13), null)));
+		// paints[14]: effects skipped — no op references this paint index
 		paints[15] = new SKPaint { Color = new SKColor(0, 0, 0, 255) };
-		paints[15].ImageFilter = SKImageFilter.CreateMatrix(new SKMatrix(1f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 1f), new SKSamplingOptions((SKFilterMode)0, (SKMipmapMode)0), SKImageFilter.CreateCompose(SKImageFilter.CreateBlur(0f, 0f, (SKShaderTileMode)3, null), SKImageFilter.CreateColorFilter(SKColorFilter.CreateBlendMode(new SKColor(0, 0, 0, 64), (SKBlendMode)13), null)));
+		// paints[15]: effects skipped — no op references this paint index
 		paints[16] = new SKPaint { Color = new SKColor(0, 0, 0, 255) };
-		paints[16].ImageFilter = SKImageFilter.CreateMatrix(new SKMatrix(1f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 1f), new SKSamplingOptions((SKFilterMode)0, (SKMipmapMode)0), SKImageFilter.CreateCompose(SKImageFilter.CreateBlur(0f, 0f, (SKShaderTileMode)3, null), SKImageFilter.CreateColorFilter(SKColorFilter.CreateBlendMode(new SKColor(0, 0, 0, 64), (SKBlendMode)13), null)));
+		// paints[16]: effects skipped — no op references this paint index
 		paints[17] = new SKPaint { Color = new SKColor(28, 27, 31, 163), IsAntialias = true };
 		paints[18] = new SKPaint { Color = new SKColor(28, 27, 31, 255), IsAntialias = true };
 		paints[19] = new SKPaint { Color = new SKColor(28, 27, 31, 204), IsAntialias = true };
 		paints[20] = new SKPaint { Color = new SKColor(0, 0, 0, 255) };
-		paints[20].ImageFilter = SKImageFilter.CreateMatrix(new SKMatrix(1f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 1f), new SKSamplingOptions((SKFilterMode)0, (SKMipmapMode)0), SKImageFilter.CreateCompose(SKImageFilter.CreateBlur(0f, 0f, (SKShaderTileMode)3, null), SKImageFilter.CreateColorFilter(SKColorFilter.CreateBlendMode(new SKColor(0, 0, 0, 64), (SKBlendMode)13), null)));
+		// paints[20]: effects skipped — no op references this paint index
 		paints[21] = new SKPaint { Color = new SKColor(0, 0, 0, 255) };
-		paints[21].ImageFilter = SKImageFilter.CreateMatrix(new SKMatrix(1f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 1f), new SKSamplingOptions((SKFilterMode)0, (SKMipmapMode)0), SKImageFilter.CreateCompose(SKImageFilter.CreateBlur(0f, 0f, (SKShaderTileMode)3, null), SKImageFilter.CreateColorFilter(SKColorFilter.CreateBlendMode(new SKColor(0, 0, 0, 64), (SKBlendMode)13), null)));
+		// paints[21]: effects skipped — no op references this paint index
 		paints[22] = new SKPaint { Color = new SKColor(0, 0, 0, 255) };
-		paints[22].ImageFilter = SKImageFilter.CreateMatrix(new SKMatrix(1f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 1f), new SKSamplingOptions((SKFilterMode)0, (SKMipmapMode)0), SKImageFilter.CreateCompose(SKImageFilter.CreateBlur(0f, 0f, (SKShaderTileMode)3, null), SKImageFilter.CreateColorFilter(SKColorFilter.CreateBlendMode(new SKColor(0, 0, 0, 64), (SKBlendMode)13), null)));
+		// paints[22]: effects skipped — no op references this paint index
 		paints[23] = new SKPaint { Color = new SKColor(28, 27, 31, 163), IsAntialias = true };
 		paints[24] = new SKPaint { Color = new SKColor(28, 27, 31, 255), IsAntialias = true };
 		paints[25] = new SKPaint { Color = new SKColor(28, 27, 31, 204), IsAntialias = true };

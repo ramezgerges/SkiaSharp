@@ -55,11 +55,11 @@ public sealed class UnoGalleryHomeScene : IPartitionedSkiaScene
 		paints[16] = new SKPaint { Color = new SKColor(0, 0, 0, 228), IsAntialias = true };
 		paints[17] = new SKPaint { Color = new SKColor(89, 70, 210, 255), IsAntialias = true };
 		paints[18] = new SKPaint { Color = new SKColor(0, 0, 0, 255) };
-		paints[18].ImageFilter = SKImageFilter.CreateMatrix(new SKMatrix(1f, 0f, 0.280000001f, 0f, 1f, 0.460000008f, 0f, 0f, 1f), new SKSamplingOptions((SKFilterMode)0, (SKMipmapMode)0), SKImageFilter.CreateCompose(SKImageFilter.CreateBlur(0.180000007f, 0.180000007f, (SKShaderTileMode)3, null), SKImageFilter.CreateColorFilter(SKColorFilter.CreateBlendMode(new SKColor(0, 0, 0, 64), (SKBlendMode)13), null)));
+		// paints[18]: effects skipped — no op references this paint index
 		paints[19] = new SKPaint { Color = new SKColor(0, 0, 0, 255) };
-		paints[19].ImageFilter = SKImageFilter.CreateMatrix(new SKMatrix(1f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 1f), new SKSamplingOptions((SKFilterMode)0, (SKMipmapMode)0), SKImageFilter.CreateCompose(SKImageFilter.CreateBlur(0f, 0f, (SKShaderTileMode)3, null), SKImageFilter.CreateColorFilter(SKColorFilter.CreateBlendMode(new SKColor(0, 0, 0, 64), (SKBlendMode)13), null)));
+		// paints[19]: effects skipped — no op references this paint index
 		paints[20] = new SKPaint { Color = new SKColor(0, 0, 0, 255) };
-		paints[20].ImageFilter = SKImageFilter.CreateMatrix(new SKMatrix(1f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 1f), new SKSamplingOptions((SKFilterMode)0, (SKMipmapMode)0), SKImageFilter.CreateCompose(SKImageFilter.CreateBlur(0f, 0f, (SKShaderTileMode)3, null), SKImageFilter.CreateColorFilter(SKColorFilter.CreateBlendMode(new SKColor(0, 0, 0, 64), (SKBlendMode)13), null)));
+		// paints[20]: effects skipped — no op references this paint index
 		paints[21] = new SKPaint { Color = new SKColor(89, 70, 210, 255), IsAntialias = true };
 		paints[22] = new SKPaint { Color = new SKColor(89, 70, 210, 255), IsAntialias = true };
 		paints[23] = new SKPaint { Color = new SKColor(138, 132, 148, 255), IsAntialias = true };

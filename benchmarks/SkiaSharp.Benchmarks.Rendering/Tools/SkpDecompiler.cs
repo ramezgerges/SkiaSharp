@@ -140,6 +140,18 @@ public static class SkpDecompiler
 		public List<ParsedPath> Paths = new();
 		public List<ParsedImage> Images = new();
 		public List<ParsedTextBlob> TextBlobs = new();
+
+		// Populated by DecodeOps as it walks this picture's op stream — the
+		// set of paint indices any draw op actually references. Used at emit
+		// time so effect chains (ImageFilter, ColorFilter, …) are only
+		// constructed for paints that will actually be applied. Unreferenced
+		// paints exist in the table because Skia recorded them once, but no
+		// op ever consumes them (e.g. paints that only DRAW_PICTURE_MATRIX_PAINT
+		// touches — an opcode our current decoder skips). Building their
+		// effects at static-init would allocate native SKImageFilter chains
+		// that no one reads and, on some backends, trip parallel Graphite's
+		// Recorder.Snap over shared native state.
+		public HashSet<int> UsedPaintIndices = new();
 		public int PathCount, TextBlobCount, VerticesCount, ImageCount;
 		public int SubPictureCount;
 		public long ArrayBufferBytes;
@@ -902,7 +914,12 @@ public static class SkpDecompiler
 			sb.AppendLine();
 		}
 
-		// Emit paint table
+		// Decode ops FIRST so p.UsedPaintIndices is populated by the time
+		// we emit the paint table — that lets us skip effect reconstruction
+		// on paints no op references (e.g. shadow paints only touched by
+		// DRAW_PICTURE_MATRIX_PAINT, an opcode we drop).
+		var opsDecoded = DecodeOps(p);
+
 		sb.AppendLine("\tprivate static readonly SKPaint[] paintTable = BuildPaints();");
 		sb.AppendLine("\tprivate static SKPaint[] BuildPaints()");
 		sb.AppendLine("\t{");
@@ -910,7 +927,7 @@ public static class SkpDecompiler
 		sb.AppendLine("\t\t// Index 0 is null in the picture format; keep it as a default paint.");
 		sb.AppendLine("\t\tpaints[0] = new SKPaint();");
 		for (var i = 0; i < p.Paints.Count; i++)
-			EmitPaint(sb, i + 1, p.Paints[i]);
+			EmitPaint(sb, i + 1, p.Paints[i], usedByOps: p.UsedPaintIndices.Contains(i + 1));
 		sb.AppendLine("\t\treturn paints;");
 		sb.AppendLine("\t}");
 		sb.AppendLine();
@@ -924,7 +941,7 @@ public static class SkpDecompiler
 
 		sb.AppendLine("\tpublic void Draw(SKCanvas canvas)");
 		sb.AppendLine("\t{");
-		AppendOps(sb, DecodeOps(p));
+		AppendOps(sb, opsDecoded);
 		sb.AppendLine("\t}");
 		sb.AppendLine();
 
@@ -979,13 +996,14 @@ public static class SkpDecompiler
 
 		// Own resource tables — DecodeOps' emitted `paintTable[i]` etc. bind
 		// to whichever class encloses the Draw method.
+		var subOps = DecodeOps(sub); // populate sub.UsedPaintIndices before emitting paint table.
 		sb.AppendLine($"\t\tprivate static readonly SKPaint[] paintTable = BuildPaints();");
 		sb.AppendLine("\t\tprivate static SKPaint[] BuildPaints()");
 		sb.AppendLine("\t\t{");
 		sb.AppendLine($"\t\t\tvar paints = new SKPaint[{sub.Paints.Count + 1}];");
 		sb.AppendLine("\t\t\tpaints[0] = new SKPaint();");
 		for (var i = 0; i < sub.Paints.Count; i++)
-			EmitPaint(sb, i + 1, sub.Paints[i], indent: "\t\t\t");
+			EmitPaint(sb, i + 1, sub.Paints[i], indent: "\t\t\t", usedByOps: sub.UsedPaintIndices.Contains(i + 1));
 		sb.AppendLine("\t\t\treturn paints;");
 		sb.AppendLine("\t\t}");
 		EmitPathTable(sb, sub, "\t\t");
@@ -994,7 +1012,7 @@ public static class SkpDecompiler
 
 		sb.AppendLine("\t\tpublic static void Draw(SKCanvas canvas)");
 		sb.AppendLine("\t\t{");
-		AppendOps(sb, DecodeOps(sub), extraIndent: "\t");
+		AppendOps(sb, subOps, extraIndent: "\t");
 		sb.AppendLine("\t\t}");
 
 		sb.AppendLine("\t}");
@@ -1200,7 +1218,7 @@ public static class SkpDecompiler
 		sb.AppendLine($"\t\tvar paints = new SKPaint[{p.Paints.Count + 1}];");
 		sb.AppendLine("\t\tpaints[0] = new SKPaint();");
 		for (var i = 0; i < p.Paints.Count; i++)
-			EmitPaint(sb, i + 1, p.Paints[i]);
+			EmitPaint(sb, i + 1, p.Paints[i], usedByOps: p.UsedPaintIndices.Contains(i + 1));
 		sb.AppendLine("\t\treturn paints;");
 		sb.AppendLine("\t}");
 		sb.AppendLine();
@@ -1293,7 +1311,7 @@ public static class SkpDecompiler
 		return sb.ToString();
 	}
 
-	private static void EmitPaint(StringBuilder sb, int idx, ParsedPaint pt, string indent = "\t\t")
+	private static void EmitPaint(StringBuilder sb, int idx, ParsedPaint pt, string indent = "\t\t", bool usedByOps = true)
 	{
 		sb.Append($"{indent}paints[{idx}] = new SKPaint {{ ");
 		sb.Append($"Color = new SKColor({B255(pt.R)}, {B255(pt.G)}, {B255(pt.B)}, {B255(pt.A)})");
@@ -1309,6 +1327,16 @@ public static class SkpDecompiler
 		sb.AppendLine(" };");
 
 		if (!pt.HasEffects) return;
+		if (!usedByOps)
+		{
+			// Paint exists in the picture's table but no draw op reads it —
+			// often a DRAW_PICTURE_MATRIX_PAINT paint we're currently dropping.
+			// Skip effect reconstruction so we don't allocate SKImageFilter
+			// chains that no one uses (and that trip parallel Graphite
+			// Recorders' Snap on shared native state).
+			sb.AppendLine($"{indent}// paints[{idx}]: effects skipped — no op references this paint index");
+			return;
+		}
 
 		// Paint effect slots: 0=PathEffect 1=Shader 2=MaskFilter 3=ColorFilter
 		//                    4=ImageFilter 5=Blender. We reconstruct
@@ -1700,6 +1728,11 @@ public static class SkpDecompiler
 		var indent = "\t\t";
 		int saveDepth = 0;
 
+		// Records which paint indices this picture's op stream actually
+		// touches, so EmitPaint can skip effect reconstruction on unused
+		// paints. See the note on ParsedSkp.UsedPaintIndices.
+		int trackPaint(int idx) { picture.UsedPaintIndices.Add(idx); return idx; }
+
 		while (s.Position < s.Length)
 		{
 			var sb = new StringBuilder();
@@ -1792,26 +1825,26 @@ public static class SkpDecompiler
 					break;
 				}
 				case "DRAW_PAINT":
-					sb.AppendLine($"{indent}canvas.DrawPaint(paintTable[{r.ReadInt32()}]);");
+					sb.AppendLine($"{indent}canvas.DrawPaint(paintTable[{trackPaint(r.ReadInt32())}]);");
 					break;
 				case "DRAW_CLEAR":
 					sb.AppendLine($"{indent}canvas.Clear({SKColorLiteral(r.ReadUInt32())});");
 					break;
 				case "DRAW_RECT":
 				{
-					var pi = r.ReadInt32();
+					var pi = trackPaint(r.ReadInt32());
 					sb.AppendLine($"{indent}canvas.DrawRect({ReadRect(r)}, paintTable[{pi}]);");
 					break;
 				}
 				case "DRAW_OVAL":
 				{
-					var pi = r.ReadInt32();
+					var pi = trackPaint(r.ReadInt32());
 					sb.AppendLine($"{indent}canvas.DrawOval({ReadRect(r)}, paintTable[{pi}]);");
 					break;
 				}
 				case "DRAW_RRECT":
 				{
-					var pi = r.ReadInt32();
+					var pi = trackPaint(r.ReadInt32());
 					var rect = ReadRect(r);
 					var radii = new float[8];
 					for (var i = 0; i < 8; i++) radii[i] = r.ReadSingle();
@@ -1820,14 +1853,14 @@ public static class SkpDecompiler
 				}
 				case "DRAW_DRRECT":
 				{
-					var pi = r.ReadInt32();
+					var pi = trackPaint(r.ReadInt32());
 					sb.AppendLine($"{indent}// DRAW_DRRECT paintIdx={pi}, 2× SkRRect (96 B) — not decoded");
 					r.BaseStream.Position += 96;
 					break;
 				}
 				case "DRAW_PATH":
 				{
-					var pi = r.ReadInt32();
+					var pi = trackPaint(r.ReadInt32());
 					var pathI = r.ReadInt32();
 					if (pathI == 0)
 						sb.AppendLine($"{indent}// DRAW_PATH idx=0 (null path) skipped");
@@ -1837,7 +1870,7 @@ public static class SkpDecompiler
 				}
 				case "DRAW_POINTS":
 				{
-					var pi = r.ReadInt32();
+					var pi = trackPaint(r.ReadInt32());
 					var mode = r.ReadInt32();
 					var count = r.ReadInt32();
 					sb.AppendLine($"{indent}var points_{opStart} = new SKPoint[{count}];");
@@ -1852,7 +1885,7 @@ public static class SkpDecompiler
 				}
 				case "DRAW_ARC":
 				{
-					var pi = r.ReadInt32();
+					var pi = trackPaint(r.ReadInt32());
 					var oval = ReadRect(r);
 					var startAngle = r.ReadSingle();
 					var sweep = r.ReadSingle();
@@ -1876,7 +1909,7 @@ public static class SkpDecompiler
 				}
 				case "DRAW_TEXT_BLOB":
 				{
-					var pi = r.ReadInt32();
+					var pi = trackPaint(r.ReadInt32());
 					var bi = r.ReadInt32();
 					var x = r.ReadSingle();
 					var y = r.ReadSingle();
@@ -1888,7 +1921,7 @@ public static class SkpDecompiler
 				}
 				case "DRAW_IMAGE2":
 				{
-					var pi = r.ReadInt32();
+					var pi = trackPaint(r.ReadInt32());
 					var ii = r.ReadInt32();
 					var x = r.ReadSingle();
 					var y = r.ReadSingle();
@@ -1904,7 +1937,7 @@ public static class SkpDecompiler
 				}
 				case "DRAW_IMAGE_RECT2":
 				{
-					var pi = r.ReadInt32();
+					var pi = trackPaint(r.ReadInt32());
 					var ii = r.ReadInt32();
 					var src = ReadRect(r);
 					var dst = ReadRect(r);
@@ -1922,8 +1955,8 @@ public static class SkpDecompiler
 					// when the corresponding flag bit is set on the op.
 					SKRect? bounds = null; int? paintIdx = null; int? backdropIdx = null; int? layerFlags = null;
 					if ((flags & 0x01) != 0) bounds = ReadRectStruct(r);
-					if ((flags & 0x02) != 0) paintIdx = r.ReadInt32();
-					if ((flags & 0x04) != 0) backdropIdx = r.ReadInt32();
+					if ((flags & 0x02) != 0) paintIdx = trackPaint(r.ReadInt32());
+					if ((flags & 0x04) != 0) backdropIdx = trackPaint(r.ReadInt32());
 					if ((flags & 0x08) != 0) layerFlags = r.ReadInt32();
 
 					sb.AppendLine($"{indent}{{");
