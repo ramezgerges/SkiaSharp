@@ -118,6 +118,21 @@ See [`Captures/HOW_TO_CAPTURE.md`](Captures/HOW_TO_CAPTURE.md) for the
 Uno-side hook (small opt-in patch to `SkiaRenderHelper.skia.cs` gated by
 `UNO_DUMP_SKPICTURE_DIR`).
 
+**Inspect a capture as C# source** — the `--decompile` subcommand parses an
+`.skp` file directly (implemented in `Tools/SkpDecompiler.cs` — no Skia
+debugger, no dependency on debugger.skia.org) and emits an `ISkiaScene`
+stub with the op stream translated to `SKCanvas` calls:
+
+```
+dotnet run … -- --decompile Captures/Sample.GradientBlend.skp
+```
+
+Handles the common ops (Save/Restore, transforms, clip, DrawRect / Oval /
+RRect / Path / Points / Arc / Image / TextBlob, SaveLayerRec, DrawPicture).
+Indexed resources (paints, paths, images, text blobs) come out as
+`paintTable[N]` etc. — filling in the resource tables from the picture's
+data-buffer section is a follow-up.
+
 To sanity-check the playback path without doing a real UI capture, use the
 built-in recorder — it runs any hand-written scene through
 `SKPictureRecorder` and drops the `.skp` next to the others:

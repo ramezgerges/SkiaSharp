@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using BenchmarkDotNet.Running;
+using SkiaSharp.Benchmarks.Rendering.Tools;
 using SkiaSharp.Tests.Visual;
 
 namespace SkiaSharp.Benchmarks.Rendering;
@@ -34,6 +35,13 @@ internal static class Program
 		// picture-playback cost of the same drawing.
 		if (Array.IndexOf(args, "--record-scene") >= 0)
 			return RecordScene(args);
+
+		// `--decompile <input.skp> [--output <path.cs>] [--class-name <name>]`
+		// — reverse an .skp back into a readable C# ISkiaScene stub. Handles
+		// the op stream directly; resource tables (paints, paths, images,
+		// text blobs) are emitted as indexed placeholders.
+		if (Array.IndexOf(args, "--decompile") >= 0)
+			return Decompile(args);
 
 		var summaries = BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
 		foreach (var s in summaries)
@@ -70,6 +78,39 @@ internal static class Program
 		data.SaveTo(stream);
 
 		Console.Out.WriteLine($"Recorded '{sceneName}' → {output} ({data.Size:N0} bytes)");
+		return 0;
+	}
+
+	private static int Decompile(string[] args)
+	{
+		string? input = null;
+		string? output = null;
+		string className = "DecompiledScene";
+		for (var i = 0; i < args.Length - 1; i++)
+		{
+			if (args[i] == "--decompile") input = args[i + 1];
+			else if (args[i] == "--output") output = args[i + 1];
+			else if (args[i] == "--class-name") className = args[i + 1];
+		}
+		if (input is null)
+		{
+			Console.Error.WriteLine("Usage: --decompile <input.skp> [--output <path.cs>] [--class-name <name>]");
+			return 2;
+		}
+
+		var bytes = File.ReadAllBytes(input);
+		var source = SkpDecompiler.Decompile(bytes, className);
+
+		if (output is null)
+		{
+			Console.Out.Write(source);
+		}
+		else
+		{
+			Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(output))!);
+			File.WriteAllText(output, source);
+			Console.Out.WriteLine($"Decompiled '{input}' → {output} ({source.Length:N0} chars)");
+		}
 		return 0;
 	}
 }
