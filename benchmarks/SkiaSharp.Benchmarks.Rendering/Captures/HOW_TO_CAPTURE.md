@@ -131,7 +131,80 @@ dotnet run -c Release --project benchmarks/SkiaSharp.Benchmarks.Rendering -- \
     --filter "*RenderScene*Captured.Gallery*" --job medium
 ```
 
-## Uno.Gallery, headless, no SDK rebuild (validated 2026-07-28)
+## Uno.Gallery: capturing specific sample pages (validated 2026-07-28)
+
+xdotool nav is unreliable under Xvfb — Uno's X11 host doesn't reliably
+consume synthesized input events. Cleanest workaround: patch
+`Uno.Gallery/App.xaml.cs` to auto-navigate on startup, driven by an env
+var. About 20 lines. Add this at the bottom of `OnLaunchedOrActivated`:
+
+```csharp
+var pageName = Environment.GetEnvironmentVariable("UNO_GALLERY_PAGE");
+if (!string.IsNullOrEmpty(pageName))
+{
+    _ = MainWindow.DispatcherQueue.TryEnqueue(async () =>
+    {
+        await System.Threading.Tasks.Task.Delay(2000);
+        try
+        {
+            var shell = GetWindowShell(MainWindow);
+            var t = System.Reflection.Assembly.GetExecutingAssembly()
+                .GetTypes()
+                .FirstOrDefault(x => x.Name == pageName
+                    && typeof(Microsoft.UI.Xaml.Controls.Page).IsAssignableFrom(x));
+            if (t is null) { this.Log().Warn($"Page '{pageName}' not found."); return; }
+            var page = (Microsoft.UI.Xaml.Controls.Page)Activator.CreateInstance(t)!;
+            shell.NavigationView.Content = page;
+        }
+        catch (Exception ex) { this.Log().Warn($"UNO_GALLERY_PAGE nav failed: {ex}"); }
+    });
+}
+```
+
+Now each launch renders a specific sample:
+
+```bash
+DISPLAY=:99 UNO_GALLERY_PAGE=ButtonSamplePage    UNO_DUMP_SKPICTURE_DIR=/tmp/buttons \
+    dotnet Uno.Gallery.dll
+DISPLAY=:99 UNO_GALLERY_PAGE=ColorPickerSamplePage UNO_DUMP_SKPICTURE_DIR=/tmp/color \
+    dotnet Uno.Gallery.dll
+DISPLAY=:99 UNO_GALLERY_PAGE=AcrylicSamplePage     UNO_DUMP_SKPICTURE_DIR=/tmp/acrylic \
+    dotnet Uno.Gallery.dll
+```
+
+92 sample pages available under `Views/SamplePages/*SamplePage.xaml.cs` —
+enumerate the file names to see what's shippable.
+
+**Timings on 4 captured pages** (lavapipe software Vulkan, so directional):
+
+| Uno.Gallery page  | raster    | ganesh-vk | graphite-vk |
+|-------------------|----------:|----------:|------------:|
+| Overview          | 11.35 ms  |  11.65 ms |     80.1 ms |
+| ButtonSample      |  7.47 ms  |   8.33 ms |     62.0 ms |
+| ColorPickerSample |  8.06 ms  |   8.68 ms |     63.1 ms |
+| AcrylicSample     |**164.5 ms** | **13.7 ms** |     77.9 ms |
+| CalendarView      |  7.54 ms  |   8.42 ms |     61.1 ms |
+
+Two patterns to notice:
+
+- **AcrylicSample is the smoking-gun real-world Graphite regression.**
+  It has a real backdrop-blur — 12× slower on raster than Ganesh
+  (backdrop filter is the classic GPU-pays-off workload). Ganesh runs
+  it at 14 ms; **Graphite lags at 78 ms**, 6× slower than Ganesh on
+  the exact primitive the SKGraphite backend should excel at.
+  Matches the synthetic `RRectBlur` (24×) / `SuperellipseBlur` (34×)
+  / `BackdropBlur` regressions surfaced earlier.
+- **All 4 non-Acrylic pages: raster ≈ ganesh << graphite.** Uno's
+  text-heavy, save/setmatrix/clip-heavy render sits in a sweet spot
+  where raster keeps up with GPU, and Graphite consistently costs
+  7–8× more than Ganesh. Also matches the synthetic-scene pattern.
+
+Screenshots of each captured page are committed alongside this doc as
+`UnoGallery.<page>.png` — treat them as visual reference for what the
+captures actually contain. The `.skp` files themselves are 200–450 MB
+apiece and not committed; reproduce them locally with the recipe above.
+
+
 
 Cross-repo shortcut that avoids rebuilding Uno.Sdk locally: let Uno.Gallery
 restore normally from its published NuGet SDK, then hot-swap in your local
