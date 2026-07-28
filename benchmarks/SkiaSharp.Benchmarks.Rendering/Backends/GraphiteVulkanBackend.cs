@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using SkiaSharp.Tests;
 using SkiaSharp.Tests.Visual;
@@ -37,6 +38,15 @@ public sealed class GraphiteVulkanBackend : IRenderBackend
 	private SKGraphiteVkBackendContext? _backendContext;
 	private SKSurface? _surface;
 
+	// Cache raster→texture uploads by source SKImage identity. Skia's Graphite
+	// backend invokes the image-provider callback *per DrawImage*; if the
+	// callback re-uploads the texture each time, scenes that draw the same
+	// image N times pay the upload+mipmap cost N times over. Ganesh caches
+	// internally; on Graphite the SkiaSharp binding is expected to. The
+	// LargeImage scene showed this stripe cost clearly — 154× slower than
+	// Ganesh without the cache. UniqueId is a stable per-SKImage identifier.
+	private readonly Dictionary<uint, SKImage> _textureImageCache = new();
+
 	public void Setup(SKImageInfo info)
 	{
 		try
@@ -63,9 +73,20 @@ public sealed class GraphiteVulkanBackend : IRenderBackend
 		_graphiteContext = SKGraphiteContext.CreateVulkan(_backendContext)
 			?? throw new BackendUnavailableException("SKGraphiteContext.CreateVulkan returned null.");
 
-		// Raster→Graphite image upload on first use; matches Uno's WebGpuBrowserRenderer.
-		_recorder = _graphiteContext.CreateRecorder(-1, (recorder, image, mipmapped) => image.ToTextureImage(recorder, mipmapped))
-			?? throw new BackendUnavailableException("SKGraphiteContext.CreateRecorder returned null.");
+		// Raster→Graphite image upload on first use, cached by source SKImage
+		// identity thereafter — the callback fires once per (image × mipmap-flag)
+		// pair regardless of how many DrawImage calls hit it.
+		_recorder = _graphiteContext.CreateRecorder(-1, (recorder, image, mipmapped) =>
+		{
+			// Mipmapped and non-mipmapped variants must upload separately.
+			var key = image.UniqueId * 2u + (mipmapped ? 1u : 0u);
+			if (!_textureImageCache.TryGetValue(key, out var cached))
+			{
+				cached = image.ToTextureImage(recorder, mipmapped);
+				_textureImageCache[key] = cached;
+			}
+			return cached;
+		}) ?? throw new BackendUnavailableException("SKGraphiteContext.CreateRecorder returned null.");
 
 		_surface = SKSurface.Create(_recorder, info)
 			?? throw new BackendUnavailableException("SKSurface.Create(graphite-vulkan) returned null.");
@@ -93,6 +114,9 @@ public sealed class GraphiteVulkanBackend : IRenderBackend
 
 	public void Dispose()
 	{
+		foreach (var img in _textureImageCache.Values)
+			img.Dispose();
+		_textureImageCache.Clear();
 		_surface?.Dispose();
 		_surface = null;
 		_recorder?.Dispose();
