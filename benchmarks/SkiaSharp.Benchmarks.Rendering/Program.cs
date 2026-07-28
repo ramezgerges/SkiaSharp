@@ -86,20 +86,29 @@ internal static class Program
 		string? input = null;
 		string? output = null;
 		string className = "DecompiledScene";
+		int partitionCount = 1;
 		for (var i = 0; i < args.Length - 1; i++)
 		{
 			if (args[i] == "--decompile") input = args[i + 1];
 			else if (args[i] == "--output") output = args[i + 1];
 			else if (args[i] == "--class-name") className = args[i + 1];
+			else if (args[i] == "--partition" && int.TryParse(args[i + 1], out var pc)) partitionCount = pc;
 		}
 		if (input is null)
 		{
-			Console.Error.WriteLine("Usage: --decompile <input.skp> [--output <path.cs>] [--class-name <name>]");
+			Console.Error.WriteLine("Usage: --decompile <input.skp> [--output <path.cs>] [--class-name <name>] [--partition <N>]");
+			return 2;
+		}
+		if (partitionCount < 1)
+		{
+			Console.Error.WriteLine("--partition must be >= 1");
 			return 2;
 		}
 
 		var bytes = File.ReadAllBytes(input);
-		var source = SkpDecompiler.Decompile(bytes, className);
+		var source = partitionCount > 1
+			? SkpDecompiler.DecompilePartitioned(bytes, className, partitionCount)
+			: SkpDecompiler.Decompile(bytes, className);
 
 		if (output is null)
 		{

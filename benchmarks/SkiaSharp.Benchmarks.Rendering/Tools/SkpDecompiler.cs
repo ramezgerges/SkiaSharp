@@ -130,6 +130,22 @@ public static class SkpDecompiler
 		return Emit(parsed, className);
 	}
 
+	/// <summary>
+	/// Same as <see cref="Decompile"/>, but splits the decoded op stream into
+	/// <paramref name="partitionCount"/> chunks at balanced Save/Restore
+	/// boundaries and emits an <c>IPartitionedSkiaScene</c> whose
+	/// <c>DrawPartition(canvas, i)</c> replays only the i-th chunk. If the
+	/// stream has fewer natural balanced points than requested, fewer
+	/// partitions are produced (never more than the stream allows).
+	/// </summary>
+	public static string DecompilePartitioned(byte[] skpBytes, string className, int partitionCount)
+	{
+		if (partitionCount < 1) throw new ArgumentOutOfRangeException(nameof(partitionCount));
+		var parsed = Parse(skpBytes);
+		if (partitionCount == 1) return Emit(parsed, className);
+		return EmitPartitioned(parsed, className, partitionCount);
+	}
+
 	// ────────────────────────────────────────────────────────────────────────
 	// Parsing
 	// ────────────────────────────────────────────────────────────────────────
@@ -422,13 +438,281 @@ public static class SkpDecompiler
 
 		sb.AppendLine("\tpublic void Draw(SKCanvas canvas)");
 		sb.AppendLine("\t{");
-		DecodeOps(p.OpData, sb);
+		AppendOps(sb, DecodeOps(p.OpData));
 		sb.AppendLine("\t}");
 		sb.AppendLine("}");
 		sb.AppendLine();
 		sb.AppendLine($"// -- header --");
 		sb.AppendLine($"// version = {p.Version}");
 		sb.AppendLine($"// op stream = {p.OpData.Length} bytes; array buffer = {p.ArrayBufferBytes} bytes");
+		return sb.ToString();
+	}
+
+	// Splits a raw op stream into four segments so each partition can be
+	// rendered independently on its own canvas without corrupting the
+	// destination.
+	//
+	// contentPrologue = leading content ops at depth 0 (e.g. DrawPaint bg).
+	//                   Executed once, only in partition 0. Duplicating it
+	//                   into every partition would paint over each other on
+	//                   parallel-recorder inserts.
+	// statePrologue   = state-only ops immediately after contentPrologue that
+	//                   raise the save-stack to the body's baseline depth
+	//                   (e.g. Save + SetMatrix). Idempotent — every
+	//                   partition replays it to enter the body's ambient
+	//                   canvas state.
+	// body            = the actual scene draws, all rooted at
+	//                   baselineDepth = SaveDepthAfter of last statePrologue op.
+	// stateEpilogue   = trailing state-only ops that pop the save-stack
+	//                   back down to 0 (matching Restores). Every partition
+	//                   replays it to leave its canvas balanced.
+	private static (List<OpEmission> contentPrologue, List<OpEmission> statePrologue, List<OpEmission> body, List<OpEmission> stateEpilogue, int baselineDepth)
+		SegmentOps(List<OpEmission> ops)
+	{
+		if (ops.Count == 0)
+			return (new(), new(), new(), new(), 0);
+
+		// Anchor everything on the first op whose SaveDepthAfter > 0 — that's
+		// where the outer wrap begins. Ops before it are pure depth-0 content
+		// (background clear etc.). If no op ever leaves depth 0, the picture
+		// has no outer wrap and everything is straight body.
+		int firstSaveIdx = -1;
+		for (var i = 0; i < ops.Count; i++)
+			if (ops[i].SaveDepthAfter > 0) { firstSaveIdx = i; break; }
+
+		if (firstSaveIdx < 0)
+			return (new(), new(), new List<OpEmission>(ops), new(), 0);
+
+		int contentEnd = firstSaveIdx;
+
+		int stateEnd = contentEnd;
+		while (stateEnd < ops.Count && ops[stateEnd].IsState)
+			stateEnd++;
+
+		int epilogueStart = ops.Count;
+		while (epilogueStart > stateEnd && ops[epilogueStart - 1].IsState)
+			epilogueStart--;
+
+		var contentPrologue = ops.GetRange(0, contentEnd);
+		var statePrologue = ops.GetRange(contentEnd, stateEnd - contentEnd);
+		var body = ops.GetRange(stateEnd, Math.Max(0, epilogueStart - stateEnd));
+		var stateEpilogue = ops.GetRange(epilogueStart, ops.Count - epilogueStart);
+
+		var baselineDepth = statePrologue.Count > 0
+			? statePrologue[statePrologue.Count - 1].SaveDepthAfter
+			: 0;
+
+		return (contentPrologue, statePrologue, body, stateEpilogue, baselineDepth);
+	}
+
+	// Split body ops into partitionCount buckets aiming for equal size.
+	// Split points must be at baselineDepth (delta-0 boundaries) so each
+	// bucket is Save-balanced. We first collect ALL candidate boundaries,
+	// then pick partitionCount-1 of them closest to evenly-spaced targets.
+	// If fewer natural balanced points exist than requested, returns fewer
+	// buckets — never fabricates unbalanced ones.
+	private static List<List<OpEmission>> PartitionBody(List<OpEmission> body, int partitionCount, int baselineDepth)
+	{
+		var buckets = new List<List<OpEmission>>();
+		if (partitionCount <= 1 || body.Count == 0)
+		{
+			buckets.Add(new List<OpEmission>(body));
+			return buckets;
+		}
+
+		// Candidate indices: ops whose SaveDepthAfter is exactly baselineDepth.
+		// Exclude the very last op — everything up to and including it is
+		// unconditionally part of the final bucket.
+		var rawCandidates = new List<int>();
+		for (var i = 0; i < body.Count - 1; i++)
+			if (body[i].SaveDepthAfter == baselineDepth)
+				rawCandidates.Add(i);
+
+		if (rawCandidates.Count == 0)
+		{
+			buckets.Add(new List<OpEmission>(body));
+			return buckets;
+		}
+
+		// Coalesce nearby candidates so we don't emit tiny 1-op buckets when
+		// a dense cluster of balanced-depth ops (e.g. many DRAW_PICTURE at
+		// baseline) sit right next to each other. Keep the first candidate
+		// of each cluster, and require subsequent candidates to be at least
+		// minSpacing ops past the last kept one — minSpacing scales with
+		// the ideal per-bucket size so wide streams still find good splits.
+		var minSpacing = Math.Max(1, body.Count / partitionCount);
+		var candidates = new List<int>();
+		foreach (var c in rawCandidates)
+			if (candidates.Count == 0 || c - candidates[candidates.Count - 1] >= minSpacing)
+				candidates.Add(c);
+
+		var wantSplits = Math.Min(partitionCount - 1, candidates.Count);
+		var chosen = new HashSet<int>();
+		for (var k = 1; k <= wantSplits; k++)
+		{
+			var idx = (int)((long)k * candidates.Count / (wantSplits + 1));
+			if (idx >= candidates.Count) idx = candidates.Count - 1;
+			chosen.Add(candidates[idx]);
+		}
+
+		var ordered = new List<int>(chosen);
+		ordered.Sort();
+
+		var start = 0;
+		foreach (var split in ordered)
+		{
+			buckets.Add(body.GetRange(start, split - start + 1));
+			start = split + 1;
+		}
+		if (start < body.Count)
+			buckets.Add(body.GetRange(start, body.Count - start));
+		return buckets;
+	}
+
+	private static string EmitPartitioned(ParsedSkp p, string className, int partitionCount)
+	{
+		var ops = DecodeOps(p.OpData);
+		var (contentPrologue, statePrologue, body, stateEpilogue, baselineDepth) = SegmentOps(ops);
+		var buckets = PartitionBody(body, partitionCount, baselineDepth);
+		var actual = buckets.Count;
+
+		var sb = new StringBuilder();
+
+		sb.AppendLine("// Auto-generated by SkpDecompiler --partition. Reproduces the drawing");
+		sb.AppendLine("// captured in an .skp file, split into N methods that can be recorded");
+		sb.AppendLine("// in parallel on separate Graphite Recorders.");
+		sb.AppendLine("using SkiaSharp;");
+		sb.AppendLine("using SkiaSharp.Benchmarks.Rendering;");
+		sb.AppendLine("using SkiaSharp.Tests.Visual;");
+		sb.AppendLine();
+		sb.AppendLine("namespace SkiaSharp.Benchmarks.Rendering.Scenes;");
+		sb.AppendLine();
+		sb.AppendLine($"public sealed class {className} : IPartitionedSkiaScene");
+		sb.AppendLine("{");
+
+		var origW = p.CullRight - p.CullLeft;
+		var origH = p.CullBottom - p.CullTop;
+		var infoW = origW is > 0 and < 8192 ? (int)Math.Ceiling(origW) : 1024;
+		var infoH = origH is > 0 and < 8192 ? (int)Math.Ceiling(origH) : 1024;
+
+		sb.AppendLine($"\tpublic string Name => \"{className}\";");
+		sb.AppendLine($"\t// Original cull: ({p.CullLeft}, {p.CullTop}, {p.CullRight}, {p.CullBottom}) — snapped to {infoW}x{infoH} for benchmarking.");
+		sb.AppendLine($"\tpublic SKImageInfo Info => new({infoW}, {infoH}, SKColorType.Rgba8888, SKAlphaType.Premul);");
+		sb.AppendLine($"\tpublic int PartitionCount => {actual};");
+		if (actual != partitionCount)
+			sb.AppendLine($"\t// NB: {partitionCount} partitions requested but only {actual} balanced-Save/Restore boundaries were available.");
+		sb.AppendLine();
+
+		sb.AppendLine("\t// ── Resources ──");
+		sb.AppendLine($"\t//   factory names : {p.FactoryNames.Count}");
+		sb.AppendLine($"\t//   paints        : {p.Paints.Count}   (fully decoded — see paintTable below)");
+		sb.AppendLine($"\t//   paths         : {p.PathCount}   (not decoded — SkPath binary format)");
+		sb.AppendLine($"\t//   text blobs    : {p.TextBlobCount}   (not decoded — SkTextBlob binary format)");
+		sb.AppendLine($"\t//   vertices      : {p.VerticesCount}   (not decoded)");
+		sb.AppendLine($"\t//   images        : {p.ImageCount}   (not decoded — encoded PNG/JPEG bytes)");
+		sb.AppendLine($"\t//   sub-pictures  : {p.SubPictureCount}   (not decoded — recursive .skp)");
+		sb.AppendLine();
+
+		if (p.FactoryNames.Count > 0)
+		{
+			sb.AppendLine("\t// Factory-name table:");
+			for (var i = 0; i < p.FactoryNames.Count; i++)
+				sb.AppendLine($"\t//   [{i + 1,3}] {p.FactoryNames[i]}");
+			sb.AppendLine();
+		}
+
+		sb.AppendLine("\tprivate static readonly SKPaint[] paintTable = BuildPaints();");
+		sb.AppendLine("\tprivate static SKPaint[] BuildPaints()");
+		sb.AppendLine("\t{");
+		sb.AppendLine($"\t\tvar paints = new SKPaint[{p.Paints.Count + 1}];");
+		sb.AppendLine("\t\tpaints[0] = new SKPaint();");
+		for (var i = 0; i < p.Paints.Count; i++)
+			EmitPaint(sb, i + 1, p.Paints[i]);
+		sb.AppendLine("\t\treturn paints;");
+		sb.AppendLine("\t}");
+		sb.AppendLine();
+		sb.AppendLine("\tprivate static readonly SKPath[] pathTable = new SKPath[0];");
+		sb.AppendLine("\tprivate static readonly SKImage[] imageTable = new SKImage[0];");
+		sb.AppendLine("\tprivate static readonly SKTextBlob[] textBlobTable = new SKTextBlob[0];");
+		sb.AppendLine();
+
+		// Sequential Draw drives all partitions in order (identical to
+		// running each DrawPartition_i on the same canvas). This is what
+		// the sequential Ganesh/Graphite/raster backends will execute.
+		sb.AppendLine("\tpublic void Draw(SKCanvas canvas)");
+		sb.AppendLine("\t{");
+		sb.AppendLine("\t\tfor (var i = 0; i < PartitionCount; i++)");
+		sb.AppendLine("\t\t\tDrawPartition(canvas, i);");
+		sb.AppendLine("\t}");
+		sb.AppendLine();
+
+		sb.AppendLine("\tpublic void DrawPartition(SKCanvas canvas, int partitionIndex)");
+		sb.AppendLine("\t{");
+		sb.AppendLine("\t\tswitch (partitionIndex)");
+		sb.AppendLine("\t\t{");
+		for (var i = 0; i < actual; i++)
+			sb.AppendLine($"\t\t\tcase {i}: DrawPartition{i}(canvas); return;");
+		sb.AppendLine("\t\t\tdefault: throw new System.ArgumentOutOfRangeException(nameof(partitionIndex));");
+		sb.AppendLine("\t\t}");
+		sb.AppendLine("\t}");
+		sb.AppendLine();
+
+		// Shared ContentPrologue: only executed by partition 0. Contains any
+		// initial drawing ops (typically a DrawPaint background clear) that
+		// were emitted at save-depth 0 before the outer wrap started.
+		sb.AppendLine($"\t// Content prologue — {contentPrologue.Count} op(s), depth-0 drawing ops that");
+		sb.AppendLine("\t// only partition 0 replays (duplicating in other partitions would over-paint");
+		sb.AppendLine("\t// them on parallel inserts). Executed once per frame.");
+		sb.AppendLine("\tprivate static void ContentPrologue(SKCanvas canvas)");
+		sb.AppendLine("\t{");
+		AppendOps(sb, contentPrologue);
+		sb.AppendLine("\t}");
+		sb.AppendLine();
+
+		// Shared StatePrologue: replayed by every partition to bring its
+		// canvas from depth 0 → baselineDepth with matching matrix/clip
+		// state. Idempotent — safe to run multiple times on the same canvas.
+		sb.AppendLine($"\t// State prologue — {statePrologue.Count} op(s), state-only setup that raises");
+		sb.AppendLine($"\t// the save-stack to baseline depth {baselineDepth} and establishes matrix/clip.");
+		sb.AppendLine("\t// Replayed by every partition, so parallel recorders enter body at identical state.");
+		sb.AppendLine("\tprivate static void StatePrologue(SKCanvas canvas)");
+		sb.AppendLine("\t{");
+		AppendOps(sb, statePrologue);
+		sb.AppendLine("\t}");
+		sb.AppendLine();
+
+		// Shared StateEpilogue: closing Restores that unwind statePrologue's
+		// saves. Replayed by every partition to leave its canvas balanced.
+		sb.AppendLine($"\t// State epilogue — {stateEpilogue.Count} op(s), closing Restores that unwind");
+		sb.AppendLine("\t// the state prologue and return the canvas to depth 0.");
+		sb.AppendLine("\tprivate static void StateEpilogue(SKCanvas canvas)");
+		sb.AppendLine("\t{");
+		AppendOps(sb, stateEpilogue);
+		sb.AppendLine("\t}");
+		sb.AppendLine();
+
+		for (var i = 0; i < actual; i++)
+		{
+			sb.AppendLine($"\t// Partition {i}: {buckets[i].Count} body op(s)");
+			sb.AppendLine($"\tprivate static void DrawPartition{i}(SKCanvas canvas)");
+			sb.AppendLine("\t{");
+			if (i == 0)
+				sb.AppendLine("\t\tContentPrologue(canvas);");
+			sb.AppendLine("\t\tStatePrologue(canvas);");
+			AppendOps(sb, buckets[i]);
+			sb.AppendLine("\t\tStateEpilogue(canvas);");
+			sb.AppendLine("\t}");
+			sb.AppendLine();
+		}
+
+		sb.AppendLine("}");
+		sb.AppendLine();
+		sb.AppendLine($"// -- header --");
+		sb.AppendLine($"// version = {p.Version}");
+		sb.AppendLine($"// op stream = {p.OpData.Length} bytes; array buffer = {p.ArrayBufferBytes} bytes");
+		sb.AppendLine($"// requested partitions = {partitionCount}; actual = {actual}");
+		for (var i = 0; i < actual; i++)
+			sb.AppendLine($"// partition {i}: {buckets[i].Count} ops");
 		return sb.ToString();
 	}
 
@@ -469,8 +753,28 @@ public static class SkpDecompiler
 	// StringBuilder to keep call ordering right)
 	// ────────────────────────────────────────────────────────────────────────
 
-	private static void DecodeOps(byte[] opData, StringBuilder sb)
+	// State-only ops don't produce visible output — they only mutate the
+	// canvas's matrix, clip, or save-stack. Partitions can replay them as
+	// often as needed without changing rendered pixels; drawing ops cannot.
+	private static readonly HashSet<string> StateOnlyOps = new()
 	{
+		"SAVE", "RESTORE", "SAVE_BEHIND",
+		"SET_MATRIX", "SET_M44", "CONCAT", "CONCAT44",
+		"TRANSLATE", "SCALE", "ROTATE", "SKEW",
+		"CLIP_PATH", "CLIP_REGION", "CLIP_RECT", "CLIP_RRECT",
+		"CLIP_SHADER_IN_PAINT", "RESET_CLIP",
+		"NOOP", "FLUSH",
+	};
+
+	// Per-op emission that also carries the save-stack depth AFTER the op
+	// executed and whether the op was pure state. Partitions split on
+	// depth-return-to-baseline boundaries and are wrapped by replayed state
+	// prologue/epilogue to keep parallel recorders on identical state.
+	private sealed record OpEmission(string Text, int SaveDepthAfter, bool IsState);
+
+	private static List<OpEmission> DecodeOps(byte[] opData)
+	{
+		var ops = new List<OpEmission>();
 		using var s = new MemoryStream(opData);
 		using var r = new BinaryReader(s);
 		var indent = "\t\t";
@@ -478,6 +782,7 @@ public static class SkpDecompiler
 
 		while (s.Position < s.Length)
 		{
+			var sb = new StringBuilder();
 			var opStart = s.Position;
 			if (s.Length - opStart < 4) break;
 
@@ -489,6 +794,7 @@ public static class SkpDecompiler
 			if (size < 4 || opStart + size > opData.Length)
 			{
 				sb.AppendLine($"{indent}// malformed op at offset {opStart}: op={op}, size={size}. Stopping.");
+				ops.Add(new OpEmission(sb.ToString(), saveDepth, IsState: false));
 				break;
 			}
 
@@ -681,7 +987,17 @@ public static class SkpDecompiler
 					sb.AppendLine($"{indent}// overshot op boundary by {-remaining} bytes — decoder bug for op {name}. Resyncing.");
 				s.Position = endPos;
 			}
+
+			ops.Add(new OpEmission(sb.ToString(), saveDepth, IsState: StateOnlyOps.Contains(name)));
 		}
+		return ops;
+	}
+
+	// Consumes the decoded ops and appends their text to a target builder.
+	private static void AppendOps(StringBuilder into, IEnumerable<OpEmission> ops)
+	{
+		foreach (var op in ops)
+			into.Append(op.Text);
 	}
 
 	// Format helpers
