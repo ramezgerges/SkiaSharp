@@ -131,7 +131,92 @@ dotnet run -c Release --project benchmarks/SkiaSharp.Benchmarks.Rendering -- \
     --filter "*RenderScene*Captured.Gallery*" --job medium
 ```
 
-## Headless capture on Linux (validated 2026-07-28)
+## Uno.Gallery, headless, no SDK rebuild (validated 2026-07-28)
+
+Cross-repo shortcut that avoids rebuilding Uno.Sdk locally: let Uno.Gallery
+restore normally from its published NuGet SDK, then hot-swap in your local
+Uno + SkiaSharp DLLs. Works when the version drift is small — align the
+`Uno.Sdk` pin in Gallery's `global.json` to whatever your local Uno source
+was branched from.
+
+Validated with:
+- `/workspace/uno` on `6.5-release-branch-cut` + a few commits
+- `Uno.Gallery` on `Uno.Sdk 6.5.36` (closest matching NuGet release)
+
+```bash
+# 1. Match Gallery's SDK to what your local Uno is closest to.
+sed -i 's/"Uno.Sdk": ".*"/"Uno.Sdk": "6.5.36"/' Uno.Gallery/global.json
+rm -rf Uno.Gallery/Uno.Gallery/bin Uno.Gallery/Uno.Gallery/obj
+
+# 2. Restore + build the desktop head against the published Uno NuGets.
+dotnet build Uno.Gallery/Uno.Gallery/Uno.Gallery.csproj \
+    -c Release -p:TargetFrameworkOverride=net10.0-desktop -p:NuGetAudit=false
+
+# 3. Hot-swap in your patched local Uno + SkiaSharp DLLs. Do them ALL —
+#    partial swaps trip ITypeXxxExtension / MissingMethod cascades.
+GAL=Uno.Gallery/Uno.Gallery/bin/Release/net10.0-desktop
+LOCAL_UNO=/path/to/uno/src
+
+for local_dll in $(find $LOCAL_UNO -path "*Skia*/Release/net10.0/*.dll" -not -path "*/obj/*"); do
+    name=$(basename "$local_dll")
+    [ -f "$GAL/$name" ] && cp -u "$local_dll" "$GAL/$name"
+done
+
+# SkiaSharp side (the version-guard tripwire is real — do all four).
+LOCAL_SKIA=/path/to/skiasharp
+cp $LOCAL_SKIA/output/native/linux-x64/libSkiaSharp.so \
+    $GAL/runtimes/linux-x64/native/libSkiaSharp.so
+for local_dll in $(find $LOCAL_SKIA -path "*/bin/Release/net10.0/SkiaSharp*.dll" -not -path "*/obj/*"); do
+    name=$(basename "$local_dll")
+    [ -f "$GAL/$name" ] && cp -u "$local_dll" "$GAL/$name"
+done
+
+# 4. Run under Xvfb + fluxbox.
+rm -f /tmp/.X99-lock
+Xvfb :99 -screen 0 1024x640x24 -ac -nolisten tcp &
+DISPLAY=:99 fluxbox >/dev/null 2>&1 &
+sleep 1
+DISPLAY=:99 UNO_DUMP_SKPICTURE_DIR=/tmp/uno-caps \
+    dotnet $GAL/Uno.Gallery.dll
+```
+
+Uno.Gallery's Overview page (screenshot: `UnoGallery.Overview.png` in this
+directory) rendered end-to-end, sidebar + isometric hero illustration +
+Material/Fluent/Cupertino theme tabs.
+
+**Playback timings on the captured frame** (lavapipe software Vulkan, so
+directional only — real GPU expected to flip Ganesh and Graphite well
+below raster):
+
+| Backend         | Mean      | vs Ganesh  |
+|-----------------|----------:|-----------:|
+| raster          | 11.35 ms  | –          |
+| ganesh-vulkan   | 11.65 ms  | 1×         |
+| graphite-vulkan | **80.07 ms** | **6.9× slower** |
+
+Graphite lagging on a real Uno UI matches the pattern the synthetic
+`RRectBlur` / `SuperellipseBlur` / `PictureCache` benchmarks surfaced
+earlier — worth checking whether it holds on discrete-GPU hardware.
+
+**Op mix of that single Overview frame** (from `--decompile` — first
+60 lines saved as `UnoGallery.Overview.decompiled.cs.txt`):
+
+```
+    205 canvas.Save
+    205 canvas.Restore
+    162 canvas.SetMatrix
+     56 canvas.ClipRoundRect
+     48 canvas.DrawText
+     16 canvas.ClipRect
+      3 // op DRAW_PICTURE_MATRIX_PAINT (nested subpictures)
+      1 canvas.DrawPaint
+      1 // op CLIP_PATH
+```
+
+1866 lines of readable C# in total — you can see the entire Uno layout as
+nested Save / SetMatrix / clip / draw pyramids.
+
+## Headless capture on Linux, SamplesApp variant (validated 2026-07-28)
 
 The full workflow works headlessly under Xvfb + fluxbox — no display needed.
 Validated end-to-end on this branch: patched Uno's `SkiaRenderHelper`, ran
