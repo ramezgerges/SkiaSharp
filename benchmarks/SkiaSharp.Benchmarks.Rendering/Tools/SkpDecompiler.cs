@@ -120,6 +120,9 @@ public static class SkpDecompiler
 		public byte[] OpData = Array.Empty<byte>();
 		public List<string> FactoryNames = new();
 		public List<ParsedPaint> Paints = new();
+		public List<ParsedPath> Paths = new();
+		public List<ParsedImage> Images = new();
+		public List<ParsedTextBlob> TextBlobs = new();
 		public int PathCount, TextBlobCount, VerticesCount, ImageCount;
 		public int SubPictureCount;
 		public long ArrayBufferBytes;
@@ -127,6 +130,16 @@ public static class SkpDecompiler
 		// Sub-pictures parsed recursively from the "pctr" tag. Local index in
 		// the op stream (1-based) — SubPictures[picIdx - 1].
 		public List<ParsedSkp> SubPictures = new();
+
+		// Typefaces live at the TOP-LEVEL only in modern .skp files (>v43); a
+		// sub-picture's SkFont typeface index refers into this outer array.
+		// Only the top-level ParsedSkp populates this — sub-pictures see it
+		// via `TopLevel` back-reference below.
+		public List<ParsedTypeface> Typefaces = new();
+
+		// Back-reference to the top-level picture; used at emit time so
+		// sub-picture text-blob code can find the shared typeface table.
+		public ParsedSkp? TopLevel;
 
 		// Pre-order-assigned unique ID across the whole tree. Top-level is 0;
 		// each sub-picture gets a distinct positive ID that names its
@@ -139,6 +152,33 @@ public static class SkpDecompiler
 		public bool Unparseable;
 		public string BailReason = "";
 	}
+
+	// One entry per top-level typeface. FontData is the embedded font blob
+	// when the .skp was written with kDoIncludeData (Skia's default) — that's
+	// what we hand to SKTypeface.FromData at scene-construction time.
+	private sealed record ParsedTypeface(string FamilyName, int Weight, int Width, int SlantEnum, byte[]? FontData);
+
+	// One entry per path in the aray "pth " table. Two shapes: general
+	// (verbs + points + weights) and rrect. Fill types match Skia's enum:
+	// 0=Winding, 1=EvenOdd, 2=InverseWinding, 3=InverseEvenOdd.
+	private abstract record ParsedPath(int FillType);
+	private sealed record ParsedGeneralPath(int FillType, float[] Points, float[] Conics, byte[] Verbs) : ParsedPath(FillType);
+	// SkRRect layout: 4 floats for rect (l,t,r,b), 8 floats for 4 corner radii (x,y each).
+	private sealed record ParsedRRectPath(int FillType, int Direction, float[] Rrect12, int Start) : ParsedPath(FillType);
+
+	// Encoded image blob straight from aray "imag". Payload is PNG/JPEG bytes;
+	// hand it to SKImage.FromEncodedData at scene-construction time.
+	private sealed record ParsedImage(byte[] EncodedData, bool Unpremul);
+
+	// Text blob = a bounds rect plus a sequence of runs.
+	private sealed record ParsedTextBlob(float BoundsLeft, float BoundsTop, float BoundsRight, float BoundsBottom, List<ParsedTextRun> Runs);
+	// Each run positions `GlyphCount` glyphs of a specific font.
+	//   Positioning: 0=default (all glyphs use offset), 1=horizontal (one X per glyph, shared Y),
+	//                2=full (X+Y per glyph), 3=RSXform (4 floats per glyph).
+	private sealed record ParsedTextRun(int GlyphCount, int Positioning, float OffsetX, float OffsetY, ParsedFont Font, ushort[] Glyphs, float[] Positions);
+	// SkFont: size + optional scaleX/skewX + optional typeface index (1-based
+	// into ParsedSkp.TopLevel.Typefaces; 0 means null typeface → system default).
+	private sealed record ParsedFont(float Size, float ScaleX, float SkewX, byte Flags, byte Edging, byte Hinting, int TypefaceIndex);
 
 	public static string Decompile(byte[] skpBytes, string className = "DecompiledScene")
 	{
@@ -172,20 +212,21 @@ public static class SkpDecompiler
 		using var reader = new BinaryReader(stream);
 		var top = ParsePicture(reader);
 
-		// Walk the tree once to hand every picture a unique global ID; this
-		// is what the emitted C# class names hang off (SubPic_1, SubPic_2, …).
+		// Walk the tree once to hand every picture a unique global ID and
+		// a back-reference to the top-level. The emitter uses both: IDs to
+		// name emitted classes (SubPic_1…), TopLevel so sub-pictures'
+		// text-blob code can find the shared typeface table.
 		int nextId = 0;
-		AssignGlobalIds(top, ref nextId);
+		AssignGlobalIdsAndTopLevel(top, top, ref nextId);
 		return top;
 	}
 
-	// Assign globally-unique IDs in pre-order. Parent gets its ID before its
-	// children, so a picture's GlobalId is always < its descendants'.
-	private static void AssignGlobalIds(ParsedSkp p, ref int nextId)
+	private static void AssignGlobalIdsAndTopLevel(ParsedSkp p, ParsedSkp top, ref int nextId)
 	{
 		p.GlobalId = nextId++;
+		p.TopLevel = top;
 		foreach (var sub in p.SubPictures)
-			AssignGlobalIds(sub, ref nextId);
+			AssignGlobalIdsAndTopLevel(sub, top, ref nextId);
 	}
 
 	// Reads one complete SkPicture (magic + header + tags + eof) from the
@@ -244,20 +285,19 @@ public static class SkpDecompiler
 				}
 				case "tpfc":
 					// size = COUNT of typefaces (not bytes). Each is a
-					// SkFontDescriptor::serialize()-encoded blob: a packed
-					// styleBits, then a list of tagged fields until kSentinel,
-					// then an optional font-data length + bytes. We only need
-					// to *skip past* the typefaces — we don't reconstruct
-					// SKTypeface objects on the C# side (text ops reference
-					// text blobs, not typefaces directly, and text blobs are
-					// unresolvable anyway).
+					// SkFontDescriptor::serialize()-encoded blob. Modern .skp
+					// files (>v43) put all typefaces at top level and sub-
+					// picture tpfc tags carry size=0, so this loop only fires
+					// on the outer picture. We capture family+style plus the
+					// optional embedded font-data blob so the emitter can
+					// reconstruct real SKTypeface objects at run time.
 					for (var i = 0; i < size; i++)
 					{
-						try { SkipTypeface(reader); }
+						try { p.Typefaces.Add(DecodeTypeface(reader)); }
 						catch (Exception ex)
 						{
 							p.Unparseable = true;
-							p.BailReason = $"typeface #{i} skip failed: {ex.Message}";
+							p.BailReason = $"typeface #{i} decode failed: {ex.Message}";
 							return p;
 						}
 					}
@@ -320,25 +360,210 @@ public static class SkpDecompiler
 						p.Paints.Add(ReadPaint(r, p.FactoryNames));
 					break;
 				case "pth ":
+					// SkPictureData writes the count TAG then writes it AGAIN as
+					// an int32 payload prefix before the paths themselves.
 					p.PathCount = (int)count;
-					// SkPath format: writeInt(count) again, then paths. Path parsing
-					// isn't done here — skip to next tag or end.
-					return;
+					var pathCountAgain = r.ReadInt32();
+					for (var i = 0; i < pathCountAgain; i++)
+						p.Paths.Add(DecodePath(r));
+					// Paths pad to 4-byte alignment at each writePath boundary,
+					// so no extra realignment needed here.
+					break;
 				case "blob":
 					p.TextBlobCount = (int)count;
-					return;
+					for (var i = 0; i < count; i++)
+						p.TextBlobs.Add(DecodeTextBlob(r));
+					break;
 				case "vert":
 					p.VerticesCount = (int)count;
-					return;
+					return; // vertices unresolvable — stop
 				case "imag":
 					p.ImageCount = (int)count;
-					return;
+					for (var i = 0; i < count; i++)
+						p.Images.Add(DecodeImage(r));
+					break;
 				case "slug":
 					return; // count of slugs; skip
 				default:
 					return; // unknown — stop cleanly
 			}
 		}
+	}
+
+	// ────────────────────────────────────────────────────────────────────────
+	// Path decoder — mirrors SkPath::ReadFromMemory in SkPath_serial.cpp
+	// ────────────────────────────────────────────────────────────────────────
+
+	private static ParsedPath DecodePath(BinaryReader r)
+	{
+		var start = r.BaseStream.Position;
+		var packed = r.ReadUInt32();
+		var version = (int)(packed & 0xFF);
+		if (version != 4 && version != 5)
+			throw new InvalidDataException($"unsupported path version {version} at offset {start}");
+		var fillType = (int)((packed >> 8) & 0x3);
+		var serType = (int)((packed >> 28) & 0xF);
+
+		ParsedPath result;
+		if (serType == 1)
+		{
+			// RRect path: 12 floats (rect + radii) + int32 start, padded to 4.
+			var rrect = new float[12];
+			for (var i = 0; i < 12; i++) rrect[i] = r.ReadSingle();
+			var startIdx = r.ReadInt32();
+			var dir = (int)((packed >> 26) & 0x3);
+			result = new ParsedRRectPath(fillType, dir, rrect, startIdx);
+		}
+		else if (serType == 0)
+		{
+			// General path: pts count + cnx count + vbs count + points + conics + verbs.
+			var pts = r.ReadInt32();
+			var cnx = r.ReadInt32();
+			var vbs = r.ReadInt32();
+			var points = new float[pts * 2];
+			for (var i = 0; i < points.Length; i++) points[i] = r.ReadSingle();
+			var conics = new float[cnx];
+			for (var i = 0; i < cnx; i++) conics[i] = r.ReadSingle();
+			var verbs = r.ReadBytes(vbs);
+			// If we're on the old kJustPublicData_Version (=4), verbs were
+			// stored in reverse. Flip them so downstream emit is uniform.
+			if (version == 4) Array.Reverse(verbs);
+			result = new ParsedGeneralPath(fillType, points, conics, verbs);
+		}
+		else
+		{
+			throw new InvalidDataException($"unknown path serialization type {serType}");
+		}
+		// Align read position to 4 bytes (SkWriter32::padToAlign4)
+		var pad = (int)((4 - (r.BaseStream.Position - start) % 4) % 4);
+		if (pad != 0) r.BaseStream.Position += pad;
+		return result;
+	}
+
+	// ────────────────────────────────────────────────────────────────────────
+	// Image decoder — mirrors SkReadBuffer::readImage in SkReadBuffer.cpp
+	// ────────────────────────────────────────────────────────────────────────
+
+	private static ParsedImage DecodeImage(BinaryReader r)
+	{
+		var flags = r.ReadUInt32();
+		var unpremul = (flags & 0x2) != 0;
+		var hasMipmap = (flags & 0x1) != 0;
+		// hasSubset flag (0x4) isn't written by new .skp files (per skia) but
+		// we still handle the case where it appears.
+		var hasSubset = (flags & 0x4) != 0;
+		var encoded = ReadByteArray(r);
+
+		if (hasSubset)
+		{
+			// 4 int32s: subset rect. Discard.
+			r.BaseStream.Position += 16;
+		}
+
+		if (hasMipmap)
+		{
+			// Discard mip payload.
+			ReadByteArray(r);
+		}
+		return new ParsedImage(encoded, unpremul);
+	}
+
+	// ────────────────────────────────────────────────────────────────────────
+	// Text-blob decoder — mirrors SkTextBlobPriv::MakeFromBuffer.
+	// ────────────────────────────────────────────────────────────────────────
+
+	private static ParsedTextBlob DecodeTextBlob(BinaryReader r)
+	{
+		var bl = r.ReadSingle();
+		var bt = r.ReadSingle();
+		var br = r.ReadSingle();
+		var bb = r.ReadSingle();
+		var runs = new List<ParsedTextRun>();
+		while (true)
+		{
+			var glyphCount = r.ReadInt32();
+			if (glyphCount == 0) break;
+
+			var pe = r.ReadUInt32();
+			var positioning = (int)(pe & 0x3);
+			var extended = (pe & 0x4) != 0;
+			var textSize = extended ? r.ReadInt32() : 0;
+			var offX = r.ReadSingle();
+			var offY = r.ReadSingle();
+			var font = DecodeFont(r);
+
+			var glyphs = new ushort[glyphCount];
+			// glyphs live inside a length-prefixed byte array (glyphCount * 2 bytes)
+			var glyphBytes = ReadByteArray(r);
+			Buffer.BlockCopy(glyphBytes, 0, glyphs, 0, Math.Min(glyphBytes.Length, glyphs.Length * 2));
+
+			var scalarsPerGlyph = positioning switch
+			{
+				0 => 0, // default: just uses offset
+				1 => 1, // horizontal: one X per glyph
+				2 => 2, // full: X+Y per glyph
+				3 => 4, // RSXform: sx, sy, tx, ty per glyph
+				_ => throw new InvalidDataException($"bad positioning {positioning}"),
+			};
+			var positions = new float[glyphCount * scalarsPerGlyph];
+			var posBytes = ReadByteArray(r);
+			if (positions.Length > 0)
+				Buffer.BlockCopy(posBytes, 0, positions, 0, Math.Min(posBytes.Length, positions.Length * 4));
+
+			if (extended)
+			{
+				// Discard cluster+text byte arrays.
+				ReadByteArray(r);
+				ReadByteArray(r);
+			}
+
+			runs.Add(new ParsedTextRun(glyphCount, positioning, offX, offY, font, glyphs, positions));
+		}
+		return new ParsedTextBlob(bl, bt, br, bb, runs);
+	}
+
+	// SkFont serialization — packed header (size + flags + typeface presence),
+	// then optional scalars/typeface index. Mirrors SkFontPriv::Unflatten.
+	private static ParsedFont DecodeFont(BinaryReader r)
+	{
+		var packed = r.ReadUInt32();
+		var sizeIsByte = (packed & 0x80000000) != 0;
+		var hasScaleX = (packed & 0x40000000) != 0;
+		var hasSkewX = (packed & 0x20000000) != 0;
+		var hasTypeface = (packed & 0x10000000) != 0;
+
+		var size = sizeIsByte ? (float)((packed >> 16) & 0xFF) : r.ReadSingle();
+		var scaleX = hasScaleX ? r.ReadSingle() : 1f;
+		var skewX = hasSkewX ? r.ReadSingle() : 0f;
+		int typefaceIndex = 0;
+		if (hasTypeface)
+		{
+			// writeTypeface: 0 = null, >0 = index (1-based), <0 = custom (with data).
+			// For our purposes: capture index; treat custom as "no known typeface".
+			var idx = r.ReadInt32();
+			if (idx > 0) typefaceIndex = idx;
+			else if (idx < 0)
+			{
+				// custom typeface data follows: |idx| bytes, padded to 4.
+				var size2 = -idx;
+				var padded = (size2 + 3) & ~3;
+				r.BaseStream.Position += padded;
+			}
+		}
+		var flags = (byte)((packed >> 4) & 0xFFF);
+		var edging = (byte)((packed >> 2) & 0x3);
+		var hinting = (byte)(packed & 0x3);
+		return new ParsedFont(size, scaleX, skewX, flags, edging, hinting, typefaceIndex);
+	}
+
+	// SkWriteBuffer::writeByteArray = uint32 length + bytes, padded to 4.
+	private static byte[] ReadByteArray(BinaryReader r)
+	{
+		var len = (int)r.ReadUInt32();
+		var data = r.ReadBytes(len);
+		var pad = (4 - (len & 3)) & 3;
+		if (pad != 0) r.BaseStream.Position += pad;
+		return data;
 	}
 
 	private static ParsedPaint ReadPaint(BinaryReader r, List<string> factoryNames)
@@ -414,32 +639,44 @@ public static class SkpDecompiler
 		};
 	}
 
-	// Advance the reader past one SkFontDescriptor-encoded typeface. Format:
-	//   packedUInt styleBits
+	// Decode one SkFontDescriptor-encoded typeface, capturing family name,
+	// weight/width/slant, and the (optional) embedded font-data blob.
+	// Format (from SkFontDescriptor::serialize/Deserialize):
+	//   packedUInt styleBits (weight<<16 | width<<8 | slant)
 	//   loop: packedUInt id → until id == kSentinel(0xFF)
-	//     kFontFamilyName(0x01)/kFullName(0x04)/kPostscriptName(0x06): packedUInt len + `len` bytes
+	//     kFontFamilyName(0x01)/kFullName(0x04)/kPostscriptName(0x06): packedUInt len + `len` bytes (utf8)
 	//     kWeight(0x10)/kWidth(0x11)/kSlant(0x12)/kItalic(0x13): 4-byte scalar
 	//     kSyntheticBold(0xF6)/kSyntheticOblique(0xF7): no data
 	//     kPaletteIndex(0xF8)/kFactoryId(0xFC)/kFontIndex(0xFD): packedUInt
 	//     kPaletteEntryOverrides(0xF9): packedUInt count, then count × (packedUInt idx + uint32 color)
 	//     kFontVariation(0xFA): packedUInt count, then count × (uint32 axis + 4-byte scalar)
 	//   packedUInt fontDataLen + `fontDataLen` bytes (may be 0)
-	private static void SkipTypeface(BinaryReader r)
+	private static ParsedTypeface DecodeTypeface(BinaryReader r)
 	{
-		ReadPackedUInt(r); // styleBits
+		var styleBits = ReadPackedUInt(r);
+		var weight = (int)((styleBits >> 16) & 0xFFFF);
+		var width = (int)((styleBits >> 8) & 0xFF);
+		var slant = (int)(styleBits & 0xFF);
+		string family = "";
 		while (true)
 		{
 			var id = ReadPackedUInt(r);
 			if (id == 0xFF) break; // kSentinel
 			switch (id)
 			{
-				case 0x01: case 0x04: case 0x06: // string fields
+				case 0x01: // kFontFamilyName
 				{
-					var len = ReadPackedUInt(r);
+					var len = (int)ReadPackedUInt(r);
+					family = Encoding.UTF8.GetString(r.ReadBytes(len));
+					break;
+				}
+				case 0x04: case 0x06: // kFullName, kPostscriptName — read + discard
+				{
+					var len = (int)ReadPackedUInt(r);
 					r.BaseStream.Position += len;
 					break;
 				}
-				case 0x10: case 0x11: case 0x12: case 0x13: // scalars
+				case 0x10: case 0x11: case 0x12: case 0x13: // scalar fields
 					r.BaseStream.Position += 4;
 					break;
 				case 0xF6: case 0xF7: // synthetic bold / oblique — no payload
@@ -472,8 +709,10 @@ public static class SkpDecompiler
 			}
 		}
 		var fontDataLen = ReadPackedUInt(r);
+		byte[]? data = null;
 		if (fontDataLen > 0)
-			r.BaseStream.Position += fontDataLen;
+			data = r.ReadBytes((int)fontDataLen);
+		return new ParsedTypeface(family, weight, width, slant, data);
 	}
 
 	private static string ReadBufferString(BinaryReader r)
@@ -510,6 +749,7 @@ public static class SkpDecompiler
 
 		sb.AppendLine("// Auto-generated by SkpDecompiler. Reproduces the drawing captured in an");
 		sb.AppendLine("// .skp file via SKCanvas calls.");
+		sb.AppendLine("using System;");
 		sb.AppendLine("using SkiaSharp;");
 		sb.AppendLine("using SkiaSharp.Tests.Visual;");
 		sb.AppendLine();
@@ -562,12 +802,13 @@ public static class SkpDecompiler
 		sb.AppendLine("\t\treturn paints;");
 		sb.AppendLine("\t}");
 		sb.AppendLine();
-		sb.AppendLine("\t// Path / text-blob / image tables — not decoded. Playback of ops that");
-		sb.AppendLine("\t// reference these will throw at runtime unless populated by hand.");
-		sb.AppendLine("\tprivate static readonly SKPath[] pathTable = new SKPath[0];");
-		sb.AppendLine("\tprivate static readonly SKImage[] imageTable = new SKImage[0];");
-		sb.AppendLine("\tprivate static readonly SKTextBlob[] textBlobTable = new SKTextBlob[0];");
-		sb.AppendLine();
+
+		// Typefaces are shared across the whole picture tree; other resource
+		// tables (paths, images, text blobs) are scoped to each picture.
+		EmitTypefaceTable(sb, p, "\t");
+		EmitPathTable(sb, p, "\t");
+		EmitImageTable(sb, p, "\t");
+		EmitTextBlobTable(sb, p, "\t", className);
 
 		sb.AppendLine("\tpublic void Draw(SKCanvas canvas)");
 		sb.AppendLine("\t{");
@@ -575,7 +816,7 @@ public static class SkpDecompiler
 		sb.AppendLine("\t}");
 		sb.AppendLine();
 
-		EmitSubPictureClasses(sb, p);
+		EmitSubPictureClasses(sb, p, className);
 
 		sb.AppendLine("}");
 		sb.AppendLine();
@@ -589,15 +830,16 @@ public static class SkpDecompiler
 	// Walks the picture tree in pre-order and emits a nested private static
 	// class for every non-top-level ParsedSkp. Each class carries its own
 	// paint/path/image/textBlob tables so DecodeOps' emitted `paintTable[i]`
-	// references resolve to the sub-picture's own indices.
-	private static void EmitSubPictureClasses(StringBuilder sb, ParsedSkp top)
+	// references resolve to the sub-picture's own indices. Typefaces are
+	// shared from the top-level class via `topClassName.typefaceTable`.
+	private static void EmitSubPictureClasses(StringBuilder sb, ParsedSkp top, string topClassName)
 	{
 		var all = new List<ParsedSkp>();
 		FlattenTree(top, all);
 		foreach (var sub in all)
 		{
 			if (sub.GlobalId == 0) continue; // top-level is the enclosing class
-			EmitOneSubPicture(sb, sub);
+			EmitOneSubPicture(sb, sub, topClassName);
 		}
 	}
 
@@ -608,9 +850,9 @@ public static class SkpDecompiler
 			FlattenTree(sub, flat);
 	}
 
-	private static void EmitOneSubPicture(StringBuilder sb, ParsedSkp sub)
+	private static void EmitOneSubPicture(StringBuilder sb, ParsedSkp sub, string topClassName)
 	{
-		sb.AppendLine($"\t// Sub-picture {sub.GlobalId} — cull ({sub.CullLeft}, {sub.CullTop}, {sub.CullRight}, {sub.CullBottom}); {sub.OpData.Length} op bytes; {sub.Paints.Count} paints; {sub.SubPictures.Count} nested sub-pictures.");
+		sb.AppendLine($"\t// Sub-picture {sub.GlobalId} — cull ({sub.CullLeft}, {sub.CullTop}, {sub.CullRight}, {sub.CullBottom}); {sub.OpData.Length} op bytes; {sub.Paints.Count} paints; {sub.Paths.Count} paths; {sub.Images.Count} images; {sub.TextBlobs.Count} textblobs; {sub.SubPictures.Count} nested sub-pictures.");
 		sb.AppendLine($"\tprivate static class SubPic_{sub.GlobalId}");
 		sb.AppendLine("\t{");
 
@@ -634,10 +876,9 @@ public static class SkpDecompiler
 			EmitPaint(sb, i + 1, sub.Paints[i], indent: "\t\t\t");
 		sb.AppendLine("\t\t\treturn paints;");
 		sb.AppendLine("\t\t}");
-		sb.AppendLine("\t\tprivate static readonly SKPath[] pathTable = new SKPath[0];");
-		sb.AppendLine("\t\tprivate static readonly SKImage[] imageTable = new SKImage[0];");
-		sb.AppendLine("\t\tprivate static readonly SKTextBlob[] textBlobTable = new SKTextBlob[0];");
-		sb.AppendLine();
+		EmitPathTable(sb, sub, "\t\t");
+		EmitImageTable(sb, sub, "\t\t");
+		EmitTextBlobTable(sb, sub, "\t\t", topClassName);
 
 		sb.AppendLine("\t\tpublic static void Draw(SKCanvas canvas)");
 		sb.AppendLine("\t\t{");
@@ -653,8 +894,18 @@ public static class SkpDecompiler
 		var all = new List<ParsedSkp>();
 		FlattenTree(top, all);
 		sb.AppendLine($"// tree: {all.Count} picture(s) total; {all.Count(x => x.Unparseable)} unparseable");
+		if (top.Typefaces.Count > 0)
+		{
+			var totalFontData = top.Typefaces.Sum(t => t.FontData?.Length ?? 0);
+			sb.AppendLine($"// typefaces: {top.Typefaces.Count} at top level; total embedded data {totalFontData:N0} bytes");
+			for (var i = 0; i < top.Typefaces.Count; i++)
+			{
+				var t = top.Typefaces[i];
+				sb.AppendLine($"//   [{i + 1}] '{t.FamilyName}' w={t.Weight} width={t.Width} slant={t.SlantEnum} data={(t.FontData?.Length ?? 0):N0} bytes");
+			}
+		}
 		foreach (var p in all)
-			sb.AppendLine($"//   SubPic_{p.GlobalId}: {p.OpData.Length} op bytes, {p.SubPictures.Count} child(ren){(p.Unparseable ? $" [UNPARSEABLE: {p.BailReason}]" : "")}");
+			sb.AppendLine($"//   SubPic_{p.GlobalId}: {p.OpData.Length} op bytes, {p.Paths.Count} paths, {p.Images.Count} images, {p.TextBlobs.Count} textblobs, {p.SubPictures.Count} child(ren){(p.Unparseable ? $" [UNPARSEABLE: {p.BailReason}]" : "")}");
 	}
 
 	// Splits a raw op stream into four segments so each partition can be
@@ -790,6 +1041,7 @@ public static class SkpDecompiler
 		sb.AppendLine("// Auto-generated by SkpDecompiler --partition. Reproduces the drawing");
 		sb.AppendLine("// captured in an .skp file, split into N methods that can be recorded");
 		sb.AppendLine("// in parallel on separate Graphite Recorders.");
+		sb.AppendLine("using System;");
 		sb.AppendLine("using SkiaSharp;");
 		sb.AppendLine("using SkiaSharp.Benchmarks.Rendering;");
 		sb.AppendLine("using SkiaSharp.Tests.Visual;");
@@ -840,10 +1092,11 @@ public static class SkpDecompiler
 		sb.AppendLine("\t\treturn paints;");
 		sb.AppendLine("\t}");
 		sb.AppendLine();
-		sb.AppendLine("\tprivate static readonly SKPath[] pathTable = new SKPath[0];");
-		sb.AppendLine("\tprivate static readonly SKImage[] imageTable = new SKImage[0];");
-		sb.AppendLine("\tprivate static readonly SKTextBlob[] textBlobTable = new SKTextBlob[0];");
-		sb.AppendLine();
+
+		EmitTypefaceTable(sb, p, "\t");
+		EmitPathTable(sb, p, "\t");
+		EmitImageTable(sb, p, "\t");
+		EmitTextBlobTable(sb, p, "\t", className);
 
 		// Sequential Draw drives all partitions in order (identical to
 		// running each DrawPartition_i on the same canvas). This is what
@@ -914,7 +1167,7 @@ public static class SkpDecompiler
 			sb.AppendLine();
 		}
 
-		EmitSubPictureClasses(sb, p);
+		EmitSubPictureClasses(sb, p, className);
 
 		sb.AppendLine("}");
 		sb.AppendLine();
@@ -949,6 +1202,253 @@ public static class SkpDecompiler
 					sb.AppendLine($"{indent}// paints[{idx}].{eff}");
 		}
 	}
+
+	// ────────────────────────────────────────────────────────────────────────
+	// Table emitters — typefaces, paths, images, text blobs
+	//
+	// Called with `indent` = whitespace before class-level members. Top-level
+	// class uses "\t"; nested SubPic_N classes use "\t\t".
+	// ────────────────────────────────────────────────────────────────────────
+
+	// Typefaces live at the top level only. When the .skp embeds font data
+	// (Skia's default kDoIncludeData mode), we honour that data by base64-ing
+	// it into the emitted source and running it through SKTypeface.FromData
+	// at scene-construction time. If no data was present, we fall back to
+	// SKFontManager family-name matching. Enum values on the wire:
+	// SkFontStyle::Slant → 0=Upright, 1=Italic, 2=Oblique.
+	private static void EmitTypefaceTable(StringBuilder sb, ParsedSkp top, string indent)
+	{
+		var body = indent + "\t";
+		sb.AppendLine($"{indent}// Typefaces referenced by every text blob in the tree. Rebuilt from the");
+		sb.AppendLine($"{indent}// embedded font data so glyph IDs used by the text blobs resolve to the");
+		sb.AppendLine($"{indent}// exact fonts the .skp was captured against, not host-system substitutes.");
+
+		// _fontData_N fields MUST be declared before typefaceTable so that
+		// static-field init order runs them first — BuildTypefaces reads
+		// them, and C# initializes static fields in source order.
+		for (var i = 0; i < top.Typefaces.Count; i++)
+		{
+			var t = top.Typefaces[i];
+			if (t.FontData is not { } data || data.Length == 0)
+				continue;
+			sb.AppendLine($"{indent}// {data.Length:N0} bytes of embedded font data for typeface {i + 1} ('{Escape(t.FamilyName)}').");
+			sb.AppendLine($"{indent}private static readonly string _fontData_{i + 1} =");
+			EmitBase64Chunks(sb, indent + "\t\t", data);
+			sb.AppendLine($"{indent}\t\t;");
+		}
+
+		sb.AppendLine($"{indent}private static readonly SKTypeface[] typefaceTable = BuildTypefaces();");
+		sb.AppendLine($"{indent}private static SKTypeface[] BuildTypefaces()");
+		sb.AppendLine($"{indent}{{");
+		sb.AppendLine($"{body}var tf = new SKTypeface[{top.Typefaces.Count + 1}];");
+		sb.AppendLine($"{body}tf[0] = SKTypeface.Default; // index-0 slot; SkFont typeface index is 1-based");
+		for (var i = 0; i < top.Typefaces.Count; i++)
+		{
+			var t = top.Typefaces[i];
+			var slant = t.SlantEnum switch { 1 => "Italic", 2 => "Oblique", _ => "Upright" };
+			var family = Escape(t.FamilyName);
+			if (t.FontData is { } fd && fd.Length > 0)
+			{
+				sb.AppendLine($"{body}tf[{i + 1}] = SKTypeface.FromData(SKData.CreateCopy(Convert.FromBase64String(_fontData_{i + 1})))");
+				sb.AppendLine($"{body}\t?? SKTypeface.FromFamilyName(\"{family}\", {t.Weight}, {t.Width}, SKFontStyleSlant.{slant});");
+			}
+			else
+			{
+				sb.AppendLine($"{body}tf[{i + 1}] = SKTypeface.FromFamilyName(\"{family}\", {t.Weight}, {t.Width}, SKFontStyleSlant.{slant});");
+			}
+		}
+		sb.AppendLine($"{body}return tf;");
+		sb.AppendLine($"{indent}}}");
+		sb.AppendLine();
+	}
+
+	// Chunk base64 so the compiler doesn't have to swallow a multi-megabyte
+	// literal in one gulp — each line is a ~120-char string joined by `+`.
+	private static void EmitBase64Chunks(StringBuilder sb, string indent, byte[] data)
+	{
+		const int chunkCharCount = 120;
+		var b64 = Convert.ToBase64String(data);
+		var first = true;
+		for (var i = 0; i < b64.Length; i += chunkCharCount)
+		{
+			var slice = b64.Substring(i, Math.Min(chunkCharCount, b64.Length - i));
+			sb.Append(indent);
+			sb.Append(first ? "  " : "+ ");
+			sb.Append('"');
+			sb.Append(slice);
+			sb.Append('"');
+			sb.AppendLine();
+			first = false;
+		}
+	}
+
+	// pathTable[0] = null so 1-based indices from DRAW_PATH resolve directly.
+	private static void EmitPathTable(StringBuilder sb, ParsedSkp p, string indent)
+	{
+		var body = indent + "\t";
+		sb.AppendLine($"{indent}private static readonly SKPath[] pathTable = BuildPaths();");
+		sb.AppendLine($"{indent}private static SKPath[] BuildPaths()");
+		sb.AppendLine($"{indent}{{");
+		sb.AppendLine($"{body}var paths = new SKPath[{p.Paths.Count + 1}];");
+		sb.AppendLine($"{body}paths[0] = new SKPath();");
+		for (var i = 0; i < p.Paths.Count; i++)
+			EmitOnePath(sb, i + 1, p.Paths[i], body);
+		sb.AppendLine($"{body}return paths;");
+		sb.AppendLine($"{indent}}}");
+		sb.AppendLine();
+	}
+
+	private static void EmitOnePath(StringBuilder sb, int idx, ParsedPath path, string indent)
+	{
+		var fill = ((SKPathFillType)path.FillType).ToString();
+		sb.AppendLine($"{indent}{{");
+		sb.AppendLine($"{indent}\tvar p = new SKPath {{ FillType = SKPathFillType.{fill} }};");
+		if (path is ParsedRRectPath rr)
+		{
+			// Wire layout: floats 0-3 = rect (l,t,r,b), 4-11 = four (x,y) radii for corners UL,UR,LR,LL.
+			var f = rr.Rrect12;
+			sb.AppendLine($"{indent}\tvar rrect = new SKRoundRect();");
+			sb.AppendLine($"{indent}\trrect.SetRectRadii(new SKRect({F(f[0])}, {F(f[1])}, {F(f[2])}, {F(f[3])}), new[] {{");
+			sb.AppendLine($"{indent}\t\tnew SKPoint({F(f[4])}, {F(f[5])}),  // UL");
+			sb.AppendLine($"{indent}\t\tnew SKPoint({F(f[6])}, {F(f[7])}),  // UR");
+			sb.AppendLine($"{indent}\t\tnew SKPoint({F(f[8])}, {F(f[9])}),  // LR");
+			sb.AppendLine($"{indent}\t\tnew SKPoint({F(f[10])}, {F(f[11])}) // LL");
+			sb.AppendLine($"{indent}\t}});");
+			sb.AppendLine($"{indent}\tp.AddRoundRect(rrect, SKPathDirection.{((SKPathDirection)rr.Direction)});");
+		}
+		else if (path is ParsedGeneralPath gp)
+		{
+			// Walk verbs, consuming from points and conics streams.
+			int pi = 0, ci = 0;
+			foreach (var v in gp.Verbs)
+			{
+				switch (v)
+				{
+					case 0: // Move
+						sb.AppendLine($"{indent}\tp.MoveTo({F(gp.Points[pi * 2])}, {F(gp.Points[pi * 2 + 1])});");
+						pi += 1; break;
+					case 1: // Line
+						sb.AppendLine($"{indent}\tp.LineTo({F(gp.Points[pi * 2])}, {F(gp.Points[pi * 2 + 1])});");
+						pi += 1; break;
+					case 2: // Quad
+						sb.AppendLine($"{indent}\tp.QuadTo({F(gp.Points[pi * 2])}, {F(gp.Points[pi * 2 + 1])}, {F(gp.Points[pi * 2 + 2])}, {F(gp.Points[pi * 2 + 3])});");
+						pi += 2; break;
+					case 3: // Conic
+						sb.AppendLine($"{indent}\tp.ConicTo({F(gp.Points[pi * 2])}, {F(gp.Points[pi * 2 + 1])}, {F(gp.Points[pi * 2 + 2])}, {F(gp.Points[pi * 2 + 3])}, {F(gp.Conics[ci])});");
+						pi += 2; ci += 1; break;
+					case 4: // Cubic
+						sb.AppendLine($"{indent}\tp.CubicTo({F(gp.Points[pi * 2])}, {F(gp.Points[pi * 2 + 1])}, {F(gp.Points[pi * 2 + 2])}, {F(gp.Points[pi * 2 + 3])}, {F(gp.Points[pi * 2 + 4])}, {F(gp.Points[pi * 2 + 5])});");
+						pi += 3; break;
+					case 5: // Close
+						sb.AppendLine($"{indent}\tp.Close();");
+						break;
+					default:
+						sb.AppendLine($"{indent}\t// unknown verb {v}");
+						break;
+				}
+			}
+		}
+		sb.AppendLine($"{indent}\tpaths[{idx}] = p;");
+		sb.AppendLine($"{indent}}}");
+	}
+
+	// imageTable[0] = null placeholder; encoded PNG/JPEG bytes emitted as
+	// Base64 constants and decoded via SKImage.FromEncodedData at first use.
+	private static void EmitImageTable(StringBuilder sb, ParsedSkp p, string indent)
+	{
+		var body = indent + "\t";
+		sb.AppendLine($"{indent}private static readonly SKImage[] imageTable = BuildImages();");
+		sb.AppendLine($"{indent}private static SKImage[] BuildImages()");
+		sb.AppendLine($"{indent}{{");
+		sb.AppendLine($"{body}var imgs = new SKImage[{p.Images.Count + 1}];");
+		sb.AppendLine($"{body}imgs[0] = null!;");
+		for (var i = 0; i < p.Images.Count; i++)
+		{
+			var img = p.Images[i];
+			var b64 = Convert.ToBase64String(img.EncodedData);
+			sb.AppendLine($"{body}imgs[{i + 1}] = SKImage.FromEncodedData(Convert.FromBase64String(\"{b64}\"));");
+		}
+		sb.AppendLine($"{body}return imgs;");
+		sb.AppendLine($"{indent}}}");
+		sb.AppendLine();
+	}
+
+	// textBlobTable[0] = null placeholder; each blob rebuilt via
+	// SKTextBlobBuilder + one AddRun call per run. Typeface index resolves
+	// against the top-level scene's typefaceTable via qualified name.
+	private static void EmitTextBlobTable(StringBuilder sb, ParsedSkp p, string indent, string topClassName)
+	{
+		var body = indent + "\t";
+		sb.AppendLine($"{indent}private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();");
+		sb.AppendLine($"{indent}private static SKTextBlob[] BuildTextBlobs()");
+		sb.AppendLine($"{indent}{{");
+		sb.AppendLine($"{body}var tfs = {topClassName}.typefaceTable;");
+		sb.AppendLine($"{body}var blobs = new SKTextBlob[{p.TextBlobs.Count + 1}];");
+		sb.AppendLine($"{body}blobs[0] = null!;");
+		for (var i = 0; i < p.TextBlobs.Count; i++)
+			EmitOneTextBlob(sb, i + 1, p.TextBlobs[i], body);
+		sb.AppendLine($"{body}return blobs;");
+		sb.AppendLine($"{indent}}}");
+		sb.AppendLine();
+	}
+
+	private static void EmitOneTextBlob(StringBuilder sb, int idx, ParsedTextBlob blob, string indent)
+	{
+		sb.AppendLine($"{indent}{{");
+		sb.AppendLine($"{indent}\tvar b = new SKTextBlobBuilder();");
+		foreach (var run in blob.Runs)
+		{
+			sb.AppendLine($"{indent}\t{{");
+			// Font — SkiaSharp ctor: SKFont(typeface, size, scaleX, skewX).
+			sb.AppendLine($"{indent}\t\tvar font = new SKFont(tfs[{run.Font.TypefaceIndex}], {F(run.Font.Size)}, {F(run.Font.ScaleX)}, {F(run.Font.SkewX)});");
+			sb.AppendLine($"{indent}\t\tfont.Edging = (SKFontEdging){run.Font.Edging};");
+			sb.AppendLine($"{indent}\t\tfont.Hinting = (SKFontHinting){run.Font.Hinting};");
+			var glyphs = string.Join(",", run.Glyphs.Select(g => g.ToString()));
+			sb.AppendLine($"{indent}\t\tvar glyphs = new ushort[] {{ {glyphs} }};");
+			switch (run.Positioning)
+			{
+				case 0: // default: single origin
+					sb.AppendLine($"{indent}\t\tb.AddRun(glyphs, font, new SKPoint({F(run.OffsetX)}, {F(run.OffsetY)}));");
+					break;
+				case 1: // horizontal: one X per glyph, shared Y = offY
+				{
+					var xs = string.Join(",", run.Positions.Select(F));
+					sb.AppendLine($"{indent}\t\tvar xs = new float[] {{ {xs} }};");
+					sb.AppendLine($"{indent}\t\tb.AddHorizontalRun(glyphs, font, xs, {F(run.OffsetY)});");
+					break;
+				}
+				case 2: // full: SKPoint per glyph
+				{
+					var pts = new StringBuilder();
+					for (var g = 0; g < run.GlyphCount; g++)
+					{
+						if (g > 0) pts.Append(',');
+						pts.Append($"new SKPoint({F(run.Positions[g * 2])},{F(run.Positions[g * 2 + 1])})");
+					}
+					sb.AppendLine($"{indent}\t\tvar pts = new SKPoint[] {{ {pts} }};");
+					sb.AppendLine($"{indent}\t\tb.AddPositionedRun(glyphs, font, pts);");
+					break;
+				}
+				case 3: // RSXform: 4 floats per glyph → SKRotationScaleMatrix (ScaleX, Skew, TranslateX, TranslateY).
+				{
+					var xforms = new StringBuilder();
+					for (var g = 0; g < run.GlyphCount; g++)
+					{
+						if (g > 0) xforms.Append(',');
+						xforms.Append($"new SKRotationScaleMatrix({F(run.Positions[g * 4])},{F(run.Positions[g * 4 + 1])},{F(run.Positions[g * 4 + 2])},{F(run.Positions[g * 4 + 3])})");
+					}
+					sb.AppendLine($"{indent}\t\tvar xforms = new SKRotationScaleMatrix[] {{ {xforms} }};");
+					sb.AppendLine($"{indent}\t\tb.AddRotationScaleRun(glyphs, font, xforms);");
+					break;
+				}
+			}
+			sb.AppendLine($"{indent}\t}}");
+		}
+		sb.AppendLine($"{indent}\tblobs[{idx}] = b.Build()!;");
+		sb.AppendLine($"{indent}}}");
+	}
+
+	private static string Escape(string s) => s.Replace("\\", "\\\\").Replace("\"", "\\\"");
 
 	private static byte B255(float f)
 	{
@@ -1059,7 +1559,7 @@ public static class SkpDecompiler
 					var rect = ReadRect(r);
 					var packed = r.ReadUInt32();
 					_ = r.ReadUInt32(); // offsetToRestore
-					sb.AppendLine($"{indent}canvas.ClipRect({rect}, {ClipOpFrom(packed)}, antialias: {(((packed & 0x8000_0000) != 0) ? "true" : "false")});");
+					sb.AppendLine($"{indent}canvas.ClipRect({rect}, {ClipOpFrom(packed)}, antialias: {ClipAaFrom(packed)});");
 					break;
 				}
 				case "CLIP_RRECT":
@@ -1069,7 +1569,26 @@ public static class SkpDecompiler
 					for (var i = 0; i < 8; i++) radii[i] = r.ReadSingle();
 					var packed = r.ReadUInt32();
 					_ = r.ReadUInt32();
-					sb.AppendLine($"{indent}using (var rrect = new SKRoundRect()) {{ rrect.SetRectRadii({rect}, new[] {{ new SKPoint({F(radii[0])}, {F(radii[1])}), new SKPoint({F(radii[2])}, {F(radii[3])}), new SKPoint({F(radii[4])}, {F(radii[5])}), new SKPoint({F(radii[6])}, {F(radii[7])}) }}); canvas.ClipRoundRect(rrect, {ClipOpFrom(packed)}); }}");
+					sb.AppendLine($"{indent}using (var rrect = new SKRoundRect()) {{ rrect.SetRectRadii({rect}, new[] {{ new SKPoint({F(radii[0])}, {F(radii[1])}), new SKPoint({F(radii[2])}, {F(radii[3])}), new SKPoint({F(radii[4])}, {F(radii[5])}), new SKPoint({F(radii[6])}, {F(radii[7])}) }}); canvas.ClipRoundRect(rrect, {ClipOpFrom(packed)}, antialias: {ClipAaFrom(packed)}); }}");
+					break;
+				}
+				case "CLIP_PATH":
+				{
+					var pathI = r.ReadInt32();
+					var packed = r.ReadUInt32();
+					_ = r.ReadUInt32(); // offsetToRestore
+					// Skia's playback of CLIP_PATH short-circuits the rest of a
+					// save-block when the resulting clip is empty (see
+					// SkPicturePlayback CLIP_PATH: `if (canvas->isClipEmpty()...) skip`).
+					// We don't emulate that skip-forward here, so applying the
+					// clip literally leaves subsequent draws in the same
+					// save-block invisible. Emit as a comment: rendering is
+					// slightly leaky (draws that were only visible through the
+					// clip appear unclipped) but the picture stays visible.
+					if (pathI == 0)
+						sb.AppendLine($"{indent}// CLIP_PATH idx=0 skipped");
+					else
+						sb.AppendLine($"{indent}// canvas.ClipPath(pathTable[{pathI}], {ClipOpFrom(packed)}, antialias: {ClipAaFrom(packed)}); // suppressed (see decoder note)");
 					break;
 				}
 				case "DRAW_PAINT":
@@ -1110,9 +1629,10 @@ public static class SkpDecompiler
 				{
 					var pi = r.ReadInt32();
 					var pathI = r.ReadInt32();
-					// pathTable is a placeholder (SkPath binary format not decoded);
-					// emit the call as a comment so the scene still renders.
-					sb.AppendLine($"{indent}// canvas.DrawPath(pathTable[{pathI}], paintTable[{pi}]);  // path {pathI} unresolved");
+					if (pathI == 0)
+						sb.AppendLine($"{indent}// DRAW_PATH idx=0 (null path) skipped");
+					else
+						sb.AppendLine($"{indent}canvas.DrawPath(pathTable[{pathI}], paintTable[{pi}]);");
 					break;
 				}
 				case "DRAW_POINTS":
@@ -1160,8 +1680,10 @@ public static class SkpDecompiler
 					var bi = r.ReadInt32();
 					var x = r.ReadSingle();
 					var y = r.ReadSingle();
-					// textBlobTable is a placeholder — text blob binary format not decoded.
-					sb.AppendLine($"{indent}// canvas.DrawText(textBlobTable[{bi}], {F(x)}, {F(y)}, paintTable[{pi}]);  // blob {bi} unresolved");
+					if (bi == 0)
+						sb.AppendLine($"{indent}// DRAW_TEXT_BLOB idx=0 (null blob) skipped");
+					else
+						sb.AppendLine($"{indent}if (textBlobTable[{bi}] is {{ }} b{opStart}) canvas.DrawText(b{opStart}, {F(x)}, {F(y)}, paintTable[{pi}]);");
 					break;
 				}
 				case "DRAW_IMAGE2":
@@ -1171,7 +1693,13 @@ public static class SkpDecompiler
 					var x = r.ReadSingle();
 					var y = r.ReadSingle();
 					r.ReadBytes(Math.Min(12, (int)(endPos - s.Position)));
-					sb.AppendLine($"{indent}// canvas.DrawImage(imageTable[{ii}], {F(x)}, {F(y)}, paintTable[{pi}]);  // image {ii} unresolved");
+					// idx 0 = null-sentinel in Skia's 1-based indexing; Skia's own
+					// playback treats DrawImage(null) as a no-op but SkiaSharp
+					// throws ArgumentNullException, so skip at emit.
+					if (ii == 0)
+						sb.AppendLine($"{indent}// DRAW_IMAGE2 idx=0 (null image) skipped");
+					else
+						sb.AppendLine($"{indent}if (imageTable[{ii}] is {{ }} img{opStart}) canvas.DrawImage(img{opStart}, {F(x)}, {F(y)}, paintTable[{pi}]);");
 					break;
 				}
 				case "DRAW_IMAGE_RECT2":
@@ -1181,7 +1709,10 @@ public static class SkpDecompiler
 					var src = ReadRect(r);
 					var dst = ReadRect(r);
 					r.ReadBytes(Math.Min(16, (int)(endPos - s.Position)));
-					sb.AppendLine($"{indent}// canvas.DrawImage(imageTable[{ii}], {src}, {dst}, paintTable[{pi}]);  // image {ii} unresolved");
+					if (ii == 0)
+						sb.AppendLine($"{indent}// DRAW_IMAGE_RECT2 idx=0 (null image) skipped");
+					else
+						sb.AppendLine($"{indent}if (imageTable[{ii}] is {{ }} img{opStart}) canvas.DrawImage(img{opStart}, {src}, {dst}, paintTable[{pi}]);");
 					break;
 				}
 				case "SAVE_LAYER_SAVELAYERREC":
@@ -1299,6 +1830,9 @@ public static class SkpDecompiler
 		return $"new SKColor(0x{rc:X2}, 0x{g:X2}, 0x{b:X2}, 0x{a:X2})";
 	}
 
+	// Skia ClipParams_pack packs the clip op in the low 4 bits and the
+	// antialias flag in bit 4 (NOT bit 31). Kept together here so the two
+	// helpers can never drift out of sync.
 	private static string ClipOpFrom(uint packed)
 	{
 		var opBits = (int)(packed & 0x0F);
@@ -1309,6 +1843,8 @@ public static class SkpDecompiler
 			_ => $"/* raw region-op {opBits} — approximated */ SKClipOperation.Intersect",
 		};
 	}
+
+	private static string ClipAaFrom(uint packed) => ((packed >> 4) & 1) != 0 ? "true" : "false";
 
 	private static string Hex(byte[] b)
 	{

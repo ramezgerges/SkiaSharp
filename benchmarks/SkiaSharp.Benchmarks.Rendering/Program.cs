@@ -36,12 +36,61 @@ internal static class Program
 		if (Array.IndexOf(args, "--record-scene") >= 0)
 			return RecordScene(args);
 
-		// `--decompile <input.skp> [--output <path.cs>] [--class-name <name>]`
+		// `--decompile <input.skp> [--output <path.cs>] [--class-name <name>] [--partition N]`
 		// — reverse an .skp back into a readable C# ISkiaScene stub. Handles
 		// the op stream directly; resource tables (paints, paths, images,
 		// text blobs) are emitted as indexed placeholders.
 		if (Array.IndexOf(args, "--decompile") >= 0)
 			return Decompile(args);
+
+		// `--render-skp <input.skp> --output <path.png> [--size WxH]` —
+		// deserialize a captured .skp and rasterise it to PNG. Baseline
+		// reference for eyeballing whether our decompiled C# reproduces
+		// the original picture.
+		if (Array.IndexOf(args, "--render-skp") >= 0)
+			return RenderSkp(args);
+
+		// `--render-scene <name> --output <path.png> [--size WxH]` — draw a
+		// discovered ISkiaScene onto a raster surface and save as PNG.
+		// Same signature/output-format as `--render-skp`; use both to
+		// compare decompiler output against its source .skp side by side.
+		if (Array.IndexOf(args, "--render-scene") >= 0)
+			return RenderScene(args);
+
+		if (Array.IndexOf(args, "--dump-typefaces") >= 0)
+		{
+			var sceneName = args[Array.IndexOf(args, "--dump-typefaces") + 1];
+			var scene = SceneCatalog.Get(sceneName);
+			var t = scene.GetType();
+			var field = t.GetField("typefaceTable", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
+			var tfs = (SKTypeface[])field!.GetValue(null)!;
+			for (int i = 0; i < tfs.Length; i++)
+			{
+				var tf = tfs[i];
+				Console.WriteLine($"[{i}] family={tf?.FamilyName ?? "(null)"} weight={tf?.FontWeight} isDefault={tf == SKTypeface.Default}");
+			}
+			return 0;
+		}
+		if (Array.IndexOf(args, "--sample-pixels") >= 0)
+		{
+			var path = args[Array.IndexOf(args, "--sample-pixels") + 1];
+			using var img = SKImage.FromEncodedData(path);
+			using var bmp = SKBitmap.FromImage(img);
+			Console.WriteLine($"colorType={bmp.Info.ColorType} alphaType={bmp.Info.AlphaType} size={bmp.Info.Width}x{bmp.Info.Height}");
+			// Grid-sample a 4x8 grid so we can eyeball what's actually rendered.
+			int cw = bmp.Info.Width, ch = bmp.Info.Height;
+			for (var y = 40; y < ch; y += ch / 6)
+			{
+				var line = new System.Text.StringBuilder($"y={y,3}: ");
+				for (var x = 40; x < cw; x += cw / 6)
+				{
+					var c = bmp.GetPixel(x, y);
+					line.Append($"({x,4},{y,3})=({c.Red,3},{c.Green,3},{c.Blue,3},{c.Alpha,3}) ");
+				}
+				Console.WriteLine(line);
+			}
+			return 0;
+		}
 
 		var summaries = BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
 		foreach (var s in summaries)
@@ -121,5 +170,91 @@ internal static class Program
 			Console.Out.WriteLine($"Decompiled '{input}' → {output} ({source.Length:N0} chars)");
 		}
 		return 0;
+	}
+
+	private static int RenderSkp(string[] args)
+	{
+		string? input = null;
+		string? output = null;
+		var size = (Width: 1024, Height: 640);
+		for (var i = 0; i < args.Length - 1; i++)
+		{
+			if (args[i] == "--render-skp") input = args[i + 1];
+			else if (args[i] == "--output") output = args[i + 1];
+			else if (args[i] == "--size" && TryParseSize(args[i + 1], out var s)) size = s;
+		}
+		if (input is null || output is null)
+		{
+			Console.Error.WriteLine("Usage: --render-skp <input.skp> --output <path.png> [--size WxH]");
+			return 2;
+		}
+
+		var bytes = File.ReadAllBytes(input);
+		using var data = SKData.CreateCopy(bytes);
+		using var picture = SKPicture.Deserialize(data);
+		if (picture is null)
+		{
+			Console.Error.WriteLine($"SKPicture.Deserialize returned null for '{input}'");
+			return 3;
+		}
+
+		using var surface = SKSurface.Create(new SKImageInfo(size.Width, size.Height, SKColorType.Rgba8888, SKAlphaType.Premul))
+			?? throw new InvalidOperationException("SKSurface.Create returned null");
+		surface.Canvas.Clear(SKColors.White);
+		surface.Canvas.DrawPicture(picture);
+		SaveSurfaceToPng(surface, output);
+		Console.Out.WriteLine($"Rendered '{input}' → {output} ({size.Width}x{size.Height})");
+		return 0;
+	}
+
+	private static int RenderScene(string[] args)
+	{
+		string? sceneName = null;
+		string? output = null;
+		(int, int)? sizeOverride = null;
+		for (var i = 0; i < args.Length - 1; i++)
+		{
+			if (args[i] == "--render-scene") sceneName = args[i + 1];
+			else if (args[i] == "--output") output = args[i + 1];
+			else if (args[i] == "--size" && TryParseSize(args[i + 1], out var s)) sizeOverride = s;
+		}
+		if (sceneName is null || output is null)
+		{
+			Console.Error.WriteLine("Usage: --render-scene <scene-name> --output <path.png> [--size WxH]");
+			return 2;
+		}
+
+		var scene = SceneCatalog.Get(sceneName);
+		var info = sizeOverride is { } so
+			? new SKImageInfo(so.Item1, so.Item2, SKColorType.Rgba8888, SKAlphaType.Premul)
+			: scene.Info;
+
+		using var surface = SKSurface.Create(info)
+			?? throw new InvalidOperationException("SKSurface.Create returned null");
+		surface.Canvas.Clear(SKColors.White);
+		scene.Draw(surface.Canvas);
+		SaveSurfaceToPng(surface, output);
+		Console.Out.WriteLine($"Rendered scene '{sceneName}' → {output} ({info.Width}x{info.Height})");
+		return 0;
+	}
+
+	private static void SaveSurfaceToPng(SKSurface surface, string output)
+	{
+		using var img = surface.Snapshot();
+		using var pngData = img.Encode(SKEncodedImageFormat.Png, 100)
+			?? throw new InvalidOperationException("Snapshot.Encode(PNG) returned null");
+		Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(output))!);
+		using var f = File.Create(output);
+		pngData.SaveTo(f);
+	}
+
+	private static bool TryParseSize(string s, out (int Width, int Height) size)
+	{
+		size = default;
+		var parts = s.Split(new[] { 'x', 'X' }, 2);
+		if (parts.Length != 2) return false;
+		if (!int.TryParse(parts[0], out var w) || !int.TryParse(parts[1], out var h)) return false;
+		size = (w, h);
+		return true;
 	}
 }
