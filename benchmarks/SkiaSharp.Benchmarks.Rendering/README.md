@@ -90,6 +90,13 @@ dotnet run … -- --artifacts BENCH_RESULTS/2026-07-25
 For a fresh backend, the fastest way is to copy `GraphiteVulkanBackend`
 and change the SKGraphite* / GR* calls to whatever the target GPU api needs.
 
+## Real-hardware numbers
+
+Machine-run BenchmarkDotNet artifacts + a curated summary of what they
+show live in [`Results/`](Results/README.md). Add new runs alongside
+existing ones (name by `YYYY-MM-DD-<cpu>`) instead of overwriting —
+version history is where trend-tracking will land eventually.
+
 ## Interpreting results
 
 BenchmarkDotNet reports `Mean`, `Error`, `StdDev`, and (with `[MemoryDiagnoser]`)
