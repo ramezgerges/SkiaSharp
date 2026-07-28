@@ -197,10 +197,10 @@ public static class SkpDecompiler
 	// into ParsedSkp.TopLevel.Typefaces; 0 means null typeface → system default).
 	private sealed record ParsedFont(float Size, float ScaleX, float SkewX, byte Flags, byte Edging, byte Hinting, int TypefaceIndex);
 
-	public static string Decompile(byte[] skpBytes, string className = "DecompiledScene")
+	public static string Decompile(byte[] skpBytes, string className = "DecompiledScene", bool embedFontData = true)
 	{
 		var parsed = Parse(skpBytes);
-		return Emit(parsed, className);
+		return Emit(parsed, className, embedFontData);
 	}
 
 	/// <summary>
@@ -211,12 +211,12 @@ public static class SkpDecompiler
 	/// stream has fewer natural balanced points than requested, fewer
 	/// partitions are produced (never more than the stream allows).
 	/// </summary>
-	public static string DecompilePartitioned(byte[] skpBytes, string className, int partitionCount)
+	public static string DecompilePartitioned(byte[] skpBytes, string className, int partitionCount, bool embedFontData = true)
 	{
 		if (partitionCount < 1) throw new ArgumentOutOfRangeException(nameof(partitionCount));
 		var parsed = Parse(skpBytes);
-		if (partitionCount == 1) return Emit(parsed, className);
-		return EmitPartitioned(parsed, className, partitionCount);
+		if (partitionCount == 1) return Emit(parsed, className, embedFontData);
+		return EmitPartitioned(parsed, className, partitionCount, embedFontData);
 	}
 
 	// ────────────────────────────────────────────────────────────────────────
@@ -855,7 +855,7 @@ public static class SkpDecompiler
 	// Emitting
 	// ────────────────────────────────────────────────────────────────────────
 
-	private static string Emit(ParsedSkp p, string className)
+	private static string Emit(ParsedSkp p, string className, bool embedFontData = true)
 	{
 		var sb = new StringBuilder();
 
@@ -917,7 +917,7 @@ public static class SkpDecompiler
 
 		// Typefaces are shared across the whole picture tree; other resource
 		// tables (paths, images, text blobs) are scoped to each picture.
-		EmitTypefaceTable(sb, p, "\t");
+		EmitTypefaceTable(sb, p, "\t", embedFontData);
 		EmitPathTable(sb, p, "\t");
 		EmitImageTable(sb, p, "\t");
 		EmitTextBlobTable(sb, p, "\t", className);
@@ -1141,7 +1141,7 @@ public static class SkpDecompiler
 		return buckets;
 	}
 
-	private static string EmitPartitioned(ParsedSkp p, string className, int partitionCount)
+	private static string EmitPartitioned(ParsedSkp p, string className, int partitionCount, bool embedFontData = true)
 	{
 		var ops = DecodeOps(p);
 		var (contentPrologue, statePrologue, body, stateEpilogue, baselineDepth) = SegmentOps(ops);
@@ -1205,7 +1205,7 @@ public static class SkpDecompiler
 		sb.AppendLine("\t}");
 		sb.AppendLine();
 
-		EmitTypefaceTable(sb, p, "\t");
+		EmitTypefaceTable(sb, p, "\t", embedFontData);
 		EmitPathTable(sb, p, "\t");
 		EmitImageTable(sb, p, "\t");
 		EmitTextBlobTable(sb, p, "\t", className);
@@ -1415,25 +1415,33 @@ public static class SkpDecompiler
 	// at scene-construction time. If no data was present, we fall back to
 	// SKFontManager family-name matching. Enum values on the wire:
 	// SkFontStyle::Slant → 0=Upright, 1=Italic, 2=Oblique.
-	private static void EmitTypefaceTable(StringBuilder sb, ParsedSkp top, string indent)
+	private static void EmitTypefaceTable(StringBuilder sb, ParsedSkp top, string indent, bool embedFontData = true)
 	{
 		var body = indent + "\t";
-		sb.AppendLine($"{indent}// Typefaces referenced by every text blob in the tree. Rebuilt from the");
-		sb.AppendLine($"{indent}// embedded font data so glyph IDs used by the text blobs resolve to the");
-		sb.AppendLine($"{indent}// exact fonts the .skp was captured against, not host-system substitutes.");
-
-		// _fontData_N fields MUST be declared before typefaceTable so that
-		// static-field init order runs them first — BuildTypefaces reads
-		// them, and C# initializes static fields in source order.
-		for (var i = 0; i < top.Typefaces.Count; i++)
+		if (embedFontData)
 		{
-			var t = top.Typefaces[i];
-			if (t.FontData is not { } data || data.Length == 0)
-				continue;
-			sb.AppendLine($"{indent}// {data.Length:N0} bytes of embedded font data for typeface {i + 1} ('{Escape(t.FamilyName)}').");
-			sb.AppendLine($"{indent}private static readonly string _fontData_{i + 1} =");
-			EmitBase64Chunks(sb, indent + "\t\t", data);
-			sb.AppendLine($"{indent}\t\t;");
+			sb.AppendLine($"{indent}// Typefaces referenced by every text blob in the tree. Rebuilt from the");
+			sb.AppendLine($"{indent}// embedded font data so glyph IDs used by the text blobs resolve to the");
+			sb.AppendLine($"{indent}// exact fonts the .skp was captured against, not host-system substitutes.");
+			// _fontData_N fields MUST be declared before typefaceTable so that
+			// static-field init order runs them first — BuildTypefaces reads
+			// them, and C# initializes static fields in source order.
+			for (var i = 0; i < top.Typefaces.Count; i++)
+			{
+				var t = top.Typefaces[i];
+				if (t.FontData is not { } data || data.Length == 0)
+					continue;
+				sb.AppendLine($"{indent}// {data.Length:N0} bytes of embedded font data for typeface {i + 1} ('{Escape(t.FamilyName)}').");
+				sb.AppendLine($"{indent}private static readonly string _fontData_{i + 1} =");
+				EmitBase64Chunks(sb, indent + "\t\t", data);
+				sb.AppendLine($"{indent}\t\t;");
+			}
+		}
+		else
+		{
+			sb.AppendLine($"{indent}// Typefaces resolved by family-name matching only — font data was not");
+			sb.AppendLine($"{indent}// embedded (--no-font-data at decompile time). Text renders with the");
+			sb.AppendLine($"{indent}// host's version of the named family (or SKFontManager's substitute).");
 		}
 
 		sb.AppendLine($"{indent}private static readonly SKTypeface[] typefaceTable = BuildTypefaces();");
@@ -1446,7 +1454,7 @@ public static class SkpDecompiler
 			var t = top.Typefaces[i];
 			var slant = t.SlantEnum switch { 1 => "Italic", 2 => "Oblique", _ => "Upright" };
 			var family = Escape(t.FamilyName);
-			if (t.FontData is { } fd && fd.Length > 0)
+			if (embedFontData && t.FontData is { Length: > 0 })
 			{
 				sb.AppendLine($"{body}tf[{i + 1}] = SKTypeface.FromData(SKData.CreateCopy(Convert.FromBase64String(_fontData_{i + 1})))");
 				sb.AppendLine($"{body}\t?? SKTypeface.FromFamilyName(\"{family}\", {t.Weight}, {t.Width}, SKFontStyleSlant.{slant});");

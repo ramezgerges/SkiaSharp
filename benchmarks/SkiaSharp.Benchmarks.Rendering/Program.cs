@@ -124,8 +124,11 @@ internal static class Program
 		string? output = null;
 		string className = "DecompiledScene";
 		int partitionCount = 1;
-		for (var i = 0; i < args.Length - 1; i++)
+		bool embedFontData = true;
+		for (var i = 0; i < args.Length; i++)
 		{
+			if (args[i] == "--no-font-data") { embedFontData = false; continue; }
+			if (i + 1 >= args.Length) continue;
 			if (args[i] == "--decompile") input = args[i + 1];
 			else if (args[i] == "--output") output = args[i + 1];
 			else if (args[i] == "--class-name") className = args[i + 1];
@@ -133,7 +136,7 @@ internal static class Program
 		}
 		if (input is null)
 		{
-			Console.Error.WriteLine("Usage: --decompile <input.skp> [--output <path.cs>] [--class-name <name>] [--partition <N>]");
+			Console.Error.WriteLine("Usage: --decompile <input.skp> [--output <path.cs>] [--class-name <name>] [--partition <N>] [--no-font-data]");
 			return 2;
 		}
 		if (partitionCount < 1)
@@ -144,8 +147,8 @@ internal static class Program
 
 		var bytes = File.ReadAllBytes(input);
 		var source = partitionCount > 1
-			? SkpDecompiler.DecompilePartitioned(bytes, className, partitionCount)
-			: SkpDecompiler.Decompile(bytes, className);
+			? SkpDecompiler.DecompilePartitioned(bytes, className, partitionCount, embedFontData)
+			: SkpDecompiler.Decompile(bytes, className, embedFontData);
 
 		if (output is null)
 		{
