@@ -57,27 +57,15 @@ internal static class Program
 		if (Array.IndexOf(args, "--render-scene") >= 0)
 			return RenderScene(args);
 
-		if (Array.IndexOf(args, "--dump-typefaces") >= 0)
-		{
-			var sceneName = args[Array.IndexOf(args, "--dump-typefaces") + 1];
-			var scene = SceneCatalog.Get(sceneName);
-			var t = scene.GetType();
-			var field = t.GetField("typefaceTable", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
-			var tfs = (SKTypeface[])field!.GetValue(null)!;
-			for (int i = 0; i < tfs.Length; i++)
-			{
-				var tf = tfs[i];
-				Console.WriteLine($"[{i}] family={tf?.FamilyName ?? "(null)"} weight={tf?.FontWeight} isDefault={tf == SKTypeface.Default}");
-			}
-			return 0;
-		}
 		if (Array.IndexOf(args, "--sample-pixels") >= 0)
 		{
+			// Debug helper: grid-sample RGBA at several points so we can eye
+			// pixel-level differences between reference and generated PNGs
+			// without loading Pillow or an image viewer.
 			var path = args[Array.IndexOf(args, "--sample-pixels") + 1];
 			using var img = SKImage.FromEncodedData(path);
 			using var bmp = SKBitmap.FromImage(img);
 			Console.WriteLine($"colorType={bmp.Info.ColorType} alphaType={bmp.Info.AlphaType} size={bmp.Info.Width}x{bmp.Info.Height}");
-			// Grid-sample a 4x8 grid so we can eyeball what's actually rendered.
 			int cw = bmp.Info.Width, ch = bmp.Info.Height;
 			for (var y = 40; y < ch; y += ch / 6)
 			{

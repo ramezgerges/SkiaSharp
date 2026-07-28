@@ -1742,14 +1742,15 @@ public static class SkpDecompiler
 					for (var i = 0; i < 16; i++) m[i] = r.ReadSingle();
 					var call = name == "SET_M44" ? "SetMatrix" : "Concat";
 					// Wire format is column-major (Skia's SkM44 fMat[c*4+r]).
-					// SkiaSharp's SKMatrix44(m00…m33) constructor takes
-					// row-major args, so transpose while emitting.
-					sb.AppendLine($"{indent}// {name} (SkM44, column-major on the wire):");
+					// SkiaSharp's SKMatrix44 constructor `mIJ` is ALSO
+					// column-major (per SKMatrix→SKMatrix44 conversion:
+					// m30 = matrix.TransX). Pass wire order directly.
+					sb.AppendLine($"{indent}// {name} (SkM44, column-major):");
 					sb.AppendLine($"{indent}canvas.{call}(new SKMatrix44(");
-					sb.AppendLine($"{indent}\t{F(m[0])}, {F(m[4])}, {F(m[8])}, {F(m[12])}, // row 0");
-					sb.AppendLine($"{indent}\t{F(m[1])}, {F(m[5])}, {F(m[9])}, {F(m[13])}, // row 1");
-					sb.AppendLine($"{indent}\t{F(m[2])}, {F(m[6])}, {F(m[10])}, {F(m[14])}, // row 2");
-					sb.AppendLine($"{indent}\t{F(m[3])}, {F(m[7])}, {F(m[11])}, {F(m[15])}  // row 3");
+					sb.AppendLine($"{indent}\t{F(m[0])}, {F(m[1])}, {F(m[2])}, {F(m[3])},   // col 0");
+					sb.AppendLine($"{indent}\t{F(m[4])}, {F(m[5])}, {F(m[6])}, {F(m[7])},   // col 1");
+					sb.AppendLine($"{indent}\t{F(m[8])}, {F(m[9])}, {F(m[10])}, {F(m[11])}, // col 2");
+					sb.AppendLine($"{indent}\t{F(m[12])}, {F(m[13])}, {F(m[14])}, {F(m[15])} // col 3");
 					sb.AppendLine($"{indent}));");
 					break;
 				}
@@ -1776,16 +1777,10 @@ public static class SkpDecompiler
 					var pathI = r.ReadInt32();
 					var packed = r.ReadUInt32();
 					_ = r.ReadUInt32(); // offsetToRestore
-					// Skia's playback of CLIP_PATH short-circuits the rest of a
-					// save-block when the resulting clip is empty (isClipEmpty
-					// skip-forward optimisation in SkPicturePlayback). We don't
-					// emulate that skip, so applying the clip literally leaves
-					// subsequent draws in the same save-block invisible in
-					// Uno-style captures. Emit as a comment.
 					if (pathI == 0)
 						sb.AppendLine($"{indent}// CLIP_PATH idx=0 skipped");
 					else
-						sb.AppendLine($"{indent}// canvas.ClipPath(pathTable[{pathI}], {ClipOpFrom(packed)}, antialias: {ClipAaFrom(packed)}); // suppressed (see decoder note)");
+						sb.AppendLine($"{indent}canvas.ClipPath(pathTable[{pathI}], {ClipOpFrom(packed)}, antialias: {ClipAaFrom(packed)});");
 					break;
 				}
 				case "DRAW_PAINT":
