@@ -34,10 +34,55 @@ dominates.
   Graphite pays that ~350 μs; parallel Graphite pays it 8 times in
   parallel, so it recovers some of the loss but not all.
 
-A `HeavyKanbanBoard` variant (3× the partitions, 6 tickets per card, no
-mask-filter shadows) sits in the same matrix — see next run — to push
-per-partition work above dispatch latency and isolate the parallelism
-delta from the shadow regression.
+A `HeavyKanbanBoard` variant (12 partitions, 6 tickets per card, no
+mask-filter shadows) was added to push per-partition work above dispatch
+latency and isolate the parallelism delta from the shadow regression.
+Results below.
+
+## 2026-07-28 — Intel i5-8365U — KanbanBoard + HeavyKanbanBoard
+
+Same 5-backend matrix on both a small scene (`KanbanBoard`, 8 partitions,
+512×512 with shadow-blur) and a heavier scene (`HeavyKanbanBoard`, 12
+partitions, 1024×768, no mask-filter shadows):
+
+| Scene            | raster    | ganesh (seq) | graphite (seq) | graphite-parallel | ganesh-nctx |
+|------------------|----------:|-------------:|---------------:|------------------:|------------:|
+| KanbanBoard      |  21.76 ms |     **1.62 ms** |        1.82 ms |          2.81 ms  |   11.38 ms  |
+| HeavyKanbanBoard |  51.72 ms |     **3.34 ms** |        4.50 ms |          6.31 ms  |   31.99 ms  |
+
+**The architectural answer** — `graphite-vulkan-parallel` vs
+`ganesh-vulkan-nctx` (both are "parallelism" approaches):
+
+| Scene            | Graphite parallel | Ganesh N-contexts | Graphite is faster by |
+|------------------|------------------:|------------------:|----------------------:|
+| KanbanBoard      |           2.81 ms |          11.38 ms |             **4.05×** |
+| HeavyKanbanBoard |           6.31 ms |          31.99 ms |             **5.07×** |
+
+**The gap widens with scene size.** Going from 8 partitions to 12
+partitions (1.5× more work) grows Ganesh's disadvantage from 4.05× to
+5.07× — the N-intermediate-buffers + duplicate-upload cost scales
+super-linearly with partition count. That is what Graphite's
+"one Context, N Recorders, retarget-on-Insert" model architecturally
+avoids.
+
+**But sequential Ganesh still wins absolute wall-clock time.** Two
+reasons parallel-Graphite doesn't beat sequential on this machine:
+
+1. `Recorder.Snap()` overhead per partition dominates when per-partition
+   work is small. HeavyKanban's per-partition work is ~375 μs; Snap +
+   Task.Run + Insert overhead per partition is comparable. Parallelising
+   12× also multiplies the overhead 12×.
+2. Intel Iris Plus is an iGPU — CPU workers doing tessellation compete
+   with the GPU for shared memory bandwidth. A discrete GPU should
+   invert this since worker threads wouldn't contend with GPU work
+   on the same DRAM channel.
+
+So the honest summary: **parallel-Graphite beats N-contexts-Ganesh by
+4–5×** (that's the win we've been trying to prove), but doesn't yet beat
+sequential-Ganesh on this iGPU. Sequential Ganesh is still the fastest
+absolute path on iGPU with small per-partition workloads. Discrete GPU
+and heavier partitions are needed to see parallel-Graphite win outright.
+
 
 ## 2026-07-28 — Intel Core i5-8365U (Iris Plus iGPU), Windows 11
 
