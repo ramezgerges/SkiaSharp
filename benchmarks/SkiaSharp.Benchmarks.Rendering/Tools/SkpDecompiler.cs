@@ -945,7 +945,7 @@ public static class SkpDecompiler
 		sb.AppendLine("\t}");
 		sb.AppendLine();
 
-		EmitSubPictureClasses(sb, p, className);
+		EmitSubPictureClasses(sb, p, className, inlineSubPictures: true);
 
 		sb.AppendLine("}");
 		sb.AppendLine();
@@ -961,14 +961,14 @@ public static class SkpDecompiler
 	// paint/path/image/textBlob tables so DecodeOps' emitted `paintTable[i]`
 	// references resolve to the sub-picture's own indices. Typefaces are
 	// shared from the top-level class via `topClassName.typefaceTable`.
-	private static void EmitSubPictureClasses(StringBuilder sb, ParsedSkp top, string topClassName)
+	private static void EmitSubPictureClasses(StringBuilder sb, ParsedSkp top, string topClassName, bool inlineSubPictures = true)
 	{
 		var all = new List<ParsedSkp>();
 		FlattenTree(top, all);
 		foreach (var sub in all)
 		{
 			if (sub.GlobalId == 0) continue; // top-level is the enclosing class
-			EmitOneSubPicture(sb, sub, topClassName);
+			EmitOneSubPicture(sb, sub, topClassName, inlineSubPictures);
 		}
 	}
 
@@ -979,7 +979,7 @@ public static class SkpDecompiler
 			FlattenTree(sub, flat);
 	}
 
-	private static void EmitOneSubPicture(StringBuilder sb, ParsedSkp sub, string topClassName)
+	private static void EmitOneSubPicture(StringBuilder sb, ParsedSkp sub, string topClassName, bool inlineSubPictures)
 	{
 		sb.AppendLine($"\t// Sub-picture {sub.GlobalId} — cull ({sub.CullLeft}, {sub.CullTop}, {sub.CullRight}, {sub.CullBottom}); {sub.OpData.Length} op bytes; {sub.Paints.Count} paints; {sub.Paths.Count} paths; {sub.Images.Count} images; {sub.TextBlobs.Count} textblobs; {sub.SubPictures.Count} nested sub-pictures.");
 		sb.AppendLine($"\tprivate static class SubPic_{sub.GlobalId}");
@@ -988,16 +988,22 @@ public static class SkpDecompiler
 		if (sub.Unparseable)
 		{
 			sb.AppendLine($"\t\t// Unparseable: {sub.BailReason}. Draw() is a no-op — the visual output will be missing this sub-tree.");
-			sb.AppendLine("\t\tpublic static void Draw(SKCanvas canvas) { }");
+			if (!inlineSubPictures)
+				sb.AppendLine("\t\tpublic static void Draw(SKCanvas canvas) { }");
 			sb.AppendLine("\t}");
 			sb.AppendLine();
 			return;
 		}
 
-		// Own resource tables — DecodeOps' emitted `paintTable[i]` etc. bind
-		// to whichever class encloses the Draw method.
-		var subOps = DecodeOps(sub); // populate sub.UsedPaintIndices before emitting paint table.
-		sb.AppendLine($"\t\tprivate static readonly SKPaint[] paintTable = BuildPaints();");
+		// Decoding once (with the sub-picture's OWN resource prefix) primes
+		// its UsedPaintIndices set so the paint table below can skip
+		// effects on unused paints. If inlining is off we also need the
+		// output text for a standalone Draw method.
+		var subOps = DecodeOps(sub, resourcePrefix: "", inlineSubPictures: false);
+
+		// internal (not private) so the enclosing scene's DrawPartition can
+		// reference SubPic_N.paintTable directly after inlining.
+		sb.AppendLine($"\t\tinternal static readonly SKPaint[] paintTable = BuildPaints();");
 		sb.AppendLine("\t\tprivate static SKPaint[] BuildPaints()");
 		sb.AppendLine("\t\t{");
 		sb.AppendLine($"\t\t\tvar paints = new SKPaint[{sub.Paints.Count + 1}];");
@@ -1010,10 +1016,15 @@ public static class SkpDecompiler
 		EmitImageTable(sb, sub, "\t\t");
 		EmitTextBlobTable(sb, sub, "\t\t", topClassName);
 
-		sb.AppendLine("\t\tpublic static void Draw(SKCanvas canvas)");
-		sb.AppendLine("\t\t{");
-		AppendOps(sb, subOps, extraIndent: "\t");
-		sb.AppendLine("\t\t}");
+		if (!inlineSubPictures)
+		{
+			// Standalone Draw method — only emitted when the parent's
+			// DRAW_PICTURE ops are still calls into these classes.
+			sb.AppendLine("\t\tpublic static void Draw(SKCanvas canvas)");
+			sb.AppendLine("\t\t{");
+			AppendOps(sb, subOps, extraIndent: "\t");
+			sb.AppendLine("\t\t}");
+		}
 
 		sb.AppendLine("\t}");
 		sb.AppendLine();
@@ -1092,6 +1103,54 @@ public static class SkpDecompiler
 			? statePrologue[statePrologue.Count - 1].SaveDepthAfter
 			: 0;
 
+		// Sanity-check the prologue: baseline is only ambient if the body
+		// never dips below it. Otherwise the prologue over-ate state ops
+		// that belong to the FIRST item (dashboard tile Save/Clip, kanban
+		// card Save/Clip, etc.) and would wrongly impose that item's clip
+		// on every partition. Truncate the prologue back to the deepest
+		// depth the body actually maintains — usually the outer page clip
+		// for real UI captures, or 0 for flat item lists.
+		if (baselineDepth > 0 && body.Count > 0)
+		{
+			var minBodyDepth = int.MaxValue;
+			foreach (var op in body)
+				if (op.SaveDepthAfter < minBodyDepth) minBodyDepth = op.SaveDepthAfter;
+
+			if (minBodyDepth < baselineDepth)
+			{
+				// Move state-prologue ops back into body until the remaining
+				// prologue's last SaveDepthAfter matches minBodyDepth.
+				var moved = new List<OpEmission>();
+				while (statePrologue.Count > 0 && statePrologue[statePrologue.Count - 1].SaveDepthAfter > minBodyDepth)
+				{
+					moved.Insert(0, statePrologue[statePrologue.Count - 1]);
+					statePrologue.RemoveAt(statePrologue.Count - 1);
+				}
+				body.InsertRange(0, moved);
+
+				// Trailing state ops may need to move back too — the epilogue
+				// was chosen assuming the higher baseline. Move any epilogue
+				// ops whose SaveDepthAfter is still above minBodyDepth back
+				// into body's tail; the epilogue keeps only those that unwind
+				// from minBodyDepth to 0.
+				var epilogueMoved = new List<OpEmission>();
+				while (stateEpilogue.Count > 0)
+				{
+					var lastBefore = stateEpilogue[0];
+					var priorDepth = body.Count > 0 ? body[body.Count - 1].SaveDepthAfter : minBodyDepth;
+					if (priorDepth > minBodyDepth)
+					{
+						epilogueMoved.Add(lastBefore);
+						stateEpilogue.RemoveAt(0);
+						body.Add(lastBefore);
+					}
+					else break;
+				}
+
+				baselineDepth = minBodyDepth;
+			}
+		}
+
 		return (contentPrologue, statePrologue, body, stateEpilogue, baselineDepth);
 	}
 
@@ -1124,25 +1183,27 @@ public static class SkpDecompiler
 			return buckets;
 		}
 
-		// Coalesce nearby candidates so we don't emit tiny 1-op buckets when
-		// a dense cluster of balanced-depth ops (e.g. many DRAW_PICTURE at
-		// baseline) sit right next to each other. Keep the first candidate
-		// of each cluster, and require subsequent candidates to be at least
-		// minSpacing ops past the last kept one — minSpacing scales with
-		// the ideal per-bucket size so wide streams still find good splits.
-		var minSpacing = Math.Max(1, body.Count / partitionCount);
-		var candidates = new List<int>();
-		foreach (var c in rawCandidates)
-			if (candidates.Count == 0 || c - candidates[candidates.Count - 1] >= minSpacing)
-				candidates.Add(c);
-
-		var wantSplits = Math.Min(partitionCount - 1, candidates.Count);
+		// Pick partitionCount-1 splits as close to evenly-spaced target
+		// positions as possible. Each target k*body/partitionCount picks
+		// the closest rawCandidate; we dedupe so a picture whose only
+		// balanced-depth boundaries cluster in a few spots gets fewer
+		// buckets rather than duplicate splits. This handles the common
+		// Uno shape where 1500 ops of a monolithic sub-tree have no
+		// baseline crossings — those targets all snap to the same
+		// candidate, dedupe collapses them, and the bucket count reflects
+		// the picture's structural reality instead of over-promising.
 		var chosen = new HashSet<int>();
-		for (var k = 1; k <= wantSplits; k++)
+		for (var k = 1; k < partitionCount; k++)
 		{
-			var idx = (int)((long)k * candidates.Count / (wantSplits + 1));
-			if (idx >= candidates.Count) idx = candidates.Count - 1;
-			chosen.Add(candidates[idx]);
+			var target = (int)((long)k * body.Count / partitionCount);
+			var bestIdx = -1;
+			var bestDist = int.MaxValue;
+			for (var i = 0; i < rawCandidates.Count; i++)
+			{
+				var dist = Math.Abs(rawCandidates[i] - target);
+				if (dist < bestDist) { bestDist = dist; bestIdx = i; }
+			}
+			if (bestIdx >= 0) chosen.Add(rawCandidates[bestIdx]);
 		}
 
 		var ordered = new List<int>(chosen);
@@ -1297,7 +1358,7 @@ public static class SkpDecompiler
 			sb.AppendLine();
 		}
 
-		EmitSubPictureClasses(sb, p, className);
+		EmitSubPictureClasses(sb, p, className, inlineSubPictures: true);
 
 		sb.AppendLine("}");
 		sb.AppendLine();
@@ -1521,7 +1582,7 @@ public static class SkpDecompiler
 	private static void EmitPathTable(StringBuilder sb, ParsedSkp p, string indent)
 	{
 		var body = indent + "\t";
-		sb.AppendLine($"{indent}private static readonly SKPath[] pathTable = BuildPaths();");
+		sb.AppendLine($"{indent}internal static readonly SKPath[] pathTable = BuildPaths();");
 		sb.AppendLine($"{indent}private static SKPath[] BuildPaths()");
 		sb.AppendLine($"{indent}{{");
 		sb.AppendLine($"{body}var paths = new SKPath[{p.Paths.Count + 1}];");
@@ -1592,7 +1653,7 @@ public static class SkpDecompiler
 	private static void EmitImageTable(StringBuilder sb, ParsedSkp p, string indent)
 	{
 		var body = indent + "\t";
-		sb.AppendLine($"{indent}private static readonly SKImage[] imageTable = BuildImages();");
+		sb.AppendLine($"{indent}internal static readonly SKImage[] imageTable = BuildImages();");
 		sb.AppendLine($"{indent}private static SKImage[] BuildImages()");
 		sb.AppendLine($"{indent}{{");
 		sb.AppendLine($"{body}var imgs = new SKImage[{p.Images.Count + 1}];");
@@ -1614,7 +1675,7 @@ public static class SkpDecompiler
 	private static void EmitTextBlobTable(StringBuilder sb, ParsedSkp p, string indent, string topClassName)
 	{
 		var body = indent + "\t";
-		sb.AppendLine($"{indent}private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();");
+		sb.AppendLine($"{indent}internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();");
 		sb.AppendLine($"{indent}private static SKTextBlob[] BuildTextBlobs()");
 		sb.AppendLine($"{indent}{{");
 		sb.AppendLine($"{body}var tfs = {topClassName}.typefaceTable;");
@@ -1719,7 +1780,7 @@ public static class SkpDecompiler
 	// prologue/epilogue to keep parallel recorders on identical state.
 	private sealed record OpEmission(string Text, int SaveDepthAfter, bool IsState);
 
-	private static List<OpEmission> DecodeOps(ParsedSkp picture)
+	private static List<OpEmission> DecodeOps(ParsedSkp picture, string resourcePrefix = "", bool inlineSubPictures = true, ParsedSkp? paintOwner = null, string varSuffix = "")
 	{
 		var ops = new List<OpEmission>();
 		var opData = picture.OpData;
@@ -1727,11 +1788,22 @@ public static class SkpDecompiler
 		using var r = new BinaryReader(s);
 		var indent = "\t\t";
 		int saveDepth = 0;
+		// Local-variable name disambiguator. When inlining a sub-picture into
+		// its parent, both may emit e.g. `b588` (a text-blob local named by
+		// stream offset 588). varSuffix is threaded through so the sub's
+		// locals become `b_G_588` and don't collide.
+		var vs = varSuffix;
+		// Which picture owns the resource tables the emitted text should
+		// address. Same as `picture` at the outer call — but during
+		// recursive inlining of a sub-picture we still want paint refs
+		// tracked into the ROOT picture's UsedPaintIndices so the emitter
+		// suppresses effects on paints that only inlined ops read.
+		var trackTarget = paintOwner ?? picture;
 
 		// Records which paint indices this picture's op stream actually
 		// touches, so EmitPaint can skip effect reconstruction on unused
 		// paints. See the note on ParsedSkp.UsedPaintIndices.
-		int trackPaint(int idx) { picture.UsedPaintIndices.Add(idx); return idx; }
+		int trackPaint(int idx) { trackTarget.UsedPaintIndices.Add(idx); return idx; }
 
 		while (s.Position < s.Length)
 		{
@@ -1873,14 +1945,14 @@ public static class SkpDecompiler
 					var pi = trackPaint(r.ReadInt32());
 					var mode = r.ReadInt32();
 					var count = r.ReadInt32();
-					sb.AppendLine($"{indent}var points_{opStart} = new SKPoint[{count}];");
+					sb.AppendLine($"{indent}var points{vs}_{opStart} = new SKPoint[{count}];");
 					for (var i = 0; i < count; i++)
 					{
 						var x = r.ReadSingle();
 						var y = r.ReadSingle();
-						sb.AppendLine($"{indent}points_{opStart}[{i}] = new SKPoint({F(x)}, {F(y)});");
+						sb.AppendLine($"{indent}points{vs}_{opStart}[{i}] = new SKPoint({F(x)}, {F(y)});");
 					}
-					sb.AppendLine($"{indent}canvas.DrawPoints((SKPointMode){mode}, points_{opStart}, paintTable[{pi}]);");
+					sb.AppendLine($"{indent}canvas.DrawPoints((SKPointMode){mode}, points{vs}_{opStart}, paintTable[{pi}]);");
 					break;
 				}
 				case "DRAW_ARC":
@@ -1899,6 +1971,22 @@ public static class SkpDecompiler
 					if (localIdx >= 1 && localIdx <= picture.SubPictures.Count)
 					{
 						var sub = picture.SubPictures[localIdx - 1];
+						if (inlineSubPictures && !sub.Unparseable)
+						{
+							// Flatten: recursively decode the sub-picture's ops
+							// with its own resource-table prefix, then splice
+							// them in here at the current save depth. This lets
+							// the top-level partitioner see every balanced
+							// save/restore boundary in the tree, not just the
+							// top-level ones — otherwise one big sub-tree ends
+							// up as an opaque single-op call and swallows most
+							// of the partitioner's work.
+							var subOps = DecodeOps(sub, $"SubPic_{sub.GlobalId}.", inlineSubPictures, varSuffix: $"_{sub.GlobalId}");
+							foreach (var subOp in subOps)
+								ops.Add(subOp with { SaveDepthAfter = subOp.SaveDepthAfter + saveDepth });
+							s.Position = endPos; // Skip our own ops.Add at end of loop.
+							continue;
+						}
 						sb.AppendLine($"{indent}SubPic_{sub.GlobalId}.Draw(canvas);");
 					}
 					else
@@ -1916,7 +2004,7 @@ public static class SkpDecompiler
 					if (bi == 0)
 						sb.AppendLine($"{indent}// DRAW_TEXT_BLOB idx=0 (null blob) skipped");
 					else
-						sb.AppendLine($"{indent}if (textBlobTable[{bi}] is {{ }} b{opStart}) canvas.DrawText(b{opStart}, {F(x)}, {F(y)}, paintTable[{pi}]);");
+						sb.AppendLine($"{indent}if (textBlobTable[{bi}] is {{ }} b{vs}_{opStart}) canvas.DrawText(b{vs}_{opStart}, {F(x)}, {F(y)}, paintTable[{pi}]);");
 					break;
 				}
 				case "DRAW_IMAGE2":
@@ -1932,7 +2020,7 @@ public static class SkpDecompiler
 					if (ii == 0)
 						sb.AppendLine($"{indent}// DRAW_IMAGE2 idx=0 (null image) skipped");
 					else
-						sb.AppendLine($"{indent}if (imageTable[{ii}] is {{ }} img{opStart}) canvas.DrawImage(img{opStart}, {F(x)}, {F(y)}, paintTable[{pi}]);");
+						sb.AppendLine($"{indent}if (imageTable[{ii}] is {{ }} img{vs}_{opStart}) canvas.DrawImage(img{vs}_{opStart}, {F(x)}, {F(y)}, paintTable[{pi}]);");
 					break;
 				}
 				case "DRAW_IMAGE_RECT2":
@@ -1945,7 +2033,7 @@ public static class SkpDecompiler
 					if (ii == 0)
 						sb.AppendLine($"{indent}// DRAW_IMAGE_RECT2 idx=0 (null image) skipped");
 					else
-						sb.AppendLine($"{indent}if (imageTable[{ii}] is {{ }} img{opStart}) canvas.DrawImage(img{opStart}, {src}, {dst}, paintTable[{pi}]);");
+						sb.AppendLine($"{indent}if (imageTable[{ii}] is {{ }} img{vs}_{opStart}) canvas.DrawImage(img{vs}_{opStart}, {src}, {dst}, paintTable[{pi}]);");
 					break;
 				}
 				case "SAVE_LAYER_SAVELAYERREC":
@@ -1991,7 +2079,21 @@ public static class SkpDecompiler
 				s.Position = endPos;
 			}
 
-			ops.Add(new OpEmission(sb.ToString(), saveDepth, IsState: StateOnlyOps.Contains(name)));
+			var text = sb.ToString();
+			if (resourcePrefix.Length > 0)
+			{
+				// Rewrite resource-table refs so they resolve to the owning
+				// sub-picture's tables when the ops get spliced into a
+				// different class's method. Only these four table names are
+				// emitted by the decoder above; other identifiers pass through
+				// untouched.
+				text = text
+					.Replace("paintTable[", $"{resourcePrefix}paintTable[")
+					.Replace("pathTable[", $"{resourcePrefix}pathTable[")
+					.Replace("imageTable[", $"{resourcePrefix}imageTable[")
+					.Replace("textBlobTable[", $"{resourcePrefix}textBlobTable[");
+			}
+			ops.Add(new OpEmission(text, saveDepth, IsState: StateOnlyOps.Contains(name)));
 		}
 		return ops;
 	}

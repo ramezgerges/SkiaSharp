@@ -13,8 +13,8 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 	public string Name => "UnoGalleryButtonsScene";
 	// Original cull: (-536870880, -536870880, 536870880, 536870880) — snapped to 1024x1024 for benchmarking.
 	public SKImageInfo Info => new(1024, 1024, SKColorType.Rgba8888, SKAlphaType.Premul);
-	public int PartitionCount => 4;
-	// NB: 8 partitions requested but only 4 balanced-Save/Restore boundaries were available.
+	public int PartitionCount => 5;
+	// NB: 8 partitions requested but only 5 balanced-Save/Restore boundaries were available.
 
 	// ── Resources ──
 	//   factory names : 5
@@ -129,7 +129,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 		return tf;
 	}
 
-	private static readonly SKPath[] pathTable = BuildPaths();
+	internal static readonly SKPath[] pathTable = BuildPaths();
 	private static SKPath[] BuildPaths()
 	{
 		var paths = new SKPath[2];
@@ -141,7 +141,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 		return paths;
 	}
 
-	private static readonly SKImage[] imageTable = BuildImages();
+	internal static readonly SKImage[] imageTable = BuildImages();
 	private static SKImage[] BuildImages()
 	{
 		var imgs = new SKImage[1];
@@ -149,7 +149,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 		return imgs;
 	}
 
-	private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+	internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 	private static SKTextBlob[] BuildTextBlobs()
 	{
 		var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -820,6 +820,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			case 1: DrawPartition1(canvas); return;
 			case 2: DrawPartition2(canvas); return;
 			case 3: DrawPartition3(canvas); return;
+			case 4: DrawPartition4(canvas); return;
 			default: throw new System.ArgumentOutOfRangeException(nameof(partitionIndex));
 		}
 	}
@@ -854,20 +855,26 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 		canvas.Restore();
 	}
 
-	// Partition 0: 1 body op(s)
+	// Partition 0: 8 body op(s)
 	private static void DrawPartition0(SKCanvas canvas)
 	{
 		ContentPrologue(canvas);
 		StatePrologue(canvas);
-		SubPic_1.Draw(canvas);
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 1024f, 640f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 1024f, 640f), SubPic_1.paintTable[1]);
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 1024f, 640f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 1024f, 640f), SubPic_2.paintTable[1]);
+		canvas.Restore();
 		StateEpilogue(canvas);
 	}
 
-	// Partition 1: 671 body op(s)
+	// Partition 1: 1674 body op(s)
 	private static void DrawPartition1(SKCanvas canvas)
 	{
 		StatePrologue(canvas);
-		SubPic_2.Draw(canvas);
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -876,7 +883,10 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			260f, 0f, 0f, 1f // col 3
 		));
-		SubPic_3.Draw(canvas);
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 764f, 640f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 764f, 640f), SubPic_3.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -894,8 +904,14 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			260f, 68f, 0f, 1f // col 3
 		));
-		SubPic_4.Draw(canvas);
-		SubPic_5.Draw(canvas);
+		canvas.Save();
+		canvas.ClipPath(SubPic_4.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 764f, 572f), SubPic_4.paintTable[1]);
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 764f, 572f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 764f, 572f), SubPic_5.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		canvas.ClipRect(new SKRect(0f, 0f, 764f, 572f), SKClipOperation.Intersect, antialias: true);
 		canvas.Save();
@@ -914,7 +930,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			308f, 98f, 0f, 1f // col 3
 		));
-		if (textBlobTable[1] is { } b516) canvas.DrawText(b516, 0f, 0f, paintTable[2]);
+		if (textBlobTable[1] is { } b_516) canvas.DrawText(b_516, 0f, 0f, paintTable[2]);
 		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
@@ -933,12 +949,24 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			308f, 146f, 0f, 1f // col 3
 		));
-		SubPic_6.Draw(canvas);
-		SubPic_7.Draw(canvas);
+		canvas.Save();
+		canvas.ClipPath(SubPic_6.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 668f, 43f), SubPic_6.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		canvas.ClipRect(new SKRect(0f, 0f, 668f, 43f), SKClipOperation.Intersect, antialias: true);
-		SubPic_8.Draw(canvas);
-		SubPic_9.Draw(canvas);
+		canvas.DrawRect(new SKRect(0f, 0f, 668f, 43f), SubPic_7.paintTable[1]);
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 668f, 43f), SKClipOperation.Intersect, antialias: true);
+		canvas.Save();
+		canvas.ClipPath(SubPic_8.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 668f, 43f), SubPic_8.paintTable[1]);
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 107f, 42f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 107f, 42f), SubPic_9.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -947,7 +975,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			308f, 154f, 0f, 1f // col 3
 		));
-		if (textBlobTable[2] is { } b824) canvas.DrawText(b824, 0f, 0f, paintTable[3]);
+		if (textBlobTable[2] is { } b_824) canvas.DrawText(b_824, 0f, 0f, paintTable[3]);
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -956,10 +984,22 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			399f, 159f, 0f, 1f // col 3
 		));
-		SubPic_10.Draw(canvas);
+		canvas.Save();
+		// CONCAT44 (SkM44, column-major):
+		canvas.Concat(new SKMatrix44(
+			1f, 0f, 0f, 0f,   // col 0
+			0f, 1f, 0f, 0f,   // col 1
+			0f, 0f, 1f, 0f, // col 2
+			0f, 0f, 0f, 1f // col 3
+		));
+		// DRAW_IMAGE_RECT2 idx=0 (null image) skipped
 		canvas.Restore();
 		canvas.Restore();
-		SubPic_11.Draw(canvas);
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipPath(SubPic_11.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 107f, 42f), SubPic_11.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -968,7 +1008,10 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			431f, 146f, 0f, 1f // col 3
 		));
-		SubPic_12.Draw(canvas);
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 87f, 42f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 87f, 42f), SubPic_12.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -977,7 +1020,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			431f, 154f, 0f, 1f // col 3
 		));
-		if (textBlobTable[3] is { } b1092) canvas.DrawText(b1092, 0f, 0f, paintTable[4]);
+		if (textBlobTable[3] is { } b_1092) canvas.DrawText(b_1092, 0f, 0f, paintTable[4]);
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -986,7 +1029,16 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			502f, 159f, 0f, 1f // col 3
 		));
-		SubPic_13.Draw(canvas);
+		canvas.Save();
+		// CONCAT44 (SkM44, column-major):
+		canvas.Concat(new SKMatrix44(
+			1.14285719f, 0f, 0f, 0f,   // col 0
+			0f, 1.14285719f, 0f, 0f,   // col 1
+			0f, 0f, 1f, 0f, // col 2
+			0f, 0f, 0f, 1f // col 3
+		));
+		// DRAW_IMAGE_RECT2 idx=0 (null image) skipped
+		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
@@ -998,7 +1050,10 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			534f, 146f, 0f, 1f // col 3
 		));
-		SubPic_14.Draw(canvas);
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 122f, 42f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 122f, 42f), SubPic_14.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -1007,7 +1062,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			534f, 154f, 0f, 1f // col 3
 		));
-		if (textBlobTable[4] is { } b1356) canvas.DrawText(b1356, 0f, 0f, paintTable[5]);
+		if (textBlobTable[4] is { } b_1356) canvas.DrawText(b_1356, 0f, 0f, paintTable[5]);
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -1016,7 +1071,16 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			640f, 159f, 0f, 1f // col 3
 		));
-		SubPic_15.Draw(canvas);
+		canvas.Save();
+		// CONCAT44 (SkM44, column-major):
+		canvas.Concat(new SKMatrix44(
+			1f, 0f, 0f, 0f,   // col 0
+			0f, 1f, 0f, 0f,   // col 1
+			0f, 0f, 1f, 0f, // col 2
+			0f, 0f, 0f, 1f // col 3
+		));
+		// DRAW_IMAGE_RECT2 idx=0 (null image) skipped
+		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
@@ -1038,7 +1102,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			308f, 205f, 0f, 1f // col 3
 		));
-		if (textBlobTable[5] is { } b1620) canvas.DrawText(b1620, 0f, 0f, paintTable[6]);
+		if (textBlobTable[5] is { } b_1620) canvas.DrawText(b_1620, 0f, 0f, paintTable[6]);
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -1047,7 +1111,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			308f, 247f, 0f, 1f // col 3
 		));
-		if (textBlobTable[6] is { } b1712) canvas.DrawText(b1712, 0f, 0f, paintTable[7]);
+		if (textBlobTable[6] is { } b_1712) canvas.DrawText(b_1712, 0f, 0f, paintTable[7]);
 		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
@@ -1057,7 +1121,10 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			308f, 313f, 0f, 1f // col 3
 		));
-		SubPic_16.Draw(canvas);
+		canvas.Save();
+		canvas.ClipPath(SubPic_16.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 668f, 244f), SubPic_16.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -1066,7 +1133,10 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			309f, 314f, 0f, 1f // col 3
 		));
-		SubPic_17.Draw(canvas);
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 666f, 192f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 666f, 192f), SubPic_17.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -1078,7 +1148,78 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 		canvas.Save();
 		canvas.ClipRect(new SKRect(-1f, -1f, 116f, 40f), SKClipOperation.Intersect, antialias: true);
 		// op DRAW_PICTURE_MATRIX_PAINT (code 44), size 48 bytes — not decoded. First 44 args bytes: 08 00 00 00 00 00 80 3f 00 00 00 00 00 00 00 00 00 00 00 00 00 00 80 3f 00 00 00 00 00 00 00 00 00 00 00 00 00 00 80 3f 12 00 00 00
-		SubPic_18.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 115f, 39f), SubPic_19.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipPath(SubPic_19.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 115f, 39f), SubPic_19.paintTable[2]);
+		canvas.Restore();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 115f, 39f), SubPic_20.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipPath(SubPic_20.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 115f, 39f), SubPic_20.paintTable[2]);
+		canvas.Restore();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 115f, 39f), SubPic_21.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 115f, 39f), SKClipOperation.Intersect, antialias: true);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 115f, 39f), SubPic_22.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		// SET_M44 (SkM44, column-major):
+		canvas.SetMatrix(new SKMatrix44(
+			1f, 0f, 0f, 0f,   // col 0
+			0f, 1f, 0f, 0f,   // col 1
+			0f, 0f, 1f, 0f, // col 2
+			16f, 11f, 0f, 1f // col 3
+		));
+		canvas.Save();
+		// SET_M44 (SkM44, column-major):
+		canvas.SetMatrix(new SKMatrix44(
+			1f, 0f, 0f, 0f,   // col 0
+			0f, 1f, 0f, 0f,   // col 1
+			0f, 0f, 1f, 0f, // col 2
+			24f, 11f, 0f, 1f // col 3
+		));
+		if (SubPic_18.textBlobTable[1] is { } b_18_588) canvas.DrawText(b_18_588, 0f, 0f, SubPic_18.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
@@ -1091,7 +1232,95 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 		canvas.Save();
 		canvas.ClipRect(new SKRect(-1f, -1f, 173f, 40f), SKClipOperation.Intersect, antialias: true);
 		// op DRAW_PICTURE_MATRIX_PAINT (code 44), size 48 bytes — not decoded. First 44 args bytes: 09 00 00 00 00 00 80 3f 00 00 00 00 00 00 00 00 00 00 00 00 00 00 80 3f 00 00 00 00 00 00 00 00 00 00 00 00 00 00 80 3f 13 00 00 00
-		SubPic_23.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 172f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 172f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 172f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 172f, 39f), SubPic_24.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipPath(SubPic_24.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 172f, 39f), SubPic_24.paintTable[2]);
+		canvas.Restore();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 172f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 172f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 172f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 172f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 172f, 39f), SubPic_25.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipPath(SubPic_25.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 172f, 39f), SubPic_25.paintTable[2]);
+		canvas.Restore();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 172f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 172f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 172f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 172f, 39f), SubPic_26.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 172f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 172f, 39f), SKClipOperation.Intersect, antialias: true);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 172f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 172f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 172f, 39f), SubPic_27.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 172f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		// SET_M44 (SkM44, column-major):
+		canvas.SetMatrix(new SKMatrix44(
+			1f, 0f, 0f, 0f,   // col 0
+			0f, 1f, 0f, 0f,   // col 1
+			0f, 0f, 1f, 0f, // col 2
+			16f, 9f, 0f, 1f // col 3
+		));
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 21f, 21f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 21f, 21f), SubPic_28.paintTable[1]);
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipPath(SubPic_29.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(3f, 3f, 21f, 21f), SubPic_29.paintTable[1]);
+		canvas.Restore();
+		canvas.Save();
+		// SET_M44 (SkM44, column-major):
+		canvas.SetMatrix(new SKMatrix44(
+			1f, 0f, 0f, 0f,   // col 0
+			0f, 1f, 0f, 0f,   // col 1
+			0f, 0f, 1f, 0f, // col 2
+			45f, 9f, 0f, 1f // col 3
+		));
+		canvas.Save();
+		// SET_M44 (SkM44, column-major):
+		canvas.SetMatrix(new SKMatrix44(
+			1f, 0f, 0f, 0f,   // col 0
+			0f, 1f, 0f, 0f,   // col 1
+			0f, 0f, 1f, 0f, // col 2
+			45f, 11f, 0f, 1f // col 3
+		));
+		if (SubPic_23.textBlobTable[1] is { } b_23_676) canvas.DrawText(b_23_676, 0f, 0f, SubPic_23.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Save();
@@ -1105,7 +1334,78 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 		canvas.Save();
 		canvas.ClipRect(new SKRect(0f, 0f, 182f, 40f), SKClipOperation.Intersect, antialias: true);
 		// op DRAW_PICTURE_MATRIX_PAINT (code 44), size 48 bytes — not decoded. First 44 args bytes: 0a 00 00 00 00 00 80 3f 00 00 00 00 00 00 00 00 00 00 00 00 00 00 80 3f 00 00 00 00 00 00 00 00 00 00 00 00 00 00 80 3f 14 00 00 00
-		SubPic_30.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 182f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 182f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 182f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 182f, 40f), SubPic_31.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipPath(SubPic_31.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 182f, 40f), SubPic_31.paintTable[2]);
+		canvas.Restore();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 182f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 182f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 182f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 182f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 182f, 40f), SubPic_32.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipPath(SubPic_32.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 182f, 40f), SubPic_32.paintTable[2]);
+		canvas.Restore();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 182f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 182f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 182f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 182f, 40f), SubPic_33.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 182f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 182f, 40f), SKClipOperation.Intersect, antialias: true);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 182f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 182f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 182f, 40f), SubPic_34.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 182f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		// SET_M44 (SkM44, column-major):
+		canvas.SetMatrix(new SKMatrix44(
+			1f, 0f, 0f, 0f,   // col 0
+			0f, 1f, 0f, 0f,   // col 1
+			0f, 0f, 1f, 0f, // col 2
+			16f, 12f, 0f, 1f // col 3
+		));
+		canvas.Save();
+		// SET_M44 (SkM44, column-major):
+		canvas.SetMatrix(new SKMatrix44(
+			1f, 0f, 0f, 0f,   // col 0
+			0f, 1f, 0f, 0f,   // col 1
+			0f, 0f, 1f, 0f, // col 2
+			24f, 12f, 0f, 1f // col 3
+		));
+		if (SubPic_30.textBlobTable[1] is { } b_30_588) canvas.DrawText(b_30_588, 0f, 0f, SubPic_30.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
@@ -1118,7 +1418,10 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			309f, 506f, 0f, 1f // col 3
 		));
-		SubPic_35.Draw(canvas);
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 666f, 50f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 666f, 50f), SubPic_35.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -1127,7 +1430,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			325f, 522f, 0f, 1f // col 3
 		));
-		if (textBlobTable[7] is { } b2556) canvas.DrawText(b2556, 0f, 0f, paintTable[11]);
+		if (textBlobTable[7] is { } b_2556) canvas.DrawText(b_2556, 0f, 0f, paintTable[11]);
 		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
@@ -1137,10 +1440,19 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			875f, 506f, 0f, 1f // col 3
 		));
-		SubPic_36.Draw(canvas);
 		canvas.Save();
 		canvas.ClipRect(new SKRect(0f, 0f, 50f, 50f), SKClipOperation.Intersect, antialias: true);
-		SubPic_37.Draw(canvas);
+		canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), SubPic_36.paintTable[1]);
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 50f, 50f), SKClipOperation.Intersect, antialias: true);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), SubPic_37.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Save();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Save();
@@ -1151,7 +1463,19 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			891f, 520f, 0f, 1f // col 3
 		));
-		SubPic_38.Draw(canvas);
+		canvas.Save();
+		// CONCAT44 (SkM44, column-major):
+		canvas.Concat(new SKMatrix44(
+			1f, 0f, 0f, 0f,   // col 0
+			0f, 1f, 0f, 0f,   // col 1
+			0f, 0f, 1f, 0f, // col 2
+			-3f, -1f, 0f, 1f // col 3
+		));
+		canvas.Save();
+		canvas.ClipPath(SubPic_38.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(3f, 1f, 22f, 23f), SubPic_38.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
@@ -1164,10 +1488,19 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			925f, 506f, 0f, 1f // col 3
 		));
-		SubPic_39.Draw(canvas);
 		canvas.Save();
 		canvas.ClipRect(new SKRect(0f, 0f, 50f, 50f), SKClipOperation.Intersect, antialias: true);
-		SubPic_40.Draw(canvas);
+		canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), SubPic_39.paintTable[1]);
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 50f, 50f), SKClipOperation.Intersect, antialias: true);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), SubPic_40.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Save();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Save();
@@ -1178,7 +1511,19 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			940f, 525f, 0f, 1f // col 3
 		));
-		SubPic_41.Draw(canvas);
+		canvas.Save();
+		// CONCAT44 (SkM44, column-major):
+		canvas.Concat(new SKMatrix44(
+			1f, 0f, 0f, 0f,   // col 0
+			0f, 1f, 0f, 0f,   // col 1
+			0f, 0f, 1f, 0f, // col 2
+			-2f, -6f, 0f, 1f // col 3
+		));
+		canvas.Save();
+		canvas.ClipPath(SubPic_41.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(2f, 6f, 22f, 18f), SubPic_41.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
@@ -1194,7 +1539,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			308f, 573f, 0f, 1f // col 3
 		));
-		if (textBlobTable[8] is { } b3224) canvas.DrawText(b3224, 0f, 0f, paintTable[12]);
+		if (textBlobTable[8] is { } b_3224) canvas.DrawText(b_3224, 0f, 0f, paintTable[12]);
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -1203,7 +1548,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			308f, 615f, 0f, 1f // col 3
 		));
-		if (textBlobTable[9] is { } b3316) canvas.DrawText(b3316, 0f, 0f, paintTable[13]);
+		if (textBlobTable[9] is { } b_3316) canvas.DrawText(b_3316, 0f, 0f, paintTable[13]);
 		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
@@ -1213,7 +1558,10 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			308f, 664f, 0f, 1f // col 3
 		));
-		SubPic_42.Draw(canvas);
+		canvas.Save();
+		canvas.ClipPath(SubPic_42.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 668f, 244f), SubPic_42.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -1222,7 +1570,10 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			309f, 665f, 0f, 1f // col 3
 		));
-		SubPic_43.Draw(canvas);
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 666f, 192f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 666f, 192f), SubPic_43.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -1234,7 +1585,72 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 		canvas.Save();
 		canvas.ClipRect(new SKRect(0f, 0f, 92f, 40f), SKClipOperation.Intersect, antialias: true);
 		// op DRAW_PICTURE_MATRIX_PAINT (code 44), size 48 bytes — not decoded. First 44 args bytes: 0e 00 00 00 00 00 80 3f 00 00 00 00 00 00 00 00 00 00 00 00 00 00 80 3f 00 00 00 00 00 00 00 00 00 00 00 00 00 00 80 3f 1e 00 00 00
-		SubPic_44.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 92f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 92f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 92f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 92f, 40f), SubPic_45.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipPath(SubPic_45.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 92f, 40f), SubPic_45.paintTable[2]);
+		canvas.Restore();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 92f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 92f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 92f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 92f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 92f, 40f), SubPic_46.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipPath(SubPic_46.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 92f, 40f), SubPic_46.paintTable[2]);
+		canvas.Restore();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 92f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 92f, 40f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 92f, 40f), SubPic_47.paintTable[1]);
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 92f, 40f), SKClipOperation.Intersect, antialias: true);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 92f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 92f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 92f, 40f), SubPic_48.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 92f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		// SET_M44 (SkM44, column-major):
+		canvas.SetMatrix(new SKMatrix44(
+			1f, 0f, 0f, 0f,   // col 0
+			0f, 1f, 0f, 0f,   // col 1
+			0f, 0f, 1f, 0f, // col 2
+			16f, 12f, 0f, 1f // col 3
+		));
+		canvas.Save();
+		// SET_M44 (SkM44, column-major):
+		canvas.SetMatrix(new SKMatrix44(
+			1f, 0f, 0f, 0f,   // col 0
+			0f, 1f, 0f, 0f,   // col 1
+			0f, 0f, 1f, 0f, // col 2
+			24f, 12f, 0f, 1f // col 3
+		));
+		if (SubPic_44.textBlobTable[1] is { } b_44_520) canvas.DrawText(b_44_520, 0f, 0f, SubPic_44.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
@@ -1247,7 +1663,89 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 		canvas.Save();
 		canvas.ClipRect(new SKRect(0f, 0f, 115f, 40f), SKClipOperation.Intersect, antialias: true);
 		// op DRAW_PICTURE_MATRIX_PAINT (code 44), size 48 bytes — not decoded. First 44 args bytes: 0f 00 00 00 00 00 80 3f 00 00 00 00 00 00 00 00 00 00 00 00 00 00 80 3f 00 00 00 00 00 00 00 00 00 00 00 00 00 00 80 3f 1f 00 00 00
-		SubPic_49.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 115f, 40f), SubPic_50.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipPath(SubPic_50.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 115f, 40f), SubPic_50.paintTable[2]);
+		canvas.Restore();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 115f, 40f), SubPic_51.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipPath(SubPic_51.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 115f, 40f), SubPic_51.paintTable[2]);
+		canvas.Restore();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 115f, 40f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 115f, 40f), SubPic_52.paintTable[1]);
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 115f, 40f), SKClipOperation.Intersect, antialias: true);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 115f, 40f), SubPic_53.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		// SET_M44 (SkM44, column-major):
+		canvas.SetMatrix(new SKMatrix44(
+			1f, 0f, 0f, 0f,   // col 0
+			0f, 1f, 0f, 0f,   // col 1
+			0f, 0f, 1f, 0f, // col 2
+			16f, 10f, 0f, 1f // col 3
+		));
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 23f, 21f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 23f, 21f), SubPic_54.paintTable[1]);
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipPath(SubPic_55.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(1f, 3f, 23f, 21f), SubPic_55.paintTable[1]);
+		canvas.Restore();
+		canvas.Save();
+		// SET_M44 (SkM44, column-major):
+		canvas.SetMatrix(new SKMatrix44(
+			1f, 0f, 0f, 0f,   // col 0
+			0f, 1f, 0f, 0f,   // col 1
+			0f, 0f, 1f, 0f, // col 2
+			47f, 10f, 0f, 1f // col 3
+		));
+		canvas.Save();
+		// SET_M44 (SkM44, column-major):
+		canvas.SetMatrix(new SKMatrix44(
+			1f, 0f, 0f, 0f,   // col 0
+			0f, 1f, 0f, 0f,   // col 1
+			0f, 0f, 1f, 0f, // col 2
+			47f, 12f, 0f, 1f // col 3
+		));
+		if (SubPic_49.textBlobTable[1] is { } b_49_608) canvas.DrawText(b_49_608, 0f, 0f, SubPic_49.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Save();
@@ -1261,7 +1759,72 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 		canvas.Save();
 		canvas.ClipRect(new SKRect(0f, 0f, 160f, 40f), SKClipOperation.Intersect, antialias: true);
 		// op DRAW_PICTURE_MATRIX_PAINT (code 44), size 48 bytes — not decoded. First 44 args bytes: 10 00 00 00 00 00 80 3f 00 00 00 00 00 00 00 00 00 00 00 00 00 00 80 3f 00 00 00 00 00 00 00 00 00 00 00 00 00 00 80 3f 20 00 00 00
-		SubPic_56.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 160f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 160f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 160f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 160f, 40f), SubPic_57.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipPath(SubPic_57.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 160f, 40f), SubPic_57.paintTable[2]);
+		canvas.Restore();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 160f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 160f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 160f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 160f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 160f, 40f), SubPic_58.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipPath(SubPic_58.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 160f, 40f), SubPic_58.paintTable[2]);
+		canvas.Restore();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 160f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 160f, 40f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 160f, 40f), SubPic_59.paintTable[1]);
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 160f, 40f), SKClipOperation.Intersect, antialias: true);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 160f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 160f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 160f, 40f), SubPic_60.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 160f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		// SET_M44 (SkM44, column-major):
+		canvas.SetMatrix(new SKMatrix44(
+			1f, 0f, 0f, 0f,   // col 0
+			0f, 1f, 0f, 0f,   // col 1
+			0f, 0f, 1f, 0f, // col 2
+			16f, 12f, 0f, 1f // col 3
+		));
+		canvas.Save();
+		// SET_M44 (SkM44, column-major):
+		canvas.SetMatrix(new SKMatrix44(
+			1f, 0f, 0f, 0f,   // col 0
+			0f, 1f, 0f, 0f,   // col 1
+			0f, 0f, 1f, 0f, // col 2
+			24f, 12f, 0f, 1f // col 3
+		));
+		if (SubPic_56.textBlobTable[1] is { } b_56_520) canvas.DrawText(b_56_520, 0f, 0f, SubPic_56.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
@@ -1274,7 +1837,10 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			309f, 857f, 0f, 1f // col 3
 		));
-		SubPic_61.Draw(canvas);
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 666f, 50f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 666f, 50f), SubPic_61.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -1283,7 +1849,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			325f, 873f, 0f, 1f // col 3
 		));
-		if (textBlobTable[10] is { } b4160) canvas.DrawText(b4160, 0f, 0f, paintTable[17]);
+		if (textBlobTable[10] is { } b_4160) canvas.DrawText(b_4160, 0f, 0f, paintTable[17]);
 		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
@@ -1293,10 +1859,19 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			875f, 857f, 0f, 1f // col 3
 		));
-		SubPic_62.Draw(canvas);
 		canvas.Save();
 		canvas.ClipRect(new SKRect(0f, 0f, 50f, 50f), SKClipOperation.Intersect, antialias: true);
-		SubPic_63.Draw(canvas);
+		canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), SubPic_62.paintTable[1]);
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 50f, 50f), SKClipOperation.Intersect, antialias: true);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), SubPic_63.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Save();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Save();
@@ -1307,7 +1882,19 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			891f, 871f, 0f, 1f // col 3
 		));
-		SubPic_64.Draw(canvas);
+		canvas.Save();
+		// CONCAT44 (SkM44, column-major):
+		canvas.Concat(new SKMatrix44(
+			1f, 0f, 0f, 0f,   // col 0
+			0f, 1f, 0f, 0f,   // col 1
+			0f, 0f, 1f, 0f, // col 2
+			-3f, -1f, 0f, 1f // col 3
+		));
+		canvas.Save();
+		canvas.ClipPath(SubPic_64.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(3f, 1f, 22f, 23f), SubPic_64.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
@@ -1320,10 +1907,19 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			925f, 857f, 0f, 1f // col 3
 		));
-		SubPic_65.Draw(canvas);
 		canvas.Save();
 		canvas.ClipRect(new SKRect(0f, 0f, 50f, 50f), SKClipOperation.Intersect, antialias: true);
-		SubPic_66.Draw(canvas);
+		canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), SubPic_65.paintTable[1]);
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 50f, 50f), SKClipOperation.Intersect, antialias: true);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), SubPic_66.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Save();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Save();
@@ -1334,7 +1930,19 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			940f, 876f, 0f, 1f // col 3
 		));
-		SubPic_67.Draw(canvas);
+		canvas.Save();
+		// CONCAT44 (SkM44, column-major):
+		canvas.Concat(new SKMatrix44(
+			1f, 0f, 0f, 0f,   // col 0
+			0f, 1f, 0f, 0f,   // col 1
+			0f, 0f, 1f, 0f, // col 2
+			-2f, -6f, 0f, 1f // col 3
+		));
+		canvas.Save();
+		canvas.ClipPath(SubPic_67.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(2f, 6f, 22f, 18f), SubPic_67.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
@@ -1350,7 +1958,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			308f, 924f, 0f, 1f // col 3
 		));
-		if (textBlobTable[11] is { } b4828) canvas.DrawText(b4828, 0f, 0f, paintTable[18]);
+		if (textBlobTable[11] is { } b_4828) canvas.DrawText(b_4828, 0f, 0f, paintTable[18]);
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -1359,7 +1967,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			308f, 966f, 0f, 1f // col 3
 		));
-		if (textBlobTable[12] is { } b4920) canvas.DrawText(b4920, 0f, 0f, paintTable[19]);
+		if (textBlobTable[12] is { } b_4920) canvas.DrawText(b_4920, 0f, 0f, paintTable[19]);
 		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
@@ -1369,7 +1977,10 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			308f, 1032f, 0f, 1f // col 3
 		));
-		SubPic_68.Draw(canvas);
+		canvas.Save();
+		canvas.ClipPath(SubPic_68.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 668f, 244f), SubPic_68.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -1378,7 +1989,10 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			309f, 1033f, 0f, 1f // col 3
 		));
-		SubPic_69.Draw(canvas);
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 666f, 192f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 666f, 192f), SubPic_69.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -1390,7 +2004,78 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 		canvas.Save();
 		canvas.ClipRect(new SKRect(0f, 0f, 141f, 40f), SKClipOperation.Intersect, antialias: true);
 		// op DRAW_PICTURE_MATRIX_PAINT (code 44), size 48 bytes — not decoded. First 44 args bytes: 14 00 00 00 00 00 80 3f 00 00 00 00 00 00 00 00 00 00 00 00 00 00 80 3f 00 00 00 00 00 00 00 00 00 00 00 00 00 00 80 3f 2a 00 00 00
-		SubPic_70.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 141f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 141f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 141f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 141f, 40f), SubPic_71.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipPath(SubPic_71.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 141f, 40f), SubPic_71.paintTable[2]);
+		canvas.Restore();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 141f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 141f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 141f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 141f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 141f, 40f), SubPic_72.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipPath(SubPic_72.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 141f, 40f), SubPic_72.paintTable[2]);
+		canvas.Restore();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 141f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 141f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 141f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 141f, 40f), SubPic_73.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 141f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 141f, 40f), SKClipOperation.Intersect, antialias: true);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 141f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 141f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 141f, 40f), SubPic_74.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 141f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		// SET_M44 (SkM44, column-major):
+		canvas.SetMatrix(new SKMatrix44(
+			1f, 0f, 0f, 0f,   // col 0
+			0f, 1f, 0f, 0f,   // col 1
+			0f, 0f, 1f, 0f, // col 2
+			16f, 12f, 0f, 1f // col 3
+		));
+		canvas.Save();
+		// SET_M44 (SkM44, column-major):
+		canvas.SetMatrix(new SKMatrix44(
+			1f, 0f, 0f, 0f,   // col 0
+			0f, 1f, 0f, 0f,   // col 1
+			0f, 0f, 1f, 0f, // col 2
+			24f, 12f, 0f, 1f // col 3
+		));
+		if (SubPic_70.textBlobTable[1] is { } b_70_588) canvas.DrawText(b_70_588, 0f, 0f, SubPic_70.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
@@ -1403,7 +2088,95 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 		canvas.Save();
 		canvas.ClipRect(new SKRect(0f, 0f, 164f, 40f), SKClipOperation.Intersect, antialias: true);
 		// op DRAW_PICTURE_MATRIX_PAINT (code 44), size 48 bytes — not decoded. First 44 args bytes: 15 00 00 00 00 00 80 3f 00 00 00 00 00 00 00 00 00 00 00 00 00 00 80 3f 00 00 00 00 00 00 00 00 00 00 00 00 00 00 80 3f 2b 00 00 00
-		SubPic_75.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 164f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 164f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 164f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 164f, 40f), SubPic_76.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipPath(SubPic_76.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 164f, 40f), SubPic_76.paintTable[2]);
+		canvas.Restore();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 164f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 164f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 164f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 164f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 164f, 40f), SubPic_77.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipPath(SubPic_77.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 164f, 40f), SubPic_77.paintTable[2]);
+		canvas.Restore();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 164f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 164f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 164f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 164f, 40f), SubPic_78.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 164f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 164f, 40f), SKClipOperation.Intersect, antialias: true);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 164f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 164f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 164f, 40f), SubPic_79.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 164f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		// SET_M44 (SkM44, column-major):
+		canvas.SetMatrix(new SKMatrix44(
+			1f, 0f, 0f, 0f,   // col 0
+			0f, 1f, 0f, 0f,   // col 1
+			0f, 0f, 1f, 0f, // col 2
+			16f, 10f, 0f, 1f // col 3
+		));
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 23f, 21f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 23f, 21f), SubPic_80.paintTable[1]);
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipPath(SubPic_81.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(1f, 3f, 23f, 21f), SubPic_81.paintTable[1]);
+		canvas.Restore();
+		canvas.Save();
+		// SET_M44 (SkM44, column-major):
+		canvas.SetMatrix(new SKMatrix44(
+			1f, 0f, 0f, 0f,   // col 0
+			0f, 1f, 0f, 0f,   // col 1
+			0f, 0f, 1f, 0f, // col 2
+			47f, 10f, 0f, 1f // col 3
+		));
+		canvas.Save();
+		// SET_M44 (SkM44, column-major):
+		canvas.SetMatrix(new SKMatrix44(
+			1f, 0f, 0f, 0f,   // col 0
+			0f, 1f, 0f, 0f,   // col 1
+			0f, 0f, 1f, 0f, // col 2
+			47f, 12f, 0f, 1f // col 3
+		));
+		if (SubPic_75.textBlobTable[1] is { } b_75_676) canvas.DrawText(b_75_676, 0f, 0f, SubPic_75.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Save();
@@ -1417,7 +2190,78 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 		canvas.Save();
 		canvas.ClipRect(new SKRect(0f, 0f, 209f, 40f), SKClipOperation.Intersect, antialias: true);
 		// op DRAW_PICTURE_MATRIX_PAINT (code 44), size 48 bytes — not decoded. First 44 args bytes: 16 00 00 00 00 00 80 3f 00 00 00 00 00 00 00 00 00 00 00 00 00 00 80 3f 00 00 00 00 00 00 00 00 00 00 00 00 00 00 80 3f 2c 00 00 00
-		SubPic_82.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 209f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 209f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 209f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 209f, 40f), SubPic_83.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipPath(SubPic_83.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 209f, 40f), SubPic_83.paintTable[2]);
+		canvas.Restore();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 209f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 209f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 209f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 209f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 209f, 40f), SubPic_84.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipPath(SubPic_84.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 209f, 40f), SubPic_84.paintTable[2]);
+		canvas.Restore();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 209f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 209f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 209f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 209f, 40f), SubPic_85.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 209f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 209f, 40f), SKClipOperation.Intersect, antialias: true);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 209f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 209f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 209f, 40f), SubPic_86.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 209f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		// SET_M44 (SkM44, column-major):
+		canvas.SetMatrix(new SKMatrix44(
+			1f, 0f, 0f, 0f,   // col 0
+			0f, 1f, 0f, 0f,   // col 1
+			0f, 0f, 1f, 0f, // col 2
+			16f, 12f, 0f, 1f // col 3
+		));
+		canvas.Save();
+		// SET_M44 (SkM44, column-major):
+		canvas.SetMatrix(new SKMatrix44(
+			1f, 0f, 0f, 0f,   // col 0
+			0f, 1f, 0f, 0f,   // col 1
+			0f, 0f, 1f, 0f, // col 2
+			24f, 12f, 0f, 1f // col 3
+		));
+		if (SubPic_82.textBlobTable[1] is { } b_82_588) canvas.DrawText(b_82_588, 0f, 0f, SubPic_82.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
@@ -1430,7 +2274,10 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			309f, 1225f, 0f, 1f // col 3
 		));
-		SubPic_87.Draw(canvas);
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 666f, 50f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 666f, 50f), SubPic_87.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -1439,7 +2286,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			325f, 1241f, 0f, 1f // col 3
 		));
-		if (textBlobTable[13] is { } b5764) canvas.DrawText(b5764, 0f, 0f, paintTable[23]);
+		if (textBlobTable[13] is { } b_5764) canvas.DrawText(b_5764, 0f, 0f, paintTable[23]);
 		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
@@ -1449,10 +2296,19 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			875f, 1225f, 0f, 1f // col 3
 		));
-		SubPic_88.Draw(canvas);
 		canvas.Save();
 		canvas.ClipRect(new SKRect(0f, 0f, 50f, 50f), SKClipOperation.Intersect, antialias: true);
-		SubPic_89.Draw(canvas);
+		canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), SubPic_88.paintTable[1]);
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 50f, 50f), SKClipOperation.Intersect, antialias: true);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), SubPic_89.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Save();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Save();
@@ -1463,7 +2319,19 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			891f, 1239f, 0f, 1f // col 3
 		));
-		SubPic_90.Draw(canvas);
+		canvas.Save();
+		// CONCAT44 (SkM44, column-major):
+		canvas.Concat(new SKMatrix44(
+			1f, 0f, 0f, 0f,   // col 0
+			0f, 1f, 0f, 0f,   // col 1
+			0f, 0f, 1f, 0f, // col 2
+			-3f, -1f, 0f, 1f // col 3
+		));
+		canvas.Save();
+		canvas.ClipPath(SubPic_90.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(3f, 1f, 22f, 23f), SubPic_90.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
@@ -1476,10 +2344,19 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			925f, 1225f, 0f, 1f // col 3
 		));
-		SubPic_91.Draw(canvas);
 		canvas.Save();
 		canvas.ClipRect(new SKRect(0f, 0f, 50f, 50f), SKClipOperation.Intersect, antialias: true);
-		SubPic_92.Draw(canvas);
+		canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), SubPic_91.paintTable[1]);
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 50f, 50f), SKClipOperation.Intersect, antialias: true);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), SubPic_92.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Save();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Save();
@@ -1490,7 +2367,19 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			940f, 1244f, 0f, 1f // col 3
 		));
-		SubPic_93.Draw(canvas);
+		canvas.Save();
+		// CONCAT44 (SkM44, column-major):
+		canvas.Concat(new SKMatrix44(
+			1f, 0f, 0f, 0f,   // col 0
+			0f, 1f, 0f, 0f,   // col 1
+			0f, 0f, 1f, 0f, // col 2
+			-2f, -6f, 0f, 1f // col 3
+		));
+		canvas.Save();
+		canvas.ClipPath(SubPic_93.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(2f, 6f, 22f, 18f), SubPic_93.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
@@ -1506,7 +2395,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			308f, 1292f, 0f, 1f // col 3
 		));
-		if (textBlobTable[14] is { } b6432) canvas.DrawText(b6432, 0f, 0f, paintTable[24]);
+		if (textBlobTable[14] is { } b_6432) canvas.DrawText(b_6432, 0f, 0f, paintTable[24]);
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -1515,7 +2404,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			308f, 1334f, 0f, 1f // col 3
 		));
-		if (textBlobTable[15] is { } b6524) canvas.DrawText(b6524, 0f, 0f, paintTable[25]);
+		if (textBlobTable[15] is { } b_6524) canvas.DrawText(b_6524, 0f, 0f, paintTable[25]);
 		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
@@ -1525,7 +2414,10 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			308f, 1400f, 0f, 1f // col 3
 		));
-		SubPic_94.Draw(canvas);
+		canvas.Save();
+		canvas.ClipPath(SubPic_94.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 668f, 244f), SubPic_94.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -1534,7 +2426,10 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			309f, 1401f, 0f, 1f // col 3
 		));
-		SubPic_95.Draw(canvas);
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 666f, 192f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 666f, 192f), SubPic_95.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -1545,7 +2440,26 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 		));
 		canvas.Save();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 116f, 40f), new[] { new SKPoint(20.5f, 20f), new SKPoint(20.5f, 20f), new SKPoint(20.5f, 20f), new SKPoint(20.5f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-		SubPic_96.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(1f, 1f, 115f, 39f), new[] { new SKPoint(19f, 19f), new SKPoint(19f, 19f), new SKPoint(19f, 19f), new SKPoint(19f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		// CONCAT44 (SkM44, column-major):
+		canvas.Concat(new SKMatrix44(
+			1f, 0f, 0f, 0f,   // col 0
+			0f, 1f, 0f, 0f,   // col 1
+			0f, 0f, 1f, 0f, // col 2
+			1f, 1f, 0f, 1f // col 3
+		));
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 114f, 38f), new[] { new SKPoint(19f, 19f), new SKPoint(19f, 19f), new SKPoint(19f, 19f), new SKPoint(19f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 114f, 38f), SubPic_96.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipPath(SubPic_96.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 116f, 40f), SubPic_96.paintTable[2]);
+		canvas.Restore();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(1f, 1f, 115f, 39f), new[] { new SKPoint(19f, 19f), new SKPoint(19f, 19f), new SKPoint(19f, 19f), new SKPoint(19f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
@@ -1555,7 +2469,13 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			326f, 1418f, 0f, 1f // col 3
 		));
-		SubPic_97.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 114f, 38f), new[] { new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 114f, 38f), new[] { new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 114f, 38f), SubPic_97.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 114f, 38f), new[] { new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Restore();
 		canvas.Save();
@@ -1567,7 +2487,13 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			326f, 1418f, 0f, 1f // col 3
 		));
 		canvas.ClipRect(new SKRect(0f, 0f, 114f, 38f), SKClipOperation.Intersect, antialias: true);
-		SubPic_98.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 114f, 38f), new[] { new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 114f, 38f), new[] { new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 114f, 38f), SubPic_98.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Save();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 114f, 38f), new[] { new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Save();
@@ -1586,7 +2512,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			350f, 1428f, 0f, 1f // col 3
 		));
-		if (textBlobTable[16] is { } b7372) canvas.DrawText(b7372, 0f, 0f, paintTable[26]);
+		if (textBlobTable[16] is { } b_7372) canvas.DrawText(b_7372, 0f, 0f, paintTable[26]);
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
@@ -1602,7 +2528,26 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 		));
 		canvas.Save();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 176f, 40f), new[] { new SKPoint(20.5f, 20f), new SKPoint(20.5f, 20f), new SKPoint(20.5f, 20f), new SKPoint(20.5f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-		SubPic_99.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(1f, 1f, 175f, 39f), new[] { new SKPoint(19f, 19f), new SKPoint(19f, 19f), new SKPoint(19f, 19f), new SKPoint(19f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		// CONCAT44 (SkM44, column-major):
+		canvas.Concat(new SKMatrix44(
+			1f, 0f, 0f, 0f,   // col 0
+			0f, 1f, 0f, 0f,   // col 1
+			0f, 0f, 1f, 0f, // col 2
+			1f, 1f, 0f, 1f // col 3
+		));
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 174f, 38f), new[] { new SKPoint(19f, 19f), new SKPoint(19f, 19f), new SKPoint(19f, 19f), new SKPoint(19f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 174f, 38f), SubPic_99.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipPath(SubPic_99.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 176f, 40f), SubPic_99.paintTable[2]);
+		canvas.Restore();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(1f, 1f, 175f, 39f), new[] { new SKPoint(19f, 19f), new SKPoint(19f, 19f), new SKPoint(19f, 19f), new SKPoint(19f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
@@ -1612,7 +2557,13 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			326f, 1478f, 0f, 1f // col 3
 		));
-		SubPic_100.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 174f, 38f), new[] { new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 174f, 38f), new[] { new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 174f, 38f), SubPic_100.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 174f, 38f), new[] { new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Restore();
 		canvas.Save();
@@ -1624,7 +2575,13 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			326f, 1478f, 0f, 1f // col 3
 		));
 		canvas.ClipRect(new SKRect(0f, 0f, 174f, 38f), SKClipOperation.Intersect, antialias: true);
-		SubPic_101.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 174f, 38f), new[] { new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 174f, 38f), new[] { new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 174f, 38f), SubPic_101.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Save();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 174f, 38f), new[] { new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Save();
@@ -1635,8 +2592,14 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			342f, 1486f, 0f, 1f // col 3
 		));
-		SubPic_102.Draw(canvas);
-		SubPic_103.Draw(canvas);
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 23f, 22f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 23f, 22f), SubPic_102.paintTable[1]);
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipPath(SubPic_103.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(1f, 4f, 23f, 22f), SubPic_103.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -1653,7 +2616,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			373f, 1488f, 0f, 1f // col 3
 		));
-		if (textBlobTable[17] is { } b8164) canvas.DrawText(b8164, 0f, 0f, paintTable[27]);
+		if (textBlobTable[17] is { } b_8164) canvas.DrawText(b_8164, 0f, 0f, paintTable[27]);
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
@@ -1671,7 +2634,26 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 		));
 		canvas.Save();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 184f, 40f), new[] { new SKPoint(20.5f, 20f), new SKPoint(20.5f, 20f), new SKPoint(20.5f, 20f), new SKPoint(20.5f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-		SubPic_104.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(1f, 1f, 183f, 39f), new[] { new SKPoint(19f, 19f), new SKPoint(19f, 19f), new SKPoint(19f, 19f), new SKPoint(19f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		// CONCAT44 (SkM44, column-major):
+		canvas.Concat(new SKMatrix44(
+			1f, 0f, 0f, 0f,   // col 0
+			0f, 1f, 0f, 0f,   // col 1
+			0f, 0f, 1f, 0f, // col 2
+			1f, 1f, 0f, 1f // col 3
+		));
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 182f, 38f), new[] { new SKPoint(19f, 19f), new SKPoint(19f, 19f), new SKPoint(19f, 19f), new SKPoint(19f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 182f, 38f), SubPic_104.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipPath(SubPic_104.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 184f, 40f), SubPic_104.paintTable[2]);
+		canvas.Restore();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(1f, 1f, 183f, 39f), new[] { new SKPoint(19f, 19f), new SKPoint(19f, 19f), new SKPoint(19f, 19f), new SKPoint(19f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
@@ -1681,7 +2663,13 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			326f, 1538f, 0f, 1f // col 3
 		));
-		SubPic_105.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 182f, 38f), new[] { new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 182f, 38f), new[] { new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 182f, 38f), SubPic_105.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 182f, 38f), new[] { new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Restore();
 		canvas.Save();
@@ -1693,7 +2681,13 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			326f, 1538f, 0f, 1f // col 3
 		));
 		canvas.ClipRect(new SKRect(0f, 0f, 182f, 38f), SKClipOperation.Intersect, antialias: true);
-		SubPic_106.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 182f, 38f), new[] { new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 182f, 38f), new[] { new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 182f, 38f), SubPic_106.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Save();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 182f, 38f), new[] { new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Save();
@@ -1712,7 +2706,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			350f, 1548f, 0f, 1f // col 3
 		));
-		if (textBlobTable[18] is { } b8876) canvas.DrawText(b8876, 0f, 0f, paintTable[28]);
+		if (textBlobTable[18] is { } b_8876) canvas.DrawText(b_8876, 0f, 0f, paintTable[28]);
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
@@ -1729,7 +2723,10 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			309f, 1593f, 0f, 1f // col 3
 		));
-		SubPic_107.Draw(canvas);
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 666f, 50f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 666f, 50f), SubPic_107.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -1738,7 +2735,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			325f, 1609f, 0f, 1f // col 3
 		));
-		if (textBlobTable[19] is { } b9080) canvas.DrawText(b9080, 0f, 0f, paintTable[29]);
+		if (textBlobTable[19] is { } b_9080) canvas.DrawText(b_9080, 0f, 0f, paintTable[29]);
 		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
@@ -1748,10 +2745,19 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			875f, 1593f, 0f, 1f // col 3
 		));
-		SubPic_108.Draw(canvas);
 		canvas.Save();
 		canvas.ClipRect(new SKRect(0f, 0f, 50f, 50f), SKClipOperation.Intersect, antialias: true);
-		SubPic_109.Draw(canvas);
+		canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), SubPic_108.paintTable[1]);
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 50f, 50f), SKClipOperation.Intersect, antialias: true);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), SubPic_109.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Save();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Save();
@@ -1762,7 +2768,19 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			891f, 1607f, 0f, 1f // col 3
 		));
-		SubPic_110.Draw(canvas);
+		canvas.Save();
+		// CONCAT44 (SkM44, column-major):
+		canvas.Concat(new SKMatrix44(
+			1f, 0f, 0f, 0f,   // col 0
+			0f, 1f, 0f, 0f,   // col 1
+			0f, 0f, 1f, 0f, // col 2
+			-3f, -1f, 0f, 1f // col 3
+		));
+		canvas.Save();
+		canvas.ClipPath(SubPic_110.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(3f, 1f, 22f, 23f), SubPic_110.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
@@ -1775,10 +2793,19 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			925f, 1593f, 0f, 1f // col 3
 		));
-		SubPic_111.Draw(canvas);
 		canvas.Save();
 		canvas.ClipRect(new SKRect(0f, 0f, 50f, 50f), SKClipOperation.Intersect, antialias: true);
-		SubPic_112.Draw(canvas);
+		canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), SubPic_111.paintTable[1]);
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 50f, 50f), SKClipOperation.Intersect, antialias: true);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), SubPic_112.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Save();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Save();
@@ -1789,7 +2816,19 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			940f, 1612f, 0f, 1f // col 3
 		));
-		SubPic_113.Draw(canvas);
+		canvas.Save();
+		// CONCAT44 (SkM44, column-major):
+		canvas.Concat(new SKMatrix44(
+			1f, 0f, 0f, 0f,   // col 0
+			0f, 1f, 0f, 0f,   // col 1
+			0f, 0f, 1f, 0f, // col 2
+			-2f, -6f, 0f, 1f // col 3
+		));
+		canvas.Save();
+		canvas.ClipPath(SubPic_113.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(2f, 6f, 22f, 18f), SubPic_113.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
@@ -1805,7 +2844,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			308f, 1660f, 0f, 1f // col 3
 		));
-		if (textBlobTable[20] is { } b9748) canvas.DrawText(b9748, 0f, 0f, paintTable[30]);
+		if (textBlobTable[20] is { } b_9748) canvas.DrawText(b_9748, 0f, 0f, paintTable[30]);
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -1814,7 +2853,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			308f, 1702f, 0f, 1f // col 3
 		));
-		if (textBlobTable[21] is { } b9840) canvas.DrawText(b9840, 0f, 0f, paintTable[31]);
+		if (textBlobTable[21] is { } b_9840) canvas.DrawText(b_9840, 0f, 0f, paintTable[31]);
 		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
@@ -1824,7 +2863,10 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			308f, 1768f, 0f, 1f // col 3
 		));
-		SubPic_114.Draw(canvas);
+		canvas.Save();
+		canvas.ClipPath(SubPic_114.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 668f, 204f), SubPic_114.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -1833,7 +2875,10 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			309f, 1769f, 0f, 1f // col 3
 		));
-		SubPic_115.Draw(canvas);
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 666f, 152f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 666f, 152f), SubPic_115.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -1844,15 +2889,37 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 		));
 		canvas.Save();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 58f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-		SubPic_116.Draw(canvas);
+		canvas.Save();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 58f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-		SubPic_117.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 58f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 58f, 40f), SubPic_116.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipPath(SubPic_116.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 58f, 40f), SubPic_116.paintTable[2]);
+		canvas.Restore();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 58f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 58f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 58f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 58f, 40f), SubPic_117.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Save();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 58f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Restore();
 		canvas.Save();
 		canvas.ClipRect(new SKRect(0f, 0f, 58f, 40f), SKClipOperation.Intersect, antialias: true);
-		SubPic_118.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 58f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 58f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 58f, 40f), SubPic_118.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Save();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 58f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Save();
@@ -1863,7 +2930,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			337f, 1797f, 0f, 1f // col 3
 		));
-		if (textBlobTable[22] is { } b10480) canvas.DrawText(b10480, 0f, 0f, paintTable[32]);
+		if (textBlobTable[22] is { } b_10480) canvas.DrawText(b_10480, 0f, 0f, paintTable[32]);
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
@@ -1878,15 +2945,37 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 		));
 		canvas.Save();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 125f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-		SubPic_119.Draw(canvas);
+		canvas.Save();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 125f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-		SubPic_120.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 125f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 125f, 40f), SubPic_119.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipPath(SubPic_119.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 125f, 40f), SubPic_119.paintTable[2]);
+		canvas.Restore();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 125f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 125f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 125f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 125f, 40f), SubPic_120.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Save();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 125f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Restore();
 		canvas.Save();
 		canvas.ClipRect(new SKRect(0f, 0f, 125f, 40f), SKClipOperation.Intersect, antialias: true);
-		SubPic_121.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 125f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 125f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 125f, 40f), SubPic_121.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Save();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 125f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Save();
@@ -1897,8 +2986,14 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			337f, 1835f, 0f, 1f // col 3
 		));
-		SubPic_122.Draw(canvas);
-		SubPic_123.Draw(canvas);
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 20f, 19f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 20f, 19f), SubPic_122.paintTable[1]);
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipPath(SubPic_123.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(4.34000015f, 4f, 19.6599998f, 19f), SubPic_123.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -1915,7 +3010,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			365f, 1836f, 0f, 1f // col 3
 		));
-		if (textBlobTable[23] is { } b11132) canvas.DrawText(b11132, 0f, 0f, paintTable[33]);
+		if (textBlobTable[23] is { } b_11132) canvas.DrawText(b_11132, 0f, 0f, paintTable[33]);
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
@@ -1933,15 +3028,37 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 		));
 		canvas.Save();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 126f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-		SubPic_124.Draw(canvas);
+		canvas.Save();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 126f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-		SubPic_125.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 126f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 126f, 40f), SubPic_124.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipPath(SubPic_124.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 126f, 40f), SubPic_124.paintTable[2]);
+		canvas.Restore();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 126f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 126f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 126f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 126f, 40f), SubPic_125.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Save();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 126f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Restore();
 		canvas.Save();
 		canvas.ClipRect(new SKRect(0f, 0f, 126f, 40f), SKClipOperation.Intersect, antialias: true);
-		SubPic_126.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 126f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 126f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 126f, 40f), SubPic_126.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Save();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 126f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Save();
@@ -1952,7 +3069,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			337f, 1877f, 0f, 1f // col 3
 		));
-		if (textBlobTable[24] is { } b11636) canvas.DrawText(b11636, 0f, 0f, paintTable[34]);
+		if (textBlobTable[24] is { } b_11636) canvas.DrawText(b_11636, 0f, 0f, paintTable[34]);
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
@@ -1968,7 +3085,10 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			309f, 1921f, 0f, 1f // col 3
 		));
-		SubPic_127.Draw(canvas);
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 666f, 50f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 666f, 50f), SubPic_127.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -1977,7 +3097,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			325f, 1937f, 0f, 1f // col 3
 		));
-		if (textBlobTable[25] is { } b11836) canvas.DrawText(b11836, 0f, 0f, paintTable[35]);
+		if (textBlobTable[25] is { } b_11836) canvas.DrawText(b_11836, 0f, 0f, paintTable[35]);
 		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
@@ -1987,10 +3107,19 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			875f, 1921f, 0f, 1f // col 3
 		));
-		SubPic_128.Draw(canvas);
 		canvas.Save();
 		canvas.ClipRect(new SKRect(0f, 0f, 50f, 50f), SKClipOperation.Intersect, antialias: true);
-		SubPic_129.Draw(canvas);
+		canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), SubPic_128.paintTable[1]);
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 50f, 50f), SKClipOperation.Intersect, antialias: true);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), SubPic_129.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Save();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Save();
@@ -2001,7 +3130,19 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			891f, 1935f, 0f, 1f // col 3
 		));
-		SubPic_130.Draw(canvas);
+		canvas.Save();
+		// CONCAT44 (SkM44, column-major):
+		canvas.Concat(new SKMatrix44(
+			1f, 0f, 0f, 0f,   // col 0
+			0f, 1f, 0f, 0f,   // col 1
+			0f, 0f, 1f, 0f, // col 2
+			-3f, -1f, 0f, 1f // col 3
+		));
+		canvas.Save();
+		canvas.ClipPath(SubPic_130.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(3f, 1f, 22f, 23f), SubPic_130.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
@@ -2014,10 +3155,19 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			925f, 1921f, 0f, 1f // col 3
 		));
-		SubPic_131.Draw(canvas);
 		canvas.Save();
 		canvas.ClipRect(new SKRect(0f, 0f, 50f, 50f), SKClipOperation.Intersect, antialias: true);
-		SubPic_132.Draw(canvas);
+		canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), SubPic_131.paintTable[1]);
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 50f, 50f), SKClipOperation.Intersect, antialias: true);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), SubPic_132.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Save();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Save();
@@ -2028,7 +3178,19 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			940f, 1940f, 0f, 1f // col 3
 		));
-		SubPic_133.Draw(canvas);
+		canvas.Save();
+		// CONCAT44 (SkM44, column-major):
+		canvas.Concat(new SKMatrix44(
+			1f, 0f, 0f, 0f,   // col 0
+			0f, 1f, 0f, 0f,   // col 1
+			0f, 0f, 1f, 0f, // col 2
+			-2f, -6f, 0f, 1f // col 3
+		));
+		canvas.Save();
+		canvas.ClipPath(SubPic_133.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(2f, 6f, 22f, 18f), SubPic_133.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
@@ -2044,7 +3206,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			308f, 1988f, 0f, 1f // col 3
 		));
-		if (textBlobTable[26] is { } b12504) canvas.DrawText(b12504, 0f, 0f, paintTable[36]);
+		if (textBlobTable[26] is { } b_12504) canvas.DrawText(b_12504, 0f, 0f, paintTable[36]);
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -2053,7 +3215,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			308f, 2030f, 0f, 1f // col 3
 		));
-		if (textBlobTable[27] is { } b12596) canvas.DrawText(b12596, 0f, 0f, paintTable[37]);
+		if (textBlobTable[27] is { } b_12596) canvas.DrawText(b_12596, 0f, 0f, paintTable[37]);
 		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
@@ -2063,7 +3225,10 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			308f, 2096f, 0f, 1f // col 3
 		));
-		SubPic_134.Draw(canvas);
+		canvas.Save();
+		canvas.ClipPath(SubPic_134.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 668f, 184f), SubPic_134.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -2072,7 +3237,10 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			309f, 2097f, 0f, 1f // col 3
 		));
-		SubPic_135.Draw(canvas);
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 666f, 132f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 666f, 132f), SubPic_135.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -2083,7 +3251,17 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 		));
 		canvas.Save();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 40f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-		SubPic_136.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 40f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 40f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 40f, 40f), SubPic_136.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipPath(SubPic_136.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 40f, 40f), SubPic_136.paintTable[2]);
+		canvas.Restore();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 40f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
@@ -2093,8 +3271,11 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			335f, 2123f, 0f, 1f // col 3
 		));
-		SubPic_137.Draw(canvas);
-		if (textBlobTable[28] is { } b13064) canvas.DrawText(b13064, 0f, 0f, paintTable[38]);
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 20f, 20f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 20f, 20f), SubPic_137.paintTable[1]);
+		canvas.Restore();
+		if (textBlobTable[28] is { } b_13064) canvas.DrawText(b_13064, 0f, 0f, paintTable[38]);
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Save();
@@ -2107,7 +3288,17 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 		));
 		canvas.Save();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 40f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-		SubPic_138.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 40f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 40f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 40f, 40f), SubPic_138.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipPath(SubPic_138.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 40f, 40f), SubPic_138.paintTable[2]);
+		canvas.Restore();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 40f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
@@ -2117,8 +3308,11 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			335f, 2183f, 0f, 1f // col 3
 		));
-		SubPic_139.Draw(canvas);
-		if (textBlobTable[29] is { } b13376) canvas.DrawText(b13376, 0f, 0f, paintTable[39]);
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 20f, 20f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 20f, 20f), SubPic_139.paintTable[1]);
+		canvas.Restore();
+		if (textBlobTable[29] is { } b_13376) canvas.DrawText(b_13376, 0f, 0f, paintTable[39]);
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
@@ -2132,7 +3326,10 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			309f, 2229f, 0f, 1f // col 3
 		));
-		SubPic_140.Draw(canvas);
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 666f, 50f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 666f, 50f), SubPic_140.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -2141,7 +3338,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			325f, 2245f, 0f, 1f // col 3
 		));
-		if (textBlobTable[30] is { } b13568) canvas.DrawText(b13568, 0f, 0f, paintTable[40]);
+		if (textBlobTable[30] is { } b_13568) canvas.DrawText(b_13568, 0f, 0f, paintTable[40]);
 		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
@@ -2151,10 +3348,19 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			875f, 2229f, 0f, 1f // col 3
 		));
-		SubPic_141.Draw(canvas);
 		canvas.Save();
 		canvas.ClipRect(new SKRect(0f, 0f, 50f, 50f), SKClipOperation.Intersect, antialias: true);
-		SubPic_142.Draw(canvas);
+		canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), SubPic_141.paintTable[1]);
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 50f, 50f), SKClipOperation.Intersect, antialias: true);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), SubPic_142.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Save();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Save();
@@ -2165,7 +3371,19 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			891f, 2243f, 0f, 1f // col 3
 		));
-		SubPic_143.Draw(canvas);
+		canvas.Save();
+		// CONCAT44 (SkM44, column-major):
+		canvas.Concat(new SKMatrix44(
+			1f, 0f, 0f, 0f,   // col 0
+			0f, 1f, 0f, 0f,   // col 1
+			0f, 0f, 1f, 0f, // col 2
+			-3f, -1f, 0f, 1f // col 3
+		));
+		canvas.Save();
+		canvas.ClipPath(SubPic_143.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(3f, 1f, 22f, 23f), SubPic_143.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
@@ -2178,10 +3396,19 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			925f, 2229f, 0f, 1f // col 3
 		));
-		SubPic_144.Draw(canvas);
 		canvas.Save();
 		canvas.ClipRect(new SKRect(0f, 0f, 50f, 50f), SKClipOperation.Intersect, antialias: true);
-		SubPic_145.Draw(canvas);
+		canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), SubPic_144.paintTable[1]);
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 50f, 50f), SKClipOperation.Intersect, antialias: true);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), SubPic_145.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Save();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Save();
@@ -2192,7 +3419,19 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			940f, 2248f, 0f, 1f // col 3
 		));
-		SubPic_146.Draw(canvas);
+		canvas.Save();
+		// CONCAT44 (SkM44, column-major):
+		canvas.Concat(new SKMatrix44(
+			1f, 0f, 0f, 0f,   // col 0
+			0f, 1f, 0f, 0f,   // col 1
+			0f, 0f, 1f, 0f, // col 2
+			-2f, -6f, 0f, 1f // col 3
+		));
+		canvas.Save();
+		canvas.ClipPath(SubPic_146.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(2f, 6f, 22f, 18f), SubPic_146.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
@@ -2221,8 +3460,14 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			260f, 68f, 0f, 1f // col 3
 		));
-		SubPic_147.Draw(canvas);
-		SubPic_148.Draw(canvas);
+		canvas.Save();
+		canvas.ClipPath(SubPic_147.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 764f, 0f), SubPic_147.paintTable[1]);
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipPath(SubPic_148.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 764f, 0f), SubPic_148.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
 		canvas.Restore();
@@ -2231,12 +3476,18 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 		StateEpilogue(canvas);
 	}
 
-	// Partition 2: 419 body op(s)
+	// Partition 2: 92 body op(s)
 	private static void DrawPartition2(SKCanvas canvas)
 	{
 		StatePrologue(canvas);
-		SubPic_149.Draw(canvas);
-		SubPic_150.Draw(canvas);
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 260f, 640f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 260f, 640f), SubPic_149.paintTable[1]);
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipPath(SubPic_150.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 260f, 640f), SubPic_150.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -2253,7 +3504,16 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			56f, 8f, 0f, 1f // col 3
 		));
-		SubPic_151.Draw(canvas);
+		canvas.Save();
+		// CONCAT44 (SkM44, column-major):
+		canvas.Concat(new SKMatrix44(
+			0.986666679f, 0f, 0f, 0f,   // col 0
+			0f, 0.990099013f, 0f, 0f,   // col 1
+			0f, 0f, 1f, 0f, // col 2
+			0f, 0f, 0f, 1f // col 3
+		));
+		// DRAW_IMAGE_RECT2 idx=0 (null image) skipped
+		canvas.Restore();
 		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
@@ -2265,7 +3525,26 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 		));
 		canvas.Save();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 60f, 40f), new[] { new SKPoint(20.5f, 20f), new SKPoint(20.5f, 20f), new SKPoint(20.5f, 20f), new SKPoint(20.5f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-		SubPic_152.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(1f, 1f, 59f, 39f), new[] { new SKPoint(19f, 19f), new SKPoint(19f, 19f), new SKPoint(19f, 19f), new SKPoint(19f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		// CONCAT44 (SkM44, column-major):
+		canvas.Concat(new SKMatrix44(
+			1f, 0f, 0f, 0f,   // col 0
+			0f, 1f, 0f, 0f,   // col 1
+			0f, 0f, 1f, 0f, // col 2
+			1f, 1f, 0f, 1f // col 3
+		));
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 58f, 38f), new[] { new SKPoint(19f, 19f), new SKPoint(19f, 19f), new SKPoint(19f, 19f), new SKPoint(19f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 58f, 38f), SubPic_152.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipPath(SubPic_152.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 60f, 40f), SubPic_152.paintTable[2]);
+		canvas.Restore();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(1f, 1f, 59f, 39f), new[] { new SKPoint(19f, 19f), new SKPoint(19f, 19f), new SKPoint(19f, 19f), new SKPoint(19f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
@@ -2275,7 +3554,13 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			192f, 9f, 0f, 1f // col 3
 		));
-		SubPic_153.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 58f, 38f), new[] { new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 58f, 38f), new[] { new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 58f, 38f), SubPic_153.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 58f, 38f), new[] { new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Restore();
 		canvas.Save();
@@ -2287,7 +3572,13 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			192f, 9f, 0f, 1f // col 3
 		));
 		canvas.ClipRect(new SKRect(0f, 0f, 58f, 38f), SKClipOperation.Intersect, antialias: true);
-		SubPic_154.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 58f, 38f), new[] { new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 58f, 38f), new[] { new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 58f, 38f), SubPic_154.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Save();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 58f, 38f), new[] { new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Save();
@@ -2306,8 +3597,11 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			211f, 18f, 0f, 1f // col 3
 		));
-		SubPic_155.Draw(canvas);
-		if (textBlobTable[31] is { } b15220) canvas.DrawText(b15220, 0f, 0f, paintTable[41]);
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 20f, 20f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 20f, 20f), SubPic_155.paintTable[1]);
+		canvas.Restore();
+		if (textBlobTable[31] is { } b_15220) canvas.DrawText(b_15220, 0f, 0f, paintTable[41]);
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
@@ -2324,7 +3618,10 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 		));
 		canvas.Save();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 60f, 30f), new[] { new SKPoint(16f, 15f), new SKPoint(16f, 15f), new SKPoint(16f, 15f), new SKPoint(16f, 15f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-		SubPic_156.Draw(canvas);
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 60f, 30f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 60f, 30f), SubPic_156.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -2333,11 +3630,21 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			195f, 81f, 0f, 1f // col 3
 		));
-		SubPic_157.Draw(canvas);
+		canvas.Save();
+		canvas.ClipPath(SubPic_157.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(1f, 1f, 23f, 23f), SubPic_157.paintTable[1]);
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
+		canvas.Restore();
+		StateEpilogue(canvas);
+	}
+
+	// Partition 3: 76 body op(s)
+	private static void DrawPartition3(SKCanvas canvas)
+	{
+		StatePrologue(canvas);
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -2357,7 +3664,26 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 		));
 		canvas.Save();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 33f), new[] { new SKPoint(4.5f, 4.5f), new SKPoint(4.5f, 4.5f), new SKPoint(4.5f, 4.5f), new SKPoint(4.5f, 4.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-		SubPic_158.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(1f, 1f, 242f, 32f), new[] { new SKPoint(3.5f, 3.5f), new SKPoint(3.5f, 3.5f), new SKPoint(3.5f, 3.5f), new SKPoint(3.5f, 3.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		// CONCAT44 (SkM44, column-major):
+		canvas.Concat(new SKMatrix44(
+			1f, 0f, 0f, 0f,   // col 0
+			0f, 1f, 0f, 0f,   // col 1
+			0f, 0f, 1f, 0f, // col 2
+			1f, 1f, 0f, 1f // col 3
+		));
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 241f, 31f), new[] { new SKPoint(3.5f, 3.5f), new SKPoint(3.5f, 3.5f), new SKPoint(3.5f, 3.5f), new SKPoint(3.5f, 3.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 241f, 31f), SubPic_158.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipPath(SubPic_158.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 243f, 33f), SubPic_158.paintTable[2]);
+		canvas.Restore();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(1f, 1f, 242f, 32f), new[] { new SKPoint(3.5f, 3.5f), new SKPoint(3.5f, 3.5f), new SKPoint(3.5f, 3.5f), new SKPoint(3.5f, 3.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Restore();
 		canvas.Save();
@@ -2368,8 +3694,14 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			9f, 141f, 0f, 1f // col 3
 		));
-		SubPic_159.Draw(canvas);
-		SubPic_160.Draw(canvas);
+		canvas.Save();
+		canvas.ClipPath(SubPic_159.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 203f, 31f), SubPic_159.paintTable[1]);
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 203f, 31f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 203f, 31f), SubPic_160.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -2397,7 +3729,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			19f, 146f, 0f, 1f // col 3
 		));
-		if (textBlobTable[32] is { } b16128) canvas.DrawText(b16128, 0f, 0f, paintTable[42]);
+		if (textBlobTable[32] is { } b_16128) canvas.DrawText(b_16128, 0f, 0f, paintTable[42]);
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Save();
@@ -2417,7 +3749,17 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			216f, 145f, 0f, 1f // col 3
 		));
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 30f, 22f), new[] { new SKPoint(4.5f, 4.5f), new SKPoint(4.5f, 4.5f), new SKPoint(4.5f, 4.5f), new SKPoint(4.5f, 4.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-		SubPic_161.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 30f, 22f), new[] { new SKPoint(4.5f, 4.5f), new SKPoint(4.5f, 4.5f), new SKPoint(4.5f, 4.5f), new SKPoint(4.5f, 4.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 30f, 22f), new[] { new SKPoint(4.5f, 4.5f), new SKPoint(4.5f, 4.5f), new SKPoint(4.5f, 4.5f), new SKPoint(4.5f, 4.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 30f, 22f), SubPic_161.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipPath(SubPic_161.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 30f, 22f), SubPic_161.paintTable[2]);
+		canvas.Restore();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(1f, 1f, 29f, 21f), new[] { new SKPoint(3.5f, 3.5f), new SKPoint(3.5f, 3.5f), new SKPoint(3.5f, 3.5f), new SKPoint(3.5f, 3.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
@@ -2427,8 +3769,11 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			226f, 150f, 0f, 1f // col 3
 		));
-		SubPic_162.Draw(canvas);
-		if (textBlobTable[33] is { } b16508) canvas.DrawText(b16508, 0f, 0f, paintTable[43]);
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 12f, 12f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 12f, 12f), SubPic_162.paintTable[1]);
+		canvas.Restore();
+		if (textBlobTable[33] is { } b_16508) canvas.DrawText(b_16508, 0f, 0f, paintTable[43]);
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
@@ -2442,6 +3787,13 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 181f, 0f, 1f // col 3
 		));
 		canvas.Restore();
+		StateEpilogue(canvas);
+	}
+
+	// Partition 4: 504 body op(s)
+	private static void DrawPartition4(SKCanvas canvas)
+	{
+		StatePrologue(canvas);
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -2450,8 +3802,14 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			0f, 189f, 0f, 1f // col 3
 		));
-		SubPic_163.Draw(canvas);
-		SubPic_164.Draw(canvas);
+		canvas.Save();
+		canvas.ClipPath(SubPic_163.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 259f, 280f), SubPic_163.paintTable[1]);
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 259f, 280f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 259f, 280f), SubPic_164.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		canvas.ClipRect(new SKRect(0f, 0f, 259f, 280f), SKClipOperation.Intersect, antialias: true);
 		canvas.Save();
@@ -2462,10 +3820,19 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			8f, 191f, 0f, 1f // col 3
 		));
-		SubPic_165.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 243f, 36f), SubPic_165.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Restore();
-		SubPic_166.Draw(canvas);
+		canvas.Save();
+		canvas.ClipPath(SubPic_166.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 259f, 40f), SubPic_166.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -2476,7 +3843,13 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 		));
 		canvas.Save();
 		canvas.ClipRect(new SKRect(0f, 0f, 243f, 36f), SKClipOperation.Intersect, antialias: true);
-		SubPic_167.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 243f, 36f), SubPic_167.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Save();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Restore();
@@ -2507,8 +3880,11 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			12f, 201f, 0f, 1f // col 3
 		));
-		SubPic_168.Draw(canvas);
-		if (textBlobTable[34] is { } b17308) canvas.DrawText(b17308, 0f, 0f, paintTable[44]);
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 20f, 20f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 20f, 20f), SubPic_168.paintTable[1]);
+		canvas.Restore();
+		if (textBlobTable[34] is { } b_17308) canvas.DrawText(b_17308, 0f, 0f, paintTable[44]);
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Save();
@@ -2527,7 +3903,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			48f, 199f, 0f, 1f // col 3
 		));
-		if (textBlobTable[35] is { } b17480) canvas.DrawText(b17480, 0f, 0f, paintTable[45]);
+		if (textBlobTable[35] is { } b_17480) canvas.DrawText(b_17480, 0f, 0f, paintTable[45]);
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Save();
@@ -2546,10 +3922,19 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			8f, 231f, 0f, 1f // col 3
 		));
-		SubPic_169.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 243f, 36f), SubPic_169.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Restore();
-		SubPic_170.Draw(canvas);
+		canvas.Save();
+		canvas.ClipPath(SubPic_170.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 259f, 40f), SubPic_170.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -2560,7 +3945,13 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 		));
 		canvas.Save();
 		canvas.ClipRect(new SKRect(0f, 0f, 243f, 36f), SKClipOperation.Intersect, antialias: true);
-		SubPic_171.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 243f, 36f), SubPic_171.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Save();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Restore();
@@ -2591,8 +3982,11 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			12f, 241f, 0f, 1f // col 3
 		));
-		SubPic_172.Draw(canvas);
-		if (textBlobTable[36] is { } b18148) canvas.DrawText(b18148, 0f, 0f, paintTable[46]);
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 20f, 20f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 20f, 20f), SubPic_172.paintTable[1]);
+		canvas.Restore();
+		if (textBlobTable[36] is { } b_18148) canvas.DrawText(b_18148, 0f, 0f, paintTable[46]);
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Save();
@@ -2611,7 +4005,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			48f, 239f, 0f, 1f // col 3
 		));
-		if (textBlobTable[37] is { } b18320) canvas.DrawText(b18320, 0f, 0f, paintTable[47]);
+		if (textBlobTable[37] is { } b_18320) canvas.DrawText(b_18320, 0f, 0f, paintTable[47]);
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Save();
@@ -2622,7 +4016,10 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			213f, 229f, 0f, 1f // col 3
 		));
-		SubPic_173.Draw(canvas);
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 40f, 40f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 40f, 40f), SubPic_173.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -2631,7 +4028,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			227f, 243f, 0f, 1f // col 3
 		));
-		if (textBlobTable[38] is { } b18500) canvas.DrawText(b18500, 0f, 0f, paintTable[48]);
+		if (textBlobTable[38] is { } b_18500) canvas.DrawText(b_18500, 0f, 0f, paintTable[48]);
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
@@ -2651,10 +4048,19 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			8f, 271f, 0f, 1f // col 3
 		));
-		SubPic_174.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 243f, 36f), SubPic_174.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Restore();
-		SubPic_175.Draw(canvas);
+		canvas.Save();
+		canvas.ClipPath(SubPic_175.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 259f, 40f), SubPic_175.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -2665,7 +4071,13 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 		));
 		canvas.Save();
 		canvas.ClipRect(new SKRect(0f, 0f, 243f, 36f), SKClipOperation.Intersect, antialias: true);
-		SubPic_176.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 243f, 36f), SubPic_176.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Save();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Restore();
@@ -2696,8 +4108,11 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			12f, 281f, 0f, 1f // col 3
 		));
-		SubPic_177.Draw(canvas);
-		if (textBlobTable[39] is { } b19172) canvas.DrawText(b19172, 0f, 0f, paintTable[49]);
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 20f, 20f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 20f, 20f), SubPic_177.paintTable[1]);
+		canvas.Restore();
+		if (textBlobTable[39] is { } b_19172) canvas.DrawText(b_19172, 0f, 0f, paintTable[49]);
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Save();
@@ -2716,7 +4131,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			48f, 279f, 0f, 1f // col 3
 		));
-		if (textBlobTable[40] is { } b19344) canvas.DrawText(b19344, 0f, 0f, paintTable[50]);
+		if (textBlobTable[40] is { } b_19344) canvas.DrawText(b_19344, 0f, 0f, paintTable[50]);
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Save();
@@ -2727,7 +4142,10 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			213f, 269f, 0f, 1f // col 3
 		));
-		SubPic_178.Draw(canvas);
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 40f, 40f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 40f, 40f), SubPic_178.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -2736,7 +4154,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			227f, 283f, 0f, 1f // col 3
 		));
-		if (textBlobTable[41] is { } b19524) canvas.DrawText(b19524, 0f, 0f, paintTable[51]);
+		if (textBlobTable[41] is { } b_19524) canvas.DrawText(b_19524, 0f, 0f, paintTable[51]);
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
@@ -2756,10 +4174,19 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			8f, 311f, 0f, 1f // col 3
 		));
-		SubPic_179.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 243f, 36f), SubPic_179.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Restore();
-		SubPic_180.Draw(canvas);
+		canvas.Save();
+		canvas.ClipPath(SubPic_180.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 259f, 40f), SubPic_180.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -2770,7 +4197,13 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 		));
 		canvas.Save();
 		canvas.ClipRect(new SKRect(0f, 0f, 243f, 36f), SKClipOperation.Intersect, antialias: true);
-		SubPic_181.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 243f, 36f), SubPic_181.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Save();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Restore();
@@ -2801,8 +4234,11 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			12f, 321f, 0f, 1f // col 3
 		));
-		SubPic_182.Draw(canvas);
-		if (textBlobTable[42] is { } b20196) canvas.DrawText(b20196, 0f, 0f, paintTable[52]);
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 20f, 20f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 20f, 20f), SubPic_182.paintTable[1]);
+		canvas.Restore();
+		if (textBlobTable[42] is { } b_20196) canvas.DrawText(b_20196, 0f, 0f, paintTable[52]);
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Save();
@@ -2821,7 +4257,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			48f, 319f, 0f, 1f // col 3
 		));
-		if (textBlobTable[43] is { } b20368) canvas.DrawText(b20368, 0f, 0f, paintTable[53]);
+		if (textBlobTable[43] is { } b_20368) canvas.DrawText(b_20368, 0f, 0f, paintTable[53]);
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Save();
@@ -2832,7 +4268,10 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			213f, 309f, 0f, 1f // col 3
 		));
-		SubPic_183.Draw(canvas);
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 40f, 40f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 40f, 40f), SubPic_183.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -2841,7 +4280,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			227f, 323f, 0f, 1f // col 3
 		));
-		if (textBlobTable[44] is { } b20548) canvas.DrawText(b20548, 0f, 0f, paintTable[54]);
+		if (textBlobTable[44] is { } b_20548) canvas.DrawText(b_20548, 0f, 0f, paintTable[54]);
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
@@ -2861,10 +4300,19 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			8f, 351f, 0f, 1f // col 3
 		));
-		SubPic_184.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 243f, 36f), SubPic_184.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Restore();
-		SubPic_185.Draw(canvas);
+		canvas.Save();
+		canvas.ClipPath(SubPic_185.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 259f, 40f), SubPic_185.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -2875,7 +4323,13 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 		));
 		canvas.Save();
 		canvas.ClipRect(new SKRect(0f, 0f, 243f, 36f), SKClipOperation.Intersect, antialias: true);
-		SubPic_186.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 243f, 36f), SubPic_186.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Save();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Restore();
@@ -2906,8 +4360,11 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			12f, 361f, 0f, 1f // col 3
 		));
-		SubPic_187.Draw(canvas);
-		if (textBlobTable[45] is { } b21220) canvas.DrawText(b21220, 0f, 0f, paintTable[55]);
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 20f, 20f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 20f, 20f), SubPic_187.paintTable[1]);
+		canvas.Restore();
+		if (textBlobTable[45] is { } b_21220) canvas.DrawText(b_21220, 0f, 0f, paintTable[55]);
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Save();
@@ -2926,7 +4383,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			48f, 359f, 0f, 1f // col 3
 		));
-		if (textBlobTable[46] is { } b21392) canvas.DrawText(b21392, 0f, 0f, paintTable[56]);
+		if (textBlobTable[46] is { } b_21392) canvas.DrawText(b_21392, 0f, 0f, paintTable[56]);
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Save();
@@ -2937,7 +4394,10 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			213f, 349f, 0f, 1f // col 3
 		));
-		SubPic_188.Draw(canvas);
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 40f, 40f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 40f, 40f), SubPic_188.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -2946,7 +4406,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			227f, 363f, 0f, 1f // col 3
 		));
-		if (textBlobTable[47] is { } b21572) canvas.DrawText(b21572, 0f, 0f, paintTable[57]);
+		if (textBlobTable[47] is { } b_21572) canvas.DrawText(b_21572, 0f, 0f, paintTable[57]);
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
@@ -2966,10 +4426,19 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			8f, 391f, 0f, 1f // col 3
 		));
-		SubPic_189.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 243f, 36f), SubPic_189.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Restore();
-		SubPic_190.Draw(canvas);
+		canvas.Save();
+		canvas.ClipPath(SubPic_190.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 259f, 40f), SubPic_190.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -2980,7 +4449,13 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 		));
 		canvas.Save();
 		canvas.ClipRect(new SKRect(0f, 0f, 243f, 36f), SKClipOperation.Intersect, antialias: true);
-		SubPic_191.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 243f, 36f), SubPic_191.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Save();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Restore();
@@ -3011,8 +4486,11 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			12f, 401f, 0f, 1f // col 3
 		));
-		SubPic_192.Draw(canvas);
-		if (textBlobTable[48] is { } b22244) canvas.DrawText(b22244, 0f, 0f, paintTable[58]);
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 20f, 20f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 20f, 20f), SubPic_192.paintTable[1]);
+		canvas.Restore();
+		if (textBlobTable[48] is { } b_22244) canvas.DrawText(b_22244, 0f, 0f, paintTable[58]);
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Save();
@@ -3031,7 +4509,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			48f, 399f, 0f, 1f // col 3
 		));
-		if (textBlobTable[49] is { } b22416) canvas.DrawText(b22416, 0f, 0f, paintTable[59]);
+		if (textBlobTable[49] is { } b_22416) canvas.DrawText(b_22416, 0f, 0f, paintTable[59]);
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Save();
@@ -3042,7 +4520,10 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			213f, 389f, 0f, 1f // col 3
 		));
-		SubPic_193.Draw(canvas);
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 40f, 40f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 40f, 40f), SubPic_193.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -3051,7 +4532,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			227f, 403f, 0f, 1f // col 3
 		));
-		if (textBlobTable[50] is { } b22596) canvas.DrawText(b22596, 0f, 0f, paintTable[60]);
+		if (textBlobTable[50] is { } b_22596) canvas.DrawText(b_22596, 0f, 0f, paintTable[60]);
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
@@ -3071,10 +4552,19 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			8f, 431f, 0f, 1f // col 3
 		));
-		SubPic_194.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 243f, 36f), SubPic_194.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Restore();
-		SubPic_195.Draw(canvas);
+		canvas.Save();
+		canvas.ClipPath(SubPic_195.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 259f, 40f), SubPic_195.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -3085,7 +4575,13 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 		));
 		canvas.Save();
 		canvas.ClipRect(new SKRect(0f, 0f, 243f, 36f), SKClipOperation.Intersect, antialias: true);
-		SubPic_196.Draw(canvas);
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.Save();
+		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
+		canvas.DrawRect(new SKRect(0f, 0f, 243f, 36f), SubPic_196.paintTable[1]);
+		canvas.Restore();
+		canvas.Restore();
 		canvas.Save();
 		using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
 		canvas.Restore();
@@ -3116,8 +4612,11 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			12f, 441f, 0f, 1f // col 3
 		));
-		SubPic_197.Draw(canvas);
-		if (textBlobTable[51] is { } b23268) canvas.DrawText(b23268, 0f, 0f, paintTable[61]);
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 20f, 20f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 20f, 20f), SubPic_197.paintTable[1]);
+		canvas.Restore();
+		if (textBlobTable[51] is { } b_23268) canvas.DrawText(b_23268, 0f, 0f, paintTable[61]);
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Save();
@@ -3136,7 +4635,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			48f, 439f, 0f, 1f // col 3
 		));
-		if (textBlobTable[52] is { } b23440) canvas.DrawText(b23440, 0f, 0f, paintTable[62]);
+		if (textBlobTable[52] is { } b_23440) canvas.DrawText(b_23440, 0f, 0f, paintTable[62]);
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Save();
@@ -3147,7 +4646,10 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			213f, 429f, 0f, 1f // col 3
 		));
-		SubPic_198.Draw(canvas);
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 40f, 40f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 40f, 40f), SubPic_198.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -3156,7 +4658,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			227f, 443f, 0f, 1f // col 3
 		));
-		if (textBlobTable[53] is { } b23620) canvas.DrawText(b23620, 0f, 0f, paintTable[63]);
+		if (textBlobTable[53] is { } b_23620) canvas.DrawText(b_23620, 0f, 0f, paintTable[63]);
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
@@ -3178,8 +4680,14 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			0f, 592f, 0f, 1f // col 3
 		));
-		SubPic_199.Draw(canvas);
-		SubPic_200.Draw(canvas);
+		canvas.Save();
+		canvas.ClipPath(SubPic_199.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 259f, 40f), SubPic_199.paintTable[1]);
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 259f, 40f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 259f, 40f), SubPic_200.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		canvas.ClipRect(new SKRect(0f, 0f, 259f, 40f), SKClipOperation.Intersect, antialias: true);
 		canvas.Restore();
@@ -3194,13 +4702,6 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 		canvas.Restore();
 		canvas.Restore();
 		canvas.Restore();
-		StateEpilogue(canvas);
-	}
-
-	// Partition 3: 13 body op(s)
-	private static void DrawPartition3(SKCanvas canvas)
-	{
-		StatePrologue(canvas);
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -3209,9 +4710,15 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			259f, 0f, 0f, 1f // col 3
 		));
-		SubPic_201.Draw(canvas);
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 1f, 640f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 1f, 640f), SubPic_201.paintTable[1]);
 		canvas.Restore();
-		SubPic_202.Draw(canvas);
+		canvas.Restore();
+		canvas.Save();
+		canvas.ClipRect(new SKRect(0f, 0f, 40f, 40f), SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 40f, 40f), SubPic_202.paintTable[1]);
+		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
 		canvas.SetMatrix(new SKMatrix44(
@@ -3220,7 +4727,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			0f, 0f, 1f, 0f, // col 2
 			12f, 12f, 0f, 1f // col 3
 		));
-		if (textBlobTable[54] is { } b24104) canvas.DrawText(b24104, 0f, 0f, paintTable[64]);
+		if (textBlobTable[54] is { } b_24104) canvas.DrawText(b_24104, 0f, 0f, paintTable[64]);
 		canvas.Restore();
 		canvas.Save();
 		// SET_M44 (SkM44, column-major):
@@ -3231,14 +4738,17 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			40f, 0f, 0f, 1f // col 3
 		));
 		canvas.Restore();
-		SubPic_203.Draw(canvas);
+		canvas.Save();
+		canvas.ClipPath(SubPic_203.pathTable[1], SKClipOperation.Intersect, antialias: true);
+		canvas.DrawRect(new SKRect(0f, 0f, 40f, 40f), SubPic_203.paintTable[1]);
+		canvas.Restore();
 		StateEpilogue(canvas);
 	}
 
 	// Sub-picture 1 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_1
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -3246,7 +4756,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 255), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -3254,7 +4764,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -3262,7 +4772,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -3271,19 +4781,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 1024f, 640f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 1024f, 640f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 2 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_2
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -3291,7 +4794,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 255), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -3299,7 +4802,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -3307,7 +4810,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -3316,19 +4819,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 1024f, 640f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 1024f, 640f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 3 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_3
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -3336,7 +4832,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 255), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -3344,7 +4840,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -3352,7 +4848,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -3361,19 +4857,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 764f, 640f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 764f, 640f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 4 — cull (-536870880, -536870880, 536870880, 536870880); 48 op bytes; 1 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_4
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -3381,7 +4870,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -3403,7 +4892,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -3411,7 +4900,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -3420,19 +4909,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 764f, 572f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 5 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_5
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -3440,7 +4922,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -3448,7 +4930,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -3456,7 +4938,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -3465,19 +4947,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 764f, 572f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 764f, 572f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 6 — cull (-536870880, -536870880, 536870880, 536870880); 48 op bytes; 1 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_6
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -3485,7 +4960,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -3507,7 +4982,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -3515,7 +4990,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -3524,19 +4999,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 668f, 43f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 7 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_7
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -3544,7 +5012,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -3552,7 +5020,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -3560,7 +5028,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -3569,19 +5037,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 668f, 43f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 668f, 43f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 8 — cull (-536870880, -536870880, 536870880, 536870880); 48 op bytes; 1 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_8
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -3589,7 +5050,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(28, 27, 31, 33), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -3611,7 +5072,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -3619,7 +5080,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -3628,19 +5089,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 668f, 43f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 9 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_9
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -3648,7 +5102,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -3656,7 +5110,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -3664,7 +5118,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -3673,19 +5127,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 107f, 42f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 107f, 42f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 10 — cull (-536870880, -536870880, 536870880, 536870880); 140 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_10
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -3693,7 +5140,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(0, 0, 0, 255), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -3701,7 +5148,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -3709,7 +5156,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -3718,25 +5165,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			// CONCAT44 (SkM44, column-major):
-			canvas.Concat(new SKMatrix44(
-				1f, 0f, 0f, 0f,   // col 0
-				0f, 1f, 0f, 0f,   // col 1
-				0f, 0f, 1f, 0f, // col 2
-				0f, 0f, 0f, 1f // col 3
-			));
-			// DRAW_IMAGE_RECT2 idx=0 (null image) skipped
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 11 — cull (-536870880, -536870880, 536870880, 536870880); 48 op bytes; 1 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_11
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -3744,7 +5178,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(89, 70, 210, 255), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -3766,7 +5200,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -3774,7 +5208,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -3783,19 +5217,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 107f, 42f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 12 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_12
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -3803,7 +5230,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -3811,7 +5238,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -3819,7 +5246,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -3828,19 +5255,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 87f, 42f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 87f, 42f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 13 — cull (-536870880, -536870880, 536870880, 536870880); 140 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_13
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -3849,7 +5269,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1].ColorFilter = SKColorFilter.CreateBlendMode(new SKColor(255, 255, 255, 204), (SKBlendMode)13);
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -3857,7 +5277,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -3865,7 +5285,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -3874,25 +5294,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			// CONCAT44 (SkM44, column-major):
-			canvas.Concat(new SKMatrix44(
-				1.14285719f, 0f, 0f, 0f,   // col 0
-				0f, 1.14285719f, 0f, 0f,   // col 1
-				0f, 0f, 1f, 0f, // col 2
-				0f, 0f, 0f, 1f // col 3
-			));
-			// DRAW_IMAGE_RECT2 idx=0 (null image) skipped
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 14 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_14
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -3900,7 +5307,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -3908,7 +5315,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -3916,7 +5323,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -3925,19 +5332,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 122f, 42f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 122f, 42f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 15 — cull (-536870880, -536870880, 536870880, 536870880); 140 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_15
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -3946,7 +5346,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1].ColorFilter = SKColorFilter.CreateBlendMode(new SKColor(255, 255, 255, 204), (SKBlendMode)13);
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -3954,7 +5354,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -3962,7 +5362,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -3971,25 +5371,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			// CONCAT44 (SkM44, column-major):
-			canvas.Concat(new SKMatrix44(
-				1f, 0f, 0f, 0f,   // col 0
-				0f, 1f, 0f, 0f,   // col 1
-				0f, 0f, 1f, 0f, // col 2
-				0f, 0f, 0f, 1f // col 3
-			));
-			// DRAW_IMAGE_RECT2 idx=0 (null image) skipped
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 16 — cull (-536870880, -536870880, 536870880, 536870880); 48 op bytes; 1 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_16
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -3997,7 +5384,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(28, 27, 31, 33), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -4019,7 +5406,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -4027,7 +5414,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -4036,19 +5423,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 668f, 244f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 17 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_17
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -4056,7 +5436,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(0, 29, 54, 25), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -4064,7 +5444,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -4072,7 +5452,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -4081,19 +5461,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 666f, 192f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 666f, 192f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 18 — cull (-536870880, -536870880, 536870880, 536870880); 632 op bytes; 1 paints; 0 paths; 0 images; 1 textblobs; 4 nested sub-pictures.
 	private static class SubPic_18
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -4101,7 +5474,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(89, 70, 210, 255), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -4109,7 +5482,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -4117,7 +5490,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -4138,55 +5511,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			SubPic_19.Draw(canvas);
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			SubPic_20.Draw(canvas);
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			SubPic_21.Draw(canvas);
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Restore();
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 115f, 39f), SKClipOperation.Intersect, antialias: true);
-			SubPic_22.Draw(canvas);
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			// SET_M44 (SkM44, column-major):
-			canvas.SetMatrix(new SKMatrix44(
-				1f, 0f, 0f, 0f,   // col 0
-				0f, 1f, 0f, 0f,   // col 1
-				0f, 0f, 1f, 0f, // col 2
-				16f, 11f, 0f, 1f // col 3
-			));
-			canvas.Save();
-			// SET_M44 (SkM44, column-major):
-			canvas.SetMatrix(new SKMatrix44(
-				1f, 0f, 0f, 0f,   // col 0
-				0f, 1f, 0f, 0f,   // col 1
-				0f, 0f, 1f, 0f, // col 2
-				24f, 11f, 0f, 1f // col 3
-			));
-			if (textBlobTable[1] is { } b588) canvas.DrawText(b588, 0f, 0f, paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 19 — cull (-536870880, -536870880, 536870880, 536870880); 208 op bytes; 2 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_19
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[3];
@@ -4195,7 +5525,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[2] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -4227,7 +5557,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -4235,7 +5565,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -4244,26 +5574,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 115f, 39f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 115f, 39f), paintTable[2]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 20 — cull (-536870880, -536870880, 536870880, 536870880); 208 op bytes; 2 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_20
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[3];
@@ -4272,7 +5588,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[2] = new SKPaint { Color = new SKColor(0, 0, 0, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -4304,7 +5620,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -4312,7 +5628,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -4321,26 +5637,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 115f, 39f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 115f, 39f), paintTable[2]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 21 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_21
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -4348,7 +5650,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -4356,7 +5658,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -4364,7 +5666,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -4373,22 +5675,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 115f, 39f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 22 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_22
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -4396,7 +5688,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -4404,7 +5696,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -4412,7 +5704,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -4421,22 +5713,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 115f, 39f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 23 — cull (-536870880, -536870880, 536870880, 536870880); 724 op bytes; 1 paints; 0 paths; 0 images; 1 textblobs; 6 nested sub-pictures.
 	private static class SubPic_23
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -4444,7 +5726,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(89, 70, 210, 255), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -4452,7 +5734,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -4460,7 +5742,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -4481,66 +5763,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 172f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			SubPic_24.Draw(canvas);
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 172f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 172f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			SubPic_25.Draw(canvas);
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 172f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			SubPic_26.Draw(canvas);
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 172f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Restore();
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 172f, 39f), SKClipOperation.Intersect, antialias: true);
-			SubPic_27.Draw(canvas);
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 172f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			// SET_M44 (SkM44, column-major):
-			canvas.SetMatrix(new SKMatrix44(
-				1f, 0f, 0f, 0f,   // col 0
-				0f, 1f, 0f, 0f,   // col 1
-				0f, 0f, 1f, 0f, // col 2
-				16f, 9f, 0f, 1f // col 3
-			));
-			SubPic_28.Draw(canvas);
-			SubPic_29.Draw(canvas);
-			canvas.Save();
-			// SET_M44 (SkM44, column-major):
-			canvas.SetMatrix(new SKMatrix44(
-				1f, 0f, 0f, 0f,   // col 0
-				0f, 1f, 0f, 0f,   // col 1
-				0f, 0f, 1f, 0f, // col 2
-				45f, 9f, 0f, 1f // col 3
-			));
-			canvas.Save();
-			// SET_M44 (SkM44, column-major):
-			canvas.SetMatrix(new SKMatrix44(
-				1f, 0f, 0f, 0f,   // col 0
-				0f, 1f, 0f, 0f,   // col 1
-				0f, 0f, 1f, 0f, // col 2
-				45f, 11f, 0f, 1f // col 3
-			));
-			if (textBlobTable[1] is { } b676) canvas.DrawText(b676, 0f, 0f, paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 24 — cull (-536870880, -536870880, 536870880, 536870880); 208 op bytes; 2 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_24
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[3];
@@ -4549,7 +5777,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[2] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -4581,7 +5809,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -4589,7 +5817,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -4598,26 +5826,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 172f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 172f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 172f, 39f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 172f, 39f), paintTable[2]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 25 — cull (-536870880, -536870880, 536870880, 536870880); 208 op bytes; 2 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_25
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[3];
@@ -4626,7 +5840,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[2] = new SKPaint { Color = new SKColor(0, 0, 0, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -4658,7 +5872,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -4666,7 +5880,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -4675,26 +5889,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 172f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 172f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 172f, 39f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 172f, 39f), paintTable[2]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 26 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_26
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -4702,7 +5902,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -4710,7 +5910,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -4718,7 +5918,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -4727,22 +5927,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 172f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 172f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 172f, 39f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 27 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_27
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -4750,7 +5940,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -4758,7 +5948,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -4766,7 +5956,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -4775,22 +5965,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 172f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 172f, 39f), new[] { new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f), new SKPoint(20f, 19.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 172f, 39f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 28 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_28
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -4798,7 +5978,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(0, 0, 0, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -4806,7 +5986,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -4814,7 +5994,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -4823,19 +6003,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 21f, 21f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 21f, 21f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 29 — cull (-536870880, -536870880, 536870880, 536870880); 48 op bytes; 1 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_29
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -4843,7 +6016,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(89, 70, 210, 255), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -4906,7 +6079,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -4914,7 +6087,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -4923,19 +6096,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(3f, 3f, 21f, 21f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 30 — cull (-536870880, -536870880, 536870880, 536870880); 632 op bytes; 1 paints; 0 paths; 0 images; 1 textblobs; 4 nested sub-pictures.
 	private static class SubPic_30
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -4943,7 +6109,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(28, 27, 31, 30), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -4951,7 +6117,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -4959,7 +6125,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -4980,55 +6146,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 182f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			SubPic_31.Draw(canvas);
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 182f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 182f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			SubPic_32.Draw(canvas);
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 182f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			SubPic_33.Draw(canvas);
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 182f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Restore();
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 182f, 40f), SKClipOperation.Intersect, antialias: true);
-			SubPic_34.Draw(canvas);
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 182f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			// SET_M44 (SkM44, column-major):
-			canvas.SetMatrix(new SKMatrix44(
-				1f, 0f, 0f, 0f,   // col 0
-				0f, 1f, 0f, 0f,   // col 1
-				0f, 0f, 1f, 0f, // col 2
-				16f, 12f, 0f, 1f // col 3
-			));
-			canvas.Save();
-			// SET_M44 (SkM44, column-major):
-			canvas.SetMatrix(new SKMatrix44(
-				1f, 0f, 0f, 0f,   // col 0
-				0f, 1f, 0f, 0f,   // col 1
-				0f, 0f, 1f, 0f, // col 2
-				24f, 12f, 0f, 1f // col 3
-			));
-			if (textBlobTable[1] is { } b588) canvas.DrawText(b588, 0f, 0f, paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 31 — cull (-536870880, -536870880, 536870880, 536870880); 208 op bytes; 2 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_31
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[3];
@@ -5037,7 +6160,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[2] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -5069,7 +6192,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -5077,7 +6200,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -5086,26 +6209,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 182f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 182f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 182f, 40f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 182f, 40f), paintTable[2]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 32 — cull (-536870880, -536870880, 536870880, 536870880); 208 op bytes; 2 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_32
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[3];
@@ -5114,7 +6223,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[2] = new SKPaint { Color = new SKColor(0, 0, 0, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -5146,7 +6255,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -5154,7 +6263,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -5163,26 +6272,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 182f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 182f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 182f, 40f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 182f, 40f), paintTable[2]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 33 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_33
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -5190,7 +6285,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -5198,7 +6293,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -5206,7 +6301,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -5215,22 +6310,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 182f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 182f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 182f, 40f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 34 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_34
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -5238,7 +6323,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -5246,7 +6331,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -5254,7 +6339,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -5263,22 +6348,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 182f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 182f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 182f, 40f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 35 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_35
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -5286,7 +6361,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(121, 116, 126, 127), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -5294,7 +6369,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -5302,7 +6377,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -5311,19 +6386,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 666f, 50f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 666f, 50f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 36 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_36
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -5331,7 +6399,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -5339,7 +6407,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -5347,7 +6415,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -5356,19 +6424,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 50f, 50f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 37 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_37
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -5376,7 +6437,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -5384,7 +6445,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -5392,7 +6453,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -5401,22 +6462,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 38 — cull (-536870880, -536870880, 536870880, 536870880); 124 op bytes; 1 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_38
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -5424,7 +6475,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(28, 27, 31, 163), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -5461,7 +6512,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -5469,7 +6520,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -5478,28 +6529,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			// CONCAT44 (SkM44, column-major):
-			canvas.Concat(new SKMatrix44(
-				1f, 0f, 0f, 0f,   // col 0
-				0f, 1f, 0f, 0f,   // col 1
-				0f, 0f, 1f, 0f, // col 2
-				-3f, -1f, 0f, 1f // col 3
-			));
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(3f, 1f, 22f, 23f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 39 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_39
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -5507,7 +6542,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -5515,7 +6550,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -5523,7 +6558,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -5532,19 +6567,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 50f, 50f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 40 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_40
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -5552,7 +6580,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -5560,7 +6588,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -5568,7 +6596,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -5577,22 +6605,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 41 — cull (-536870880, -536870880, 536870880, 536870880); 124 op bytes; 1 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_41
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -5600,7 +6618,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(28, 27, 31, 163), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -5628,7 +6646,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -5636,7 +6654,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -5645,28 +6663,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			// CONCAT44 (SkM44, column-major):
-			canvas.Concat(new SKMatrix44(
-				1f, 0f, 0f, 0f,   // col 0
-				0f, 1f, 0f, 0f,   // col 1
-				0f, 0f, 1f, 0f, // col 2
-				-2f, -6f, 0f, 1f // col 3
-			));
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(2f, 6f, 22f, 18f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 42 — cull (-536870880, -536870880, 536870880, 536870880); 48 op bytes; 1 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_42
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -5674,7 +6676,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(28, 27, 31, 33), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -5696,7 +6698,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -5704,7 +6706,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -5713,19 +6715,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 668f, 244f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 43 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_43
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -5733,7 +6728,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(0, 29, 54, 25), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -5741,7 +6736,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -5749,7 +6744,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -5758,19 +6753,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 666f, 192f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 666f, 192f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 44 — cull (-536870880, -536870880, 536870880, 536870880); 564 op bytes; 1 paints; 0 paths; 0 images; 1 textblobs; 4 nested sub-pictures.
 	private static class SubPic_44
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -5778,7 +6766,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 255), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -5786,7 +6774,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -5794,7 +6782,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -5815,52 +6803,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 92f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			SubPic_45.Draw(canvas);
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 92f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 92f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			SubPic_46.Draw(canvas);
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 92f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			SubPic_47.Draw(canvas);
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 92f, 40f), SKClipOperation.Intersect, antialias: true);
-			SubPic_48.Draw(canvas);
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 92f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			// SET_M44 (SkM44, column-major):
-			canvas.SetMatrix(new SKMatrix44(
-				1f, 0f, 0f, 0f,   // col 0
-				0f, 1f, 0f, 0f,   // col 1
-				0f, 0f, 1f, 0f, // col 2
-				16f, 12f, 0f, 1f // col 3
-			));
-			canvas.Save();
-			// SET_M44 (SkM44, column-major):
-			canvas.SetMatrix(new SKMatrix44(
-				1f, 0f, 0f, 0f,   // col 0
-				0f, 1f, 0f, 0f,   // col 1
-				0f, 0f, 1f, 0f, // col 2
-				24f, 12f, 0f, 1f // col 3
-			));
-			if (textBlobTable[1] is { } b520) canvas.DrawText(b520, 0f, 0f, paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 45 — cull (-536870880, -536870880, 536870880, 536870880); 208 op bytes; 2 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_45
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[3];
@@ -5869,7 +6817,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[2] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -5901,7 +6849,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -5909,7 +6857,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -5918,26 +6866,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 92f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 92f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 92f, 40f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 92f, 40f), paintTable[2]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 46 — cull (-536870880, -536870880, 536870880, 536870880); 208 op bytes; 2 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_46
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[3];
@@ -5946,7 +6880,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[2] = new SKPaint { Color = new SKColor(0, 0, 0, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -5978,7 +6912,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -5986,7 +6920,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -5995,26 +6929,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 92f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 92f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 92f, 40f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 92f, 40f), paintTable[2]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 47 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_47
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -6022,7 +6942,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -6030,7 +6950,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -6038,7 +6958,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -6047,19 +6967,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 92f, 40f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 92f, 40f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 48 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_48
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -6067,7 +6980,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -6075,7 +6988,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -6083,7 +6996,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -6092,22 +7005,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 92f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 92f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 92f, 40f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 49 — cull (-536870880, -536870880, 536870880, 536870880); 656 op bytes; 1 paints; 0 paths; 0 images; 1 textblobs; 6 nested sub-pictures.
 	private static class SubPic_49
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -6115,7 +7018,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 255), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -6123,7 +7026,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -6131,7 +7034,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -6152,63 +7055,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			SubPic_50.Draw(canvas);
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			SubPic_51.Draw(canvas);
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			SubPic_52.Draw(canvas);
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 115f, 40f), SKClipOperation.Intersect, antialias: true);
-			SubPic_53.Draw(canvas);
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			// SET_M44 (SkM44, column-major):
-			canvas.SetMatrix(new SKMatrix44(
-				1f, 0f, 0f, 0f,   // col 0
-				0f, 1f, 0f, 0f,   // col 1
-				0f, 0f, 1f, 0f, // col 2
-				16f, 10f, 0f, 1f // col 3
-			));
-			SubPic_54.Draw(canvas);
-			SubPic_55.Draw(canvas);
-			canvas.Save();
-			// SET_M44 (SkM44, column-major):
-			canvas.SetMatrix(new SKMatrix44(
-				1f, 0f, 0f, 0f,   // col 0
-				0f, 1f, 0f, 0f,   // col 1
-				0f, 0f, 1f, 0f, // col 2
-				47f, 10f, 0f, 1f // col 3
-			));
-			canvas.Save();
-			// SET_M44 (SkM44, column-major):
-			canvas.SetMatrix(new SKMatrix44(
-				1f, 0f, 0f, 0f,   // col 0
-				0f, 1f, 0f, 0f,   // col 1
-				0f, 0f, 1f, 0f, // col 2
-				47f, 12f, 0f, 1f // col 3
-			));
-			if (textBlobTable[1] is { } b608) canvas.DrawText(b608, 0f, 0f, paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 50 — cull (-536870880, -536870880, 536870880, 536870880); 208 op bytes; 2 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_50
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[3];
@@ -6217,7 +7069,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[2] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -6249,7 +7101,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -6257,7 +7109,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -6266,26 +7118,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 115f, 40f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 115f, 40f), paintTable[2]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 51 — cull (-536870880, -536870880, 536870880, 536870880); 208 op bytes; 2 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_51
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[3];
@@ -6294,7 +7132,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[2] = new SKPaint { Color = new SKColor(0, 0, 0, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -6326,7 +7164,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -6334,7 +7172,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -6343,26 +7181,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 115f, 40f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 115f, 40f), paintTable[2]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 52 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_52
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -6370,7 +7194,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -6378,7 +7202,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -6386,7 +7210,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -6395,19 +7219,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 115f, 40f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 115f, 40f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 53 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_53
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -6415,7 +7232,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -6423,7 +7240,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -6431,7 +7248,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -6440,22 +7257,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 115f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 115f, 40f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 54 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_54
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -6463,7 +7270,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(0, 0, 0, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -6471,7 +7278,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -6479,7 +7286,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -6488,19 +7295,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 23f, 21f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 23f, 21f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 55 — cull (-536870880, -536870880, 536870880, 536870880); 48 op bytes; 1 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_55
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -6508,7 +7308,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 255), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -6543,7 +7343,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -6551,7 +7351,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -6560,19 +7360,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(1f, 3f, 23f, 21f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 56 — cull (-536870880, -536870880, 536870880, 536870880); 564 op bytes; 1 paints; 0 paths; 0 images; 1 textblobs; 4 nested sub-pictures.
 	private static class SubPic_56
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -6580,7 +7373,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(28, 27, 31, 30), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -6588,7 +7381,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -6596,7 +7389,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -6617,52 +7410,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 160f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			SubPic_57.Draw(canvas);
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 160f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 160f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			SubPic_58.Draw(canvas);
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 160f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			SubPic_59.Draw(canvas);
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 160f, 40f), SKClipOperation.Intersect, antialias: true);
-			SubPic_60.Draw(canvas);
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 160f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			// SET_M44 (SkM44, column-major):
-			canvas.SetMatrix(new SKMatrix44(
-				1f, 0f, 0f, 0f,   // col 0
-				0f, 1f, 0f, 0f,   // col 1
-				0f, 0f, 1f, 0f, // col 2
-				16f, 12f, 0f, 1f // col 3
-			));
-			canvas.Save();
-			// SET_M44 (SkM44, column-major):
-			canvas.SetMatrix(new SKMatrix44(
-				1f, 0f, 0f, 0f,   // col 0
-				0f, 1f, 0f, 0f,   // col 1
-				0f, 0f, 1f, 0f, // col 2
-				24f, 12f, 0f, 1f // col 3
-			));
-			if (textBlobTable[1] is { } b520) canvas.DrawText(b520, 0f, 0f, paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 57 — cull (-536870880, -536870880, 536870880, 536870880); 208 op bytes; 2 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_57
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[3];
@@ -6671,7 +7424,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[2] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -6703,7 +7456,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -6711,7 +7464,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -6720,26 +7473,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 160f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 160f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 160f, 40f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 160f, 40f), paintTable[2]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 58 — cull (-536870880, -536870880, 536870880, 536870880); 208 op bytes; 2 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_58
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[3];
@@ -6748,7 +7487,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[2] = new SKPaint { Color = new SKColor(0, 0, 0, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -6780,7 +7519,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -6788,7 +7527,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -6797,26 +7536,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 160f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 160f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 160f, 40f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 160f, 40f), paintTable[2]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 59 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_59
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -6824,7 +7549,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -6832,7 +7557,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -6840,7 +7565,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -6849,19 +7574,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 160f, 40f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 160f, 40f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 60 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_60
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -6869,7 +7587,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -6877,7 +7595,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -6885,7 +7603,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -6894,22 +7612,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 160f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 160f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 160f, 40f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 61 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_61
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -6917,7 +7625,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(121, 116, 126, 127), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -6925,7 +7633,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -6933,7 +7641,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -6942,19 +7650,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 666f, 50f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 666f, 50f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 62 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_62
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -6962,7 +7663,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -6970,7 +7671,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -6978,7 +7679,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -6987,19 +7688,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 50f, 50f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 63 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_63
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -7007,7 +7701,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -7015,7 +7709,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -7023,7 +7717,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -7032,22 +7726,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 64 — cull (-536870880, -536870880, 536870880, 536870880); 124 op bytes; 1 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_64
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -7055,7 +7739,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(28, 27, 31, 163), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -7092,7 +7776,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -7100,7 +7784,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -7109,28 +7793,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			// CONCAT44 (SkM44, column-major):
-			canvas.Concat(new SKMatrix44(
-				1f, 0f, 0f, 0f,   // col 0
-				0f, 1f, 0f, 0f,   // col 1
-				0f, 0f, 1f, 0f, // col 2
-				-3f, -1f, 0f, 1f // col 3
-			));
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(3f, 1f, 22f, 23f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 65 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_65
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -7138,7 +7806,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -7146,7 +7814,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -7154,7 +7822,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -7163,19 +7831,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 50f, 50f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 66 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_66
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -7183,7 +7844,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -7191,7 +7852,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -7199,7 +7860,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -7208,22 +7869,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 67 — cull (-536870880, -536870880, 536870880, 536870880); 124 op bytes; 1 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_67
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -7231,7 +7882,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(28, 27, 31, 163), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -7259,7 +7910,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -7267,7 +7918,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -7276,28 +7927,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			// CONCAT44 (SkM44, column-major):
-			canvas.Concat(new SKMatrix44(
-				1f, 0f, 0f, 0f,   // col 0
-				0f, 1f, 0f, 0f,   // col 1
-				0f, 0f, 1f, 0f, // col 2
-				-2f, -6f, 0f, 1f // col 3
-			));
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(2f, 6f, 22f, 18f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 68 — cull (-536870880, -536870880, 536870880, 536870880); 48 op bytes; 1 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_68
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -7305,7 +7940,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(28, 27, 31, 33), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -7327,7 +7962,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -7335,7 +7970,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -7344,19 +7979,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 668f, 244f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 69 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_69
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -7364,7 +7992,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(0, 29, 54, 25), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -7372,7 +8000,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -7380,7 +8008,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -7389,19 +8017,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 666f, 192f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 666f, 192f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 70 — cull (-536870880, -536870880, 536870880, 536870880); 632 op bytes; 1 paints; 0 paths; 0 images; 1 textblobs; 4 nested sub-pictures.
 	private static class SubPic_70
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -7409,7 +8030,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(34, 5, 85, 255), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -7417,7 +8038,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -7425,7 +8046,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -7446,55 +8067,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 141f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			SubPic_71.Draw(canvas);
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 141f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 141f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			SubPic_72.Draw(canvas);
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 141f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			SubPic_73.Draw(canvas);
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 141f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Restore();
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 141f, 40f), SKClipOperation.Intersect, antialias: true);
-			SubPic_74.Draw(canvas);
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 141f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			// SET_M44 (SkM44, column-major):
-			canvas.SetMatrix(new SKMatrix44(
-				1f, 0f, 0f, 0f,   // col 0
-				0f, 1f, 0f, 0f,   // col 1
-				0f, 0f, 1f, 0f, // col 2
-				16f, 12f, 0f, 1f // col 3
-			));
-			canvas.Save();
-			// SET_M44 (SkM44, column-major):
-			canvas.SetMatrix(new SKMatrix44(
-				1f, 0f, 0f, 0f,   // col 0
-				0f, 1f, 0f, 0f,   // col 1
-				0f, 0f, 1f, 0f, // col 2
-				24f, 12f, 0f, 1f // col 3
-			));
-			if (textBlobTable[1] is { } b588) canvas.DrawText(b588, 0f, 0f, paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 71 — cull (-536870880, -536870880, 536870880, 536870880); 208 op bytes; 2 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_71
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[3];
@@ -7503,7 +8081,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[2] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -7535,7 +8113,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -7543,7 +8121,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -7552,26 +8130,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 141f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 141f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 141f, 40f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 141f, 40f), paintTable[2]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 72 — cull (-536870880, -536870880, 536870880, 536870880); 208 op bytes; 2 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_72
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[3];
@@ -7580,7 +8144,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[2] = new SKPaint { Color = new SKColor(0, 0, 0, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -7612,7 +8176,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -7620,7 +8184,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -7629,26 +8193,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 141f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 141f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 141f, 40f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 141f, 40f), paintTable[2]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 73 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_73
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -7656,7 +8206,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -7664,7 +8214,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -7672,7 +8222,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -7681,22 +8231,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 141f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 141f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 141f, 40f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 74 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_74
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -7704,7 +8244,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -7712,7 +8252,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -7720,7 +8260,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -7729,22 +8269,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 141f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 141f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 141f, 40f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 75 — cull (-536870880, -536870880, 536870880, 536870880); 724 op bytes; 1 paints; 0 paths; 0 images; 1 textblobs; 6 nested sub-pictures.
 	private static class SubPic_75
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -7752,7 +8282,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(34, 5, 85, 255), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -7760,7 +8290,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -7768,7 +8298,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -7789,66 +8319,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 164f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			SubPic_76.Draw(canvas);
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 164f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 164f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			SubPic_77.Draw(canvas);
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 164f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			SubPic_78.Draw(canvas);
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 164f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Restore();
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 164f, 40f), SKClipOperation.Intersect, antialias: true);
-			SubPic_79.Draw(canvas);
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 164f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			// SET_M44 (SkM44, column-major):
-			canvas.SetMatrix(new SKMatrix44(
-				1f, 0f, 0f, 0f,   // col 0
-				0f, 1f, 0f, 0f,   // col 1
-				0f, 0f, 1f, 0f, // col 2
-				16f, 10f, 0f, 1f // col 3
-			));
-			SubPic_80.Draw(canvas);
-			SubPic_81.Draw(canvas);
-			canvas.Save();
-			// SET_M44 (SkM44, column-major):
-			canvas.SetMatrix(new SKMatrix44(
-				1f, 0f, 0f, 0f,   // col 0
-				0f, 1f, 0f, 0f,   // col 1
-				0f, 0f, 1f, 0f, // col 2
-				47f, 10f, 0f, 1f // col 3
-			));
-			canvas.Save();
-			// SET_M44 (SkM44, column-major):
-			canvas.SetMatrix(new SKMatrix44(
-				1f, 0f, 0f, 0f,   // col 0
-				0f, 1f, 0f, 0f,   // col 1
-				0f, 0f, 1f, 0f, // col 2
-				47f, 12f, 0f, 1f // col 3
-			));
-			if (textBlobTable[1] is { } b676) canvas.DrawText(b676, 0f, 0f, paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 76 — cull (-536870880, -536870880, 536870880, 536870880); 208 op bytes; 2 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_76
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[3];
@@ -7857,7 +8333,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[2] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -7889,7 +8365,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -7897,7 +8373,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -7906,26 +8382,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 164f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 164f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 164f, 40f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 164f, 40f), paintTable[2]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 77 — cull (-536870880, -536870880, 536870880, 536870880); 208 op bytes; 2 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_77
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[3];
@@ -7934,7 +8396,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[2] = new SKPaint { Color = new SKColor(0, 0, 0, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -7966,7 +8428,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -7974,7 +8436,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -7983,26 +8445,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 164f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 164f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 164f, 40f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 164f, 40f), paintTable[2]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 78 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_78
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -8010,7 +8458,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -8018,7 +8466,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -8026,7 +8474,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -8035,22 +8483,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 164f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 164f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 164f, 40f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 79 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_79
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -8058,7 +8496,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -8066,7 +8504,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -8074,7 +8512,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -8083,22 +8521,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 164f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 164f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 164f, 40f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 80 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_80
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -8106,7 +8534,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(0, 0, 0, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -8114,7 +8542,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -8122,7 +8550,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -8131,19 +8559,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 23f, 21f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 23f, 21f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 81 — cull (-536870880, -536870880, 536870880, 536870880); 48 op bytes; 1 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_81
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -8151,7 +8572,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(34, 5, 85, 255), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -8186,7 +8607,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -8194,7 +8615,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -8203,19 +8624,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(1f, 3f, 23f, 21f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 82 — cull (-536870880, -536870880, 536870880, 536870880); 632 op bytes; 1 paints; 0 paths; 0 images; 1 textblobs; 4 nested sub-pictures.
 	private static class SubPic_82
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -8223,7 +8637,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(28, 27, 31, 30), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -8231,7 +8645,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -8239,7 +8653,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -8260,55 +8674,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 209f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			SubPic_83.Draw(canvas);
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 209f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 209f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			SubPic_84.Draw(canvas);
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 209f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			SubPic_85.Draw(canvas);
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 209f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Restore();
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 209f, 40f), SKClipOperation.Intersect, antialias: true);
-			SubPic_86.Draw(canvas);
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 209f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			// SET_M44 (SkM44, column-major):
-			canvas.SetMatrix(new SKMatrix44(
-				1f, 0f, 0f, 0f,   // col 0
-				0f, 1f, 0f, 0f,   // col 1
-				0f, 0f, 1f, 0f, // col 2
-				16f, 12f, 0f, 1f // col 3
-			));
-			canvas.Save();
-			// SET_M44 (SkM44, column-major):
-			canvas.SetMatrix(new SKMatrix44(
-				1f, 0f, 0f, 0f,   // col 0
-				0f, 1f, 0f, 0f,   // col 1
-				0f, 0f, 1f, 0f, // col 2
-				24f, 12f, 0f, 1f // col 3
-			));
-			if (textBlobTable[1] is { } b588) canvas.DrawText(b588, 0f, 0f, paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 83 — cull (-536870880, -536870880, 536870880, 536870880); 208 op bytes; 2 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_83
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[3];
@@ -8317,7 +8688,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[2] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -8349,7 +8720,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -8357,7 +8728,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -8366,26 +8737,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 209f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 209f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 209f, 40f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 209f, 40f), paintTable[2]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 84 — cull (-536870880, -536870880, 536870880, 536870880); 208 op bytes; 2 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_84
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[3];
@@ -8394,7 +8751,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[2] = new SKPaint { Color = new SKColor(0, 0, 0, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -8426,7 +8783,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -8434,7 +8791,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -8443,26 +8800,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 209f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 209f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 209f, 40f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 209f, 40f), paintTable[2]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 85 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_85
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -8470,7 +8813,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -8478,7 +8821,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -8486,7 +8829,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -8495,22 +8838,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 209f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 209f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 209f, 40f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 86 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_86
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -8518,7 +8851,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -8526,7 +8859,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -8534,7 +8867,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -8543,22 +8876,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 209f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 209f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 209f, 40f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 87 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_87
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -8566,7 +8889,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(121, 116, 126, 127), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -8574,7 +8897,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -8582,7 +8905,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -8591,19 +8914,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 666f, 50f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 666f, 50f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 88 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_88
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -8611,7 +8927,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -8619,7 +8935,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -8627,7 +8943,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -8636,19 +8952,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 50f, 50f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 89 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_89
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -8656,7 +8965,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -8664,7 +8973,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -8672,7 +8981,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -8681,22 +8990,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 90 — cull (-536870880, -536870880, 536870880, 536870880); 124 op bytes; 1 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_90
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -8704,7 +9003,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(28, 27, 31, 163), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -8741,7 +9040,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -8749,7 +9048,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -8758,28 +9057,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			// CONCAT44 (SkM44, column-major):
-			canvas.Concat(new SKMatrix44(
-				1f, 0f, 0f, 0f,   // col 0
-				0f, 1f, 0f, 0f,   // col 1
-				0f, 0f, 1f, 0f, // col 2
-				-3f, -1f, 0f, 1f // col 3
-			));
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(3f, 1f, 22f, 23f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 91 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_91
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -8787,7 +9070,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -8795,7 +9078,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -8803,7 +9086,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -8812,19 +9095,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 50f, 50f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 92 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_92
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -8832,7 +9108,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -8840,7 +9116,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -8848,7 +9124,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -8857,22 +9133,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 93 — cull (-536870880, -536870880, 536870880, 536870880); 124 op bytes; 1 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_93
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -8880,7 +9146,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(28, 27, 31, 163), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -8908,7 +9174,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -8916,7 +9182,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -8925,28 +9191,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			// CONCAT44 (SkM44, column-major):
-			canvas.Concat(new SKMatrix44(
-				1f, 0f, 0f, 0f,   // col 0
-				0f, 1f, 0f, 0f,   // col 1
-				0f, 0f, 1f, 0f, // col 2
-				-2f, -6f, 0f, 1f // col 3
-			));
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(2f, 6f, 22f, 18f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 94 — cull (-536870880, -536870880, 536870880, 536870880); 48 op bytes; 1 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_94
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -8954,7 +9204,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(28, 27, 31, 33), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -8976,7 +9226,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -8984,7 +9234,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -8993,19 +9243,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 668f, 244f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 95 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_95
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -9013,7 +9256,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(0, 29, 54, 25), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -9021,7 +9264,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -9029,7 +9272,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -9038,19 +9281,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 666f, 192f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 666f, 192f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 96 — cull (-536870880, -536870880, 536870880, 536870880); 284 op bytes; 2 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_96
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[3];
@@ -9059,7 +9295,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[2] = new SKPaint { Color = new SKColor(121, 116, 126, 255), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -9091,7 +9327,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -9099,7 +9335,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -9108,35 +9344,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(1f, 1f, 115f, 39f), new[] { new SKPoint(19f, 19f), new SKPoint(19f, 19f), new SKPoint(19f, 19f), new SKPoint(19f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			// CONCAT44 (SkM44, column-major):
-			canvas.Concat(new SKMatrix44(
-				1f, 0f, 0f, 0f,   // col 0
-				0f, 1f, 0f, 0f,   // col 1
-				0f, 0f, 1f, 0f, // col 2
-				1f, 1f, 0f, 1f // col 3
-			));
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 114f, 38f), new[] { new SKPoint(19f, 19f), new SKPoint(19f, 19f), new SKPoint(19f, 19f), new SKPoint(19f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 114f, 38f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 116f, 40f), paintTable[2]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 97 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_97
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -9144,7 +9357,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -9152,7 +9365,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -9160,7 +9373,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -9169,22 +9382,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 114f, 38f), new[] { new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 114f, 38f), new[] { new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 114f, 38f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 98 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_98
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -9192,7 +9395,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -9200,7 +9403,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -9208,7 +9411,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -9217,22 +9420,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 114f, 38f), new[] { new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 114f, 38f), new[] { new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 114f, 38f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 99 — cull (-536870880, -536870880, 536870880, 536870880); 284 op bytes; 2 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_99
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[3];
@@ -9241,7 +9434,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[2] = new SKPaint { Color = new SKColor(121, 116, 126, 255), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -9273,7 +9466,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -9281,7 +9474,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -9290,35 +9483,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(1f, 1f, 175f, 39f), new[] { new SKPoint(19f, 19f), new SKPoint(19f, 19f), new SKPoint(19f, 19f), new SKPoint(19f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			// CONCAT44 (SkM44, column-major):
-			canvas.Concat(new SKMatrix44(
-				1f, 0f, 0f, 0f,   // col 0
-				0f, 1f, 0f, 0f,   // col 1
-				0f, 0f, 1f, 0f, // col 2
-				1f, 1f, 0f, 1f // col 3
-			));
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 174f, 38f), new[] { new SKPoint(19f, 19f), new SKPoint(19f, 19f), new SKPoint(19f, 19f), new SKPoint(19f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 174f, 38f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 176f, 40f), paintTable[2]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 100 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_100
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -9326,7 +9496,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -9334,7 +9504,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -9342,7 +9512,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -9351,22 +9521,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 174f, 38f), new[] { new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 174f, 38f), new[] { new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 174f, 38f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 101 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_101
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -9374,7 +9534,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -9382,7 +9542,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -9390,7 +9550,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -9399,22 +9559,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 174f, 38f), new[] { new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 174f, 38f), new[] { new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 174f, 38f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 102 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_102
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -9422,7 +9572,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(0, 0, 0, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -9430,7 +9580,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -9438,7 +9588,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -9447,19 +9597,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 23f, 22f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 23f, 22f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 103 — cull (-536870880, -536870880, 536870880, 536870880); 48 op bytes; 1 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_103
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -9467,7 +9610,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(89, 70, 210, 255), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -9505,7 +9648,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -9513,7 +9656,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -9522,19 +9665,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(1f, 4f, 23f, 22f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 104 — cull (-536870880, -536870880, 536870880, 536870880); 284 op bytes; 2 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_104
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[3];
@@ -9543,7 +9679,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[2] = new SKPaint { Color = new SKColor(28, 27, 31, 30), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -9575,7 +9711,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -9583,7 +9719,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -9592,35 +9728,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(1f, 1f, 183f, 39f), new[] { new SKPoint(19f, 19f), new SKPoint(19f, 19f), new SKPoint(19f, 19f), new SKPoint(19f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			// CONCAT44 (SkM44, column-major):
-			canvas.Concat(new SKMatrix44(
-				1f, 0f, 0f, 0f,   // col 0
-				0f, 1f, 0f, 0f,   // col 1
-				0f, 0f, 1f, 0f, // col 2
-				1f, 1f, 0f, 1f // col 3
-			));
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 182f, 38f), new[] { new SKPoint(19f, 19f), new SKPoint(19f, 19f), new SKPoint(19f, 19f), new SKPoint(19f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 182f, 38f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 184f, 40f), paintTable[2]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 105 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_105
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -9628,7 +9741,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -9636,7 +9749,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -9644,7 +9757,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -9653,22 +9766,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 182f, 38f), new[] { new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 182f, 38f), new[] { new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 182f, 38f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 106 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_106
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -9676,7 +9779,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -9684,7 +9787,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -9692,7 +9795,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -9701,22 +9804,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 182f, 38f), new[] { new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 182f, 38f), new[] { new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 182f, 38f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 107 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_107
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -9724,7 +9817,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(121, 116, 126, 127), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -9732,7 +9825,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -9740,7 +9833,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -9749,19 +9842,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 666f, 50f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 666f, 50f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 108 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_108
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -9769,7 +9855,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -9777,7 +9863,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -9785,7 +9871,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -9794,19 +9880,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 50f, 50f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 109 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_109
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -9814,7 +9893,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -9822,7 +9901,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -9830,7 +9909,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -9839,22 +9918,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 110 — cull (-536870880, -536870880, 536870880, 536870880); 124 op bytes; 1 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_110
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -9862,7 +9931,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(28, 27, 31, 163), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -9899,7 +9968,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -9907,7 +9976,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -9916,28 +9985,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			// CONCAT44 (SkM44, column-major):
-			canvas.Concat(new SKMatrix44(
-				1f, 0f, 0f, 0f,   // col 0
-				0f, 1f, 0f, 0f,   // col 1
-				0f, 0f, 1f, 0f, // col 2
-				-3f, -1f, 0f, 1f // col 3
-			));
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(3f, 1f, 22f, 23f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 111 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_111
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -9945,7 +9998,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -9953,7 +10006,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -9961,7 +10014,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -9970,19 +10023,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 50f, 50f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 112 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_112
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -9990,7 +10036,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -9998,7 +10044,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -10006,7 +10052,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -10015,22 +10061,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 113 — cull (-536870880, -536870880, 536870880, 536870880); 124 op bytes; 1 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_113
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -10038,7 +10074,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(28, 27, 31, 163), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -10066,7 +10102,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -10074,7 +10110,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -10083,28 +10119,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			// CONCAT44 (SkM44, column-major):
-			canvas.Concat(new SKMatrix44(
-				1f, 0f, 0f, 0f,   // col 0
-				0f, 1f, 0f, 0f,   // col 1
-				0f, 0f, 1f, 0f, // col 2
-				-2f, -6f, 0f, 1f // col 3
-			));
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(2f, 6f, 22f, 18f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 114 — cull (-536870880, -536870880, 536870880, 536870880); 48 op bytes; 1 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_114
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -10112,7 +10132,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(28, 27, 31, 33), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -10134,7 +10154,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -10142,7 +10162,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -10151,19 +10171,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 668f, 204f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 115 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_115
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -10171,7 +10184,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(0, 29, 54, 25), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -10179,7 +10192,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -10187,7 +10200,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -10196,19 +10209,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 666f, 152f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 666f, 152f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 116 — cull (-536870880, -536870880, 536870880, 536870880); 208 op bytes; 2 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_116
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[3];
@@ -10217,7 +10223,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[2] = new SKPaint { Color = new SKColor(0, 0, 0, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -10249,7 +10255,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -10257,7 +10263,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -10266,26 +10272,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 58f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 58f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 58f, 40f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 58f, 40f), paintTable[2]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 117 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_117
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -10293,7 +10285,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -10301,7 +10293,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -10309,7 +10301,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -10318,22 +10310,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 58f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 58f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 58f, 40f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 118 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_118
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -10341,7 +10323,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -10349,7 +10331,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -10357,7 +10339,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -10366,22 +10348,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 58f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 58f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 58f, 40f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 119 — cull (-536870880, -536870880, 536870880, 536870880); 208 op bytes; 2 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_119
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[3];
@@ -10390,7 +10362,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[2] = new SKPaint { Color = new SKColor(0, 0, 0, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -10422,7 +10394,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -10430,7 +10402,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -10439,26 +10411,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 125f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 125f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 125f, 40f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 125f, 40f), paintTable[2]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 120 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_120
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -10466,7 +10424,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -10474,7 +10432,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -10482,7 +10440,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -10491,22 +10449,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 125f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 125f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 125f, 40f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 121 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_121
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -10514,7 +10462,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -10522,7 +10470,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -10530,7 +10478,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -10539,22 +10487,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 125f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 125f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 125f, 40f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 122 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_122
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -10562,7 +10500,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(0, 0, 0, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -10570,7 +10508,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -10578,7 +10516,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -10587,19 +10525,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 20f, 19f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 20f, 19f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 123 — cull (-536870880, -536870880, 536870880, 536870880); 48 op bytes; 1 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_123
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -10607,7 +10538,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(89, 70, 210, 255), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -10641,7 +10572,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -10649,7 +10580,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -10658,19 +10589,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(4.34000015f, 4f, 19.6599998f, 19f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 124 — cull (-536870880, -536870880, 536870880, 536870880); 208 op bytes; 2 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_124
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[3];
@@ -10679,7 +10603,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[2] = new SKPaint { Color = new SKColor(0, 0, 0, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -10711,7 +10635,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -10719,7 +10643,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -10728,26 +10652,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 126f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 126f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 126f, 40f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 126f, 40f), paintTable[2]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 125 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_125
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -10755,7 +10665,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -10763,7 +10673,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -10771,7 +10681,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -10780,22 +10690,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 126f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 126f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 126f, 40f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 126 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_126
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -10803,7 +10703,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -10811,7 +10711,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -10819,7 +10719,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -10828,22 +10728,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 126f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 126f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 126f, 40f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 127 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_127
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -10851,7 +10741,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(121, 116, 126, 127), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -10859,7 +10749,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -10867,7 +10757,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -10876,19 +10766,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 666f, 50f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 666f, 50f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 128 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_128
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -10896,7 +10779,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -10904,7 +10787,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -10912,7 +10795,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -10921,19 +10804,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 50f, 50f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 129 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_129
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -10941,7 +10817,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -10949,7 +10825,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -10957,7 +10833,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -10966,22 +10842,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 130 — cull (-536870880, -536870880, 536870880, 536870880); 124 op bytes; 1 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_130
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -10989,7 +10855,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(28, 27, 31, 163), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -11026,7 +10892,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -11034,7 +10900,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -11043,28 +10909,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			// CONCAT44 (SkM44, column-major):
-			canvas.Concat(new SKMatrix44(
-				1f, 0f, 0f, 0f,   // col 0
-				0f, 1f, 0f, 0f,   // col 1
-				0f, 0f, 1f, 0f, // col 2
-				-3f, -1f, 0f, 1f // col 3
-			));
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(3f, 1f, 22f, 23f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 131 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_131
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -11072,7 +10922,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -11080,7 +10930,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -11088,7 +10938,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -11097,19 +10947,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 50f, 50f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 132 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_132
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -11117,7 +10960,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -11125,7 +10968,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -11133,7 +10976,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -11142,22 +10985,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 133 — cull (-536870880, -536870880, 536870880, 536870880); 124 op bytes; 1 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_133
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -11165,7 +10998,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(28, 27, 31, 163), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -11193,7 +11026,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -11201,7 +11034,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -11210,28 +11043,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			// CONCAT44 (SkM44, column-major):
-			canvas.Concat(new SKMatrix44(
-				1f, 0f, 0f, 0f,   // col 0
-				0f, 1f, 0f, 0f,   // col 1
-				0f, 0f, 1f, 0f, // col 2
-				-2f, -6f, 0f, 1f // col 3
-			));
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(2f, 6f, 22f, 18f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 134 — cull (-536870880, -536870880, 536870880, 536870880); 48 op bytes; 1 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_134
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -11239,7 +11056,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(28, 27, 31, 33), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -11261,7 +11078,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -11269,7 +11086,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -11278,19 +11095,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 668f, 184f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 135 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_135
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -11298,7 +11108,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(0, 29, 54, 25), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -11306,7 +11116,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -11314,7 +11124,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -11323,19 +11133,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 666f, 132f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 666f, 132f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 136 — cull (-536870880, -536870880, 536870880, 536870880); 208 op bytes; 2 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_136
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[3];
@@ -11345,7 +11148,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			// paints[2].Shader = SkLocalMatrixShader — not reconstructed
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -11369,7 +11172,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -11377,7 +11180,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -11386,26 +11189,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 40f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 40f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 40f, 40f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 40f, 40f), paintTable[2]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 137 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_137
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -11413,7 +11202,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(0, 0, 0, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -11421,7 +11210,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -11429,7 +11218,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -11438,19 +11227,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 20f, 20f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 20f, 20f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 138 — cull (-536870880, -536870880, 536870880, 536870880); 208 op bytes; 2 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_138
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[3];
@@ -11460,7 +11242,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			// paints[2].Shader = SkLocalMatrixShader — not reconstructed
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -11484,7 +11266,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -11492,7 +11274,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -11501,26 +11283,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 40f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 40f, 40f), new[] { new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f), new SKPoint(20f, 20f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 40f, 40f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 40f, 40f), paintTable[2]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 139 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_139
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -11528,7 +11296,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(0, 0, 0, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -11536,7 +11304,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -11544,7 +11312,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -11553,19 +11321,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 20f, 20f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 20f, 20f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 140 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_140
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -11573,7 +11334,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(121, 116, 126, 127), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -11581,7 +11342,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -11589,7 +11350,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -11598,19 +11359,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 666f, 50f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 666f, 50f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 141 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_141
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -11618,7 +11372,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -11626,7 +11380,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -11634,7 +11388,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -11643,19 +11397,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 50f, 50f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 142 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_142
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -11663,7 +11410,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -11671,7 +11418,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -11679,7 +11426,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -11688,22 +11435,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 143 — cull (-536870880, -536870880, 536870880, 536870880); 124 op bytes; 1 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_143
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -11711,7 +11448,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(28, 27, 31, 163), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -11748,7 +11485,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -11756,7 +11493,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -11765,28 +11502,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			// CONCAT44 (SkM44, column-major):
-			canvas.Concat(new SKMatrix44(
-				1f, 0f, 0f, 0f,   // col 0
-				0f, 1f, 0f, 0f,   // col 1
-				0f, 0f, 1f, 0f, // col 2
-				-3f, -1f, 0f, 1f // col 3
-			));
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(3f, 1f, 22f, 23f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 144 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_144
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -11794,7 +11515,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -11802,7 +11523,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -11810,7 +11531,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -11819,19 +11540,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 50f, 50f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 145 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_145
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -11839,7 +11553,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -11847,7 +11561,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -11855,7 +11569,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -11864,22 +11578,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 50f, 50f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 50f, 50f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 146 — cull (-536870880, -536870880, 536870880, 536870880); 124 op bytes; 1 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_146
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -11887,7 +11591,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(28, 27, 31, 163), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -11915,7 +11619,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -11923,7 +11627,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -11932,28 +11636,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			// CONCAT44 (SkM44, column-major):
-			canvas.Concat(new SKMatrix44(
-				1f, 0f, 0f, 0f,   // col 0
-				0f, 1f, 0f, 0f,   // col 1
-				0f, 0f, 1f, 0f, // col 2
-				-2f, -6f, 0f, 1f // col 3
-			));
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(2f, 6f, 22f, 18f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 147 — cull (-536870880, -536870880, 536870880, 536870880); 48 op bytes; 1 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_147
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -11961,7 +11649,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -11983,7 +11671,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -11991,7 +11679,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -12000,19 +11688,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 764f, 0f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 148 — cull (-536870880, -536870880, 536870880, 536870880); 48 op bytes; 1 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_148
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -12020,7 +11701,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -12037,7 +11718,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -12045,7 +11726,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -12054,19 +11735,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 764f, 0f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 149 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_149
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -12074,7 +11748,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 255), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -12082,7 +11756,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -12090,7 +11764,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -12099,19 +11773,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 260f, 640f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 260f, 640f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 150 — cull (-536870880, -536870880, 536870880, 536870880); 48 op bytes; 1 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_150
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -12119,7 +11786,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(28, 27, 31, 51), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -12141,7 +11808,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -12149,7 +11816,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -12158,19 +11825,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 260f, 640f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 151 — cull (-536870880, -536870880, 536870880, 536870880); 140 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_151
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -12178,7 +11838,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(0, 0, 0, 255), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -12186,7 +11846,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -12194,7 +11854,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -12203,25 +11863,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			// CONCAT44 (SkM44, column-major):
-			canvas.Concat(new SKMatrix44(
-				0.986666679f, 0f, 0f, 0f,   // col 0
-				0f, 0.990099013f, 0f, 0f,   // col 1
-				0f, 0f, 1f, 0f, // col 2
-				0f, 0f, 0f, 1f // col 3
-			));
-			// DRAW_IMAGE_RECT2 idx=0 (null image) skipped
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 152 — cull (-536870880, -536870880, 536870880, 536870880); 284 op bytes; 2 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_152
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[3];
@@ -12230,7 +11877,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[2] = new SKPaint { Color = new SKColor(121, 116, 126, 255), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -12262,7 +11909,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -12270,7 +11917,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -12279,35 +11926,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(1f, 1f, 59f, 39f), new[] { new SKPoint(19f, 19f), new SKPoint(19f, 19f), new SKPoint(19f, 19f), new SKPoint(19f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			// CONCAT44 (SkM44, column-major):
-			canvas.Concat(new SKMatrix44(
-				1f, 0f, 0f, 0f,   // col 0
-				0f, 1f, 0f, 0f,   // col 1
-				0f, 0f, 1f, 0f, // col 2
-				1f, 1f, 0f, 1f // col 3
-			));
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 58f, 38f), new[] { new SKPoint(19f, 19f), new SKPoint(19f, 19f), new SKPoint(19f, 19f), new SKPoint(19f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 58f, 38f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 60f, 40f), paintTable[2]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 153 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_153
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -12315,7 +11939,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -12323,7 +11947,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -12331,7 +11955,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -12340,22 +11964,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 58f, 38f), new[] { new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 58f, 38f), new[] { new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 58f, 38f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 154 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_154
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -12363,7 +11977,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -12371,7 +11985,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -12379,7 +11993,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -12388,22 +12002,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 58f, 38f), new[] { new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 58f, 38f), new[] { new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f), new SKPoint(20f, 19f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 58f, 38f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 155 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_155
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -12411,7 +12015,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(0, 0, 0, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -12419,7 +12023,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -12427,7 +12031,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -12436,19 +12040,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 20f, 20f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 20f, 20f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 156 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_156
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -12456,7 +12053,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(150, 121, 255, 255), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -12464,7 +12061,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -12472,7 +12069,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -12481,19 +12078,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 60f, 30f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 60f, 30f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 157 — cull (-536870880, -536870880, 536870880, 536870880); 48 op bytes; 1 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_157
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -12501,7 +12091,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 255), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -12567,7 +12157,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -12575,7 +12165,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -12584,19 +12174,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(1f, 1f, 23f, 23f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 158 — cull (-536870880, -536870880, 536870880, 536870880); 284 op bytes; 2 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_158
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[3];
@@ -12606,7 +12189,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			// paints[2].Shader = SkLocalMatrixShader — not reconstructed
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -12638,7 +12221,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -12646,7 +12229,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -12655,35 +12238,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(1f, 1f, 242f, 32f), new[] { new SKPoint(3.5f, 3.5f), new SKPoint(3.5f, 3.5f), new SKPoint(3.5f, 3.5f), new SKPoint(3.5f, 3.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			// CONCAT44 (SkM44, column-major):
-			canvas.Concat(new SKMatrix44(
-				1f, 0f, 0f, 0f,   // col 0
-				0f, 1f, 0f, 0f,   // col 1
-				0f, 0f, 1f, 0f, // col 2
-				1f, 1f, 0f, 1f // col 3
-			));
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 241f, 31f), new[] { new SKPoint(3.5f, 3.5f), new SKPoint(3.5f, 3.5f), new SKPoint(3.5f, 3.5f), new SKPoint(3.5f, 3.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 241f, 31f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 243f, 33f), paintTable[2]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 159 — cull (-536870880, -536870880, 536870880, 536870880); 48 op bytes; 1 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_159
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -12691,7 +12251,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -12713,7 +12273,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -12721,7 +12281,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -12730,19 +12290,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 203f, 31f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 160 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_160
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -12750,7 +12303,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -12758,7 +12311,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -12766,7 +12319,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -12775,19 +12328,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 203f, 31f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 203f, 31f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 161 — cull (-536870880, -536870880, 536870880, 536870880); 208 op bytes; 2 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_161
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[3];
@@ -12796,7 +12342,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[2] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -12828,7 +12374,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -12836,7 +12382,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -12845,26 +12391,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 30f, 22f), new[] { new SKPoint(4.5f, 4.5f), new SKPoint(4.5f, 4.5f), new SKPoint(4.5f, 4.5f), new SKPoint(4.5f, 4.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 30f, 22f), new[] { new SKPoint(4.5f, 4.5f), new SKPoint(4.5f, 4.5f), new SKPoint(4.5f, 4.5f), new SKPoint(4.5f, 4.5f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 30f, 22f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 30f, 22f), paintTable[2]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 162 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_162
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -12872,7 +12404,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(0, 0, 0, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -12880,7 +12412,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -12888,7 +12420,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -12897,19 +12429,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 12f, 12f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 12f, 12f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 163 — cull (-536870880, -536870880, 536870880, 536870880); 48 op bytes; 1 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_163
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -12917,7 +12442,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -12939,7 +12464,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -12947,7 +12472,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -12956,19 +12481,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 259f, 280f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 164 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_164
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -12976,7 +12494,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -12984,7 +12502,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -12992,7 +12510,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -13001,19 +12519,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 259f, 280f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 259f, 280f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 165 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_165
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -13021,7 +12532,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(0, 0, 0, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -13029,7 +12540,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -13037,7 +12548,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -13046,22 +12557,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 243f, 36f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 166 — cull (-536870880, -536870880, 536870880, 536870880); 48 op bytes; 1 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_166
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -13069,7 +12570,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(0, 0, 0, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -13091,7 +12592,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -13099,7 +12600,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -13108,19 +12609,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 259f, 40f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 167 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_167
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -13128,7 +12622,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -13136,7 +12630,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -13144,7 +12638,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -13153,22 +12647,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 243f, 36f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 168 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_168
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -13176,7 +12660,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(0, 0, 0, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -13184,7 +12668,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -13192,7 +12676,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -13201,19 +12685,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 20f, 20f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 20f, 20f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 169 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_169
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -13221,7 +12698,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(0, 0, 0, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -13229,7 +12706,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -13237,7 +12714,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -13246,22 +12723,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 243f, 36f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 170 — cull (-536870880, -536870880, 536870880, 536870880); 48 op bytes; 1 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_170
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -13269,7 +12736,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(0, 0, 0, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -13291,7 +12758,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -13299,7 +12766,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -13308,19 +12775,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 259f, 40f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 171 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_171
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -13328,7 +12788,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -13336,7 +12796,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -13344,7 +12804,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -13353,22 +12813,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 243f, 36f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 172 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_172
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -13376,7 +12826,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(0, 0, 0, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -13384,7 +12834,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -13392,7 +12842,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -13401,19 +12851,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 20f, 20f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 20f, 20f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 173 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_173
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -13421,7 +12864,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -13429,7 +12872,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -13437,7 +12880,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -13446,19 +12889,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 40f, 40f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 40f, 40f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 174 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_174
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -13466,7 +12902,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(0, 0, 0, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -13474,7 +12910,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -13482,7 +12918,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -13491,22 +12927,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 243f, 36f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 175 — cull (-536870880, -536870880, 536870880, 536870880); 48 op bytes; 1 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_175
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -13514,7 +12940,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(0, 0, 0, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -13536,7 +12962,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -13544,7 +12970,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -13553,19 +12979,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 259f, 40f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 176 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_176
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -13573,7 +12992,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -13581,7 +13000,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -13589,7 +13008,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -13598,22 +13017,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 243f, 36f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 177 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_177
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -13621,7 +13030,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(0, 0, 0, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -13629,7 +13038,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -13637,7 +13046,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -13646,19 +13055,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 20f, 20f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 20f, 20f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 178 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_178
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -13666,7 +13068,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -13674,7 +13076,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -13682,7 +13084,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -13691,19 +13093,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 40f, 40f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 40f, 40f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 179 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_179
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -13711,7 +13106,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(0, 0, 0, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -13719,7 +13114,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -13727,7 +13122,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -13736,22 +13131,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 243f, 36f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 180 — cull (-536870880, -536870880, 536870880, 536870880); 48 op bytes; 1 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_180
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -13759,7 +13144,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(0, 0, 0, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -13781,7 +13166,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -13789,7 +13174,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -13798,19 +13183,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 259f, 40f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 181 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_181
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -13818,7 +13196,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -13826,7 +13204,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -13834,7 +13212,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -13843,22 +13221,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 243f, 36f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 182 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_182
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -13866,7 +13234,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(0, 0, 0, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -13874,7 +13242,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -13882,7 +13250,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -13891,19 +13259,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 20f, 20f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 20f, 20f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 183 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_183
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -13911,7 +13272,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -13919,7 +13280,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -13927,7 +13288,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -13936,19 +13297,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 40f, 40f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 40f, 40f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 184 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_184
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -13956,7 +13310,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(0, 0, 0, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -13964,7 +13318,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -13972,7 +13326,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -13981,22 +13335,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 243f, 36f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 185 — cull (-536870880, -536870880, 536870880, 536870880); 48 op bytes; 1 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_185
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -14004,7 +13348,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(0, 0, 0, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -14026,7 +13370,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -14034,7 +13378,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -14043,19 +13387,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 259f, 40f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 186 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_186
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -14063,7 +13400,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -14071,7 +13408,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -14079,7 +13416,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -14088,22 +13425,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 243f, 36f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 187 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_187
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -14111,7 +13438,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(0, 0, 0, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -14119,7 +13446,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -14127,7 +13454,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -14136,19 +13463,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 20f, 20f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 20f, 20f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 188 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_188
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -14156,7 +13476,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -14164,7 +13484,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -14172,7 +13492,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -14181,19 +13501,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 40f, 40f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 40f, 40f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 189 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_189
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -14201,7 +13514,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(0, 0, 0, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -14209,7 +13522,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -14217,7 +13530,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -14226,22 +13539,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 243f, 36f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 190 — cull (-536870880, -536870880, 536870880, 536870880); 48 op bytes; 1 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_190
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -14249,7 +13552,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(0, 0, 0, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -14271,7 +13574,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -14279,7 +13582,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -14288,19 +13591,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 259f, 40f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 191 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_191
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -14308,7 +13604,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -14316,7 +13612,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -14324,7 +13620,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -14333,22 +13629,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 243f, 36f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 192 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_192
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -14356,7 +13642,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(0, 0, 0, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -14364,7 +13650,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -14372,7 +13658,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -14381,19 +13667,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 20f, 20f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 20f, 20f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 193 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_193
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -14401,7 +13680,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -14409,7 +13688,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -14417,7 +13696,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -14426,19 +13705,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 40f, 40f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 40f, 40f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 194 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_194
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -14446,7 +13718,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(0, 0, 0, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -14454,7 +13726,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -14462,7 +13734,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -14471,22 +13743,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 243f, 36f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 195 — cull (-536870880, -536870880, 536870880, 536870880); 48 op bytes; 1 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_195
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -14494,7 +13756,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(0, 0, 0, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -14516,7 +13778,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -14524,7 +13786,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -14533,19 +13795,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 259f, 40f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 196 — cull (-536870880, -536870880, 536870880, 536870880); 160 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_196
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -14553,7 +13808,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -14561,7 +13816,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -14569,7 +13824,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -14578,22 +13833,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.Save();
-			using (var rrect = new SKRoundRect()) { rrect.SetRectRadii(new SKRect(0f, 0f, 243f, 36f), new[] { new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f), new SKPoint(4f, 4f) }); canvas.ClipRoundRect(rrect, SKClipOperation.Intersect, antialias: true); }
-			canvas.DrawRect(new SKRect(0f, 0f, 243f, 36f), paintTable[1]);
-			canvas.Restore();
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 197 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_197
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -14601,7 +13846,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(0, 0, 0, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -14609,7 +13854,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -14617,7 +13862,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -14626,19 +13871,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 20f, 20f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 20f, 20f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 198 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_198
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -14646,7 +13884,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -14654,7 +13892,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -14662,7 +13900,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -14671,19 +13909,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 40f, 40f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 40f, 40f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 199 — cull (-536870880, -536870880, 536870880, 536870880); 48 op bytes; 1 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_199
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -14691,7 +13922,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -14713,7 +13944,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -14721,7 +13952,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -14730,19 +13961,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 259f, 40f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 200 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_200
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -14750,7 +13974,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(255, 255, 255, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -14758,7 +13982,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -14766,7 +13990,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -14775,19 +13999,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 259f, 40f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 259f, 40f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 201 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_201
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -14795,7 +14012,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(0, 0, 0, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -14803,7 +14020,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -14811,7 +14028,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -14820,19 +14037,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 1f, 640f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 1f, 640f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 202 — cull (-536870880, -536870880, 536870880, 536870880); 60 op bytes; 1 paints; 0 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_202
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -14840,7 +14050,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			paints[1] = new SKPaint { Color = new SKColor(0, 0, 0, 0), IsAntialias = true };
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[1];
@@ -14848,7 +14058,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -14856,7 +14066,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -14865,19 +14075,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipRect(new SKRect(0f, 0f, 40f, 40f), SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 40f, 40f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 	// Sub-picture 203 — cull (-536870880, -536870880, 536870880, 536870880); 48 op bytes; 1 paints; 1 paths; 0 images; 0 textblobs; 0 nested sub-pictures.
 	private static class SubPic_203
 	{
-		private static readonly SKPaint[] paintTable = BuildPaints();
+		internal static readonly SKPaint[] paintTable = BuildPaints();
 		private static SKPaint[] BuildPaints()
 		{
 			var paints = new SKPaint[2];
@@ -14886,7 +14089,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			// paints[1].Shader = SkLocalMatrixShader — not reconstructed
 			return paints;
 		}
-		private static readonly SKPath[] pathTable = BuildPaths();
+		internal static readonly SKPath[] pathTable = BuildPaths();
 		private static SKPath[] BuildPaths()
 		{
 			var paths = new SKPath[2];
@@ -14908,7 +14111,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return paths;
 		}
 
-		private static readonly SKImage[] imageTable = BuildImages();
+		internal static readonly SKImage[] imageTable = BuildImages();
 		private static SKImage[] BuildImages()
 		{
 			var imgs = new SKImage[1];
@@ -14916,7 +14119,7 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return imgs;
 		}
 
-		private static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
+		internal static readonly SKTextBlob[] textBlobTable = BuildTextBlobs();
 		private static SKTextBlob[] BuildTextBlobs()
 		{
 			var tfs = UnoGalleryButtonsScene.typefaceTable;
@@ -14925,13 +14128,6 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 			return blobs;
 		}
 
-		public static void Draw(SKCanvas canvas)
-		{
-			canvas.Save();
-			canvas.ClipPath(pathTable[1], SKClipOperation.Intersect, antialias: true);
-			canvas.DrawRect(new SKRect(0f, 0f, 40f, 40f), paintTable[1]);
-			canvas.Restore();
-		}
 	}
 
 }
@@ -14939,11 +14135,12 @@ public sealed class UnoGalleryButtonsScene : IPartitionedSkiaScene
 // -- header --
 // version = 109
 // op stream = 24216 bytes; array buffer = 20516 bytes
-// requested partitions = 8; actual = 4
-// partition 0: 1 ops
-// partition 1: 671 ops
-// partition 2: 419 ops
-// partition 3: 13 ops
+// requested partitions = 8; actual = 5
+// partition 0: 8 ops
+// partition 1: 1674 ops
+// partition 2: 92 ops
+// partition 3: 76 ops
+// partition 4: 504 ops
 // tree: 204 picture(s) total; 0 unparseable
 // typefaces: 5 at top level; total embedded data 2,003,600 bytes
 //   [1] 'Roboto' w=500 width=5 slant=0 data=168,644 bytes
