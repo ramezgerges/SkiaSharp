@@ -246,6 +246,31 @@ render pipeline in Graphite, not a general batching architectural win.
 | DrawAtlas (200 sprites, 256×256) | 644 μs | **548 μs** | -15% |
 | DiagonalLines (8 stroked lines) | 722 μs | **695 μs** | -4% |
 
+### "Explicit-batch API" hypothesis falsified beyond DrawAtlas
+
+The initial version of this report predicted that other "explicit batch"
+APIs — `DrawVertices` at scale, `DrawPatch` — would show similar wins to
+DrawAtlas because they hit purpose-built Graphite pipelines. Tested and
+falsified: both lost, less badly than typical UI but still lost.
+
+| Scene | ganesh-vulkan | graphite-vulkan | Δ |
+|---|---:|---:|---:|
+| VertexMesh (1 DrawVertices, ~5,200 tris) | 1.21 ms | 1.81 ms | +50% |
+| PatchQuilt (96 DrawPatch calls) | 2.32 ms | 3.13 ms | +35% |
+
+Both scenes' parallel-graphite runs matched sequential (VertexMesh:
+1.807 vs 1.810 ms; PatchQuilt: 3.145 vs 3.133 ms), confirming these
+are pure GPU-side deltas, not CPU-record problems. The scenes are
+*better* on Graphite than typical UI is (which sees +50-200% penalties),
+so the batch-API pipelines exist and are somewhat competitive — but
+they haven't received the same tuning `DrawAtlas` has on Vulkan.
+
+**Sharpened rule:** DrawAtlas is not "representative of a class" —
+it's a specifically-optimised pipeline (Skia's team hand-tuned it
+because Chrome + Flutter hammer it for scrolling image content, emoji,
+sprite rendering). Presumably on Metal the picture is broader; on
+Vulkan on this iGPU, DrawAtlas is the specific win, not a general one.
+
 ### Where parallel-recording lets Graphite catch up
 
 | Scene | ganesh seq | graphite seq | graphite-parallel (best N) |
