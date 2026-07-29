@@ -24,10 +24,18 @@ public sealed class DashboardTilesScene : IPartitionedSkiaScene
 {
 	public string Name => "DashboardTiles";
 	public SKImageInfo Info => new(1024, 768, SKColorType.Rgba8888, SKAlphaType.Premul);
-	public int PartitionCount => 20;
+
+	// 8 partitions is the sweet spot on 4-physical-core / 8-logical-core boxes:
+	// enough parallelism to keep cores busy while each partition does enough
+	// tile work (~2-3 tiles × ~200 μs) to dwarf the per-partition Snap+Insert
+	// dispatch overhead. 20 partitions (one per tile) is dispatch-bound in
+	// practice — see DashboardTiles4/8/12PartitionedScene for the decompiled
+	// sweep across N.
+	public int PartitionCount => 8;
 
 	private const int Cols = 5;
 	private const int Rows = 4;
+	private const int TotalTiles = Cols * Rows;
 	private const float TileW = 190f;
 	private const float TileH = 172f;
 	private const float MarginX = 22f;
@@ -64,12 +72,19 @@ public sealed class DashboardTilesScene : IPartitionedSkiaScene
 		if (partitionIndex == 0)
 			canvas.Clear(Background);
 
-		var col = partitionIndex % Cols;
-		var row = partitionIndex / Cols;
-		var x = MarginX + col * (TileW + GapX);
-		var y = MarginY + row * (TileH + GapY);
-
-		DrawTile(canvas, x, y, partitionIndex);
+		// Split the 20 tiles evenly across PartitionCount. Contiguous ranges
+		// so each partition's tiles share row/column locality — helps GPU
+		// caches. Handles any PartitionCount from 1 to TotalTiles cleanly.
+		var start = partitionIndex * TotalTiles / PartitionCount;
+		var end = (partitionIndex + 1) * TotalTiles / PartitionCount;
+		for (var t = start; t < end; t++)
+		{
+			var col = t % Cols;
+			var row = t / Cols;
+			var x = MarginX + col * (TileW + GapX);
+			var y = MarginY + row * (TileH + GapY);
+			DrawTile(canvas, x, y, t);
+		}
 	}
 
 	private static void DrawTile(SKCanvas canvas, float x, float y, int idx)
